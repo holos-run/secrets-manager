@@ -146,7 +146,7 @@ const file_holos_console_v1_version_proto_rawDesc = "" +
 	"build_date\x18\x04 \x01(\tR\tbuildDate2i\n" +
 	"\x0eVersionService\x12W\n" +
 	"\n" +
-	"GetVersion\x12#.holos.console.v1.GetVersionRequest\x1a$.holos.console.v1.GetVersionResponseBCZAgithub.com/holos-run/holos-console/gen/holos/console/v1;consolev1b\x06proto3"
+	"GetVersion\x12#.holos.console.v1.GetVersionRequest\x1a$.holos.console.v1.GetVersionResponseBEZCgithub.com/holos-run/secrets-manager/gen/holos/console/v1;consolev1b\x06proto3"
 
 var (
 	file_holos_console_v1_version_proto_rawDescOnce sync.Once

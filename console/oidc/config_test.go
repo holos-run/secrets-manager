@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/holos-run/holos-console/console/oidc"
+	"github.com/holos-run/secrets-manager/console/oidc"
 )
 
 func TestGetPassword(t *testing.T) {

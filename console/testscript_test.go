@@ -19,7 +19,7 @@ import (
 
 	"github.com/rogpeppe/go-internal/testscript"
 
-	"github.com/holos-run/holos-console/console"
+	"github.com/holos-run/secrets-manager/console"
 )
 
 func TestScripts(t *testing.T) {

@@ -24,6 +24,6 @@ RUN CGO_ENABLED=0 make build-binary
 # Runtime stage
 FROM gcr.io/distroless/static-debian13:nonroot
 
-COPY --from=build /src/bin/holos-console /bin/holos-console
+COPY --from=build /src/bin/secrets-manager /bin/secrets-manager
 
-ENTRYPOINT ["/bin/holos-console"]
+ENTRYPOINT ["/bin/secrets-manager"]
