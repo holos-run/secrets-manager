@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import { ViewModeToggle } from '@/components/view-mode-toggle'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/profile')({
   component: ProfilePage,
@@ -79,7 +80,7 @@ export function ProfilePage() {
   if (!isAuthenticated) {
     return (
       <Card>
-        <CardContent className="pt-6 space-y-4">
+        <CardContent className="flex flex-col gap-4 pt-6">
           <h2 className="text-lg font-semibold">Profile</h2>
           <p className="text-muted-foreground">Sign in to view token information.</p>
           <Button onClick={() => login('/profile')}>Sign In</Button>
@@ -121,12 +122,17 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="space-y-4">
+    <PageLayout>
+      <PageHeader
+        eyebrow="Identity"
+        title="Profile"
+        description="Inspect the active OIDC session, token lifetime, and identity claims."
+      />
       <Card>
         <CardHeader>
           <CardTitle>ID Token Status</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div>
             <div className="flex justify-between mb-1">
               <span className="text-sm text-muted-foreground">Time Remaining</span>
@@ -172,7 +178,7 @@ export function ProfilePage() {
         <CardHeader>
           <CardTitle>Last Refresh Status</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant={
@@ -204,20 +210,20 @@ export function ProfilePage() {
         <CardHeader>
           <CardTitle>Token Claims</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <ViewModeToggle
             value={claimsView}
             onValueChange={(v) => setClaimsView(v as 'claims' | 'raw')}
             options={[
-              { value: 'claims', label: 'Claims', icon: <List className="h-3.5 w-3.5" /> },
-              { value: 'raw', label: 'Raw', icon: <Braces className="h-3.5 w-3.5" /> },
+              { value: 'claims', label: 'Claims', icon: <List /> },
+              { value: 'raw', label: 'Raw', icon: <Braces /> },
             ]}
           />
 
           <Separator />
 
           {claimsView === 'claims' && (
-            <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Subject (sub)</p>
                 <p className="font-mono">{profile?.sub ? String(profile.sub) : 'N/A'}</p>
@@ -273,6 +279,6 @@ export function ProfilePage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageLayout>
   )
 }

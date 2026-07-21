@@ -234,7 +234,7 @@ test.describe('Profile Page', () => {
     await expect(page.getByText('Token Claims')).toBeVisible({ timeout: 5000 })
 
     // Click the Raw button in the segmented control
-    await page.getByRole('button', { name: /raw/i }).last().click()
+    await page.getByRole('tab', { name: /raw/i }).last().click()
 
     // Verify JSON is displayed
     const pre = page.locator('pre').first()

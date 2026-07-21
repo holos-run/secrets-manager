@@ -8,7 +8,7 @@ import { ResourceTable, ResourceTableSortHeader, type ResourceColumnDef } from '
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ import type { SecretMetadata } from '@/gen/holos/console/v1/secrets_pb.js'
 import { useAuth } from '@/lib/auth'
 import { useGetProject } from '@/queries/projects'
 import { useDeleteSecret, useListSecrets } from '@/queries/secrets'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/projects/$projectName/secrets/')({
   component: SecretsListPage,
@@ -145,12 +146,15 @@ export function SecretsListPage() {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-          <CardTitle>{projectName ? `${projectName} / Secrets` : 'Secrets'}</CardTitle>
-          <Button size="sm" onClick={openCreateDialog} disabled={showLoading}>Create Secret</Button>
-        </CardHeader>
-        <CardContent>
+      <PageLayout>
+        <PageHeader
+          eyebrow={`Project / ${projectName}`}
+          title="Secrets"
+          description="Store, inspect, and control access to project credentials."
+          actions={<Button size="sm" onClick={openCreateDialog} disabled={showLoading}>Create Secret</Button>}
+        />
+        <Card>
+        <CardContent className="pt-6">
           <ResourceTable
             columns={columns}
             data={secrets}
@@ -164,6 +168,7 @@ export function SecretsListPage() {
           />
         </CardContent>
       </Card>
+      </PageLayout>
 
       <CreateSecretDialog
         key={createSession}

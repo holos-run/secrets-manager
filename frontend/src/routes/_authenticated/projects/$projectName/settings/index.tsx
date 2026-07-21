@@ -18,6 +18,7 @@ import { SharingPanel, type Grant } from '@/components/sharing-panel'
 import { InlineEditField } from '@/components/inline-edit-field'
 import { Role } from '@/gen/holos/console/v1/rbac_pb'
 import { useGetProject, useUpdateProject, useUpdateProjectSharing, useUpdateProjectDefaultSharing, useDeleteProject } from '@/queries/projects'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/projects/$projectName/settings/')({
   component: ProjectSettingsRoute,
@@ -103,26 +104,32 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
 
   if (isPending) {
     return (
-      <Card>
-        <CardContent className="pt-6 space-y-4">
+      <PageLayout>
+        <PageHeader eyebrow={`${projectName} / Settings`} title="Project settings" />
+        <Card>
+        <CardContent className="flex flex-col gap-4 pt-6">
           <Skeleton className="h-5 w-48" />
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
         </CardContent>
-      </Card>
+        </Card>
+      </PageLayout>
     )
   }
 
   if (error) {
     return (
-      <Card>
+      <PageLayout>
+        <PageHeader eyebrow={`${projectName} / Settings`} title="Project settings" />
+        <Card>
         <CardContent className="pt-6">
           <Alert variant="destructive">
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
         </CardContent>
-      </Card>
+        </Card>
+      </PageLayout>
     )
   }
 
@@ -134,15 +141,17 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
   const defaultRoleGrants = (project?.defaultRoleGrants ?? []) as Grant[]
 
   return (
-    <Card>
-      <CardContent className="pt-6 space-y-6">
-        <div>
-          <p className="text-sm text-muted-foreground">{projectName} / Settings</p>
-          <h2 className="text-xl font-semibold mt-1">Settings</h2>
-        </div>
+    <PageLayout>
+      <PageHeader
+        eyebrow={`${projectName} / Settings`}
+        title="Project settings"
+        description="Manage project metadata, inheritance, access grants, and lifecycle controls."
+      />
+      <Card>
+      <CardContent className="flex flex-col gap-6 pt-6">
 
         {/* General section */}
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <h3 className="text-sm font-medium">General</h3>
           <Separator />
 
@@ -192,7 +201,7 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
 
         {/* Danger Zone */}
         {isOwner && (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
             <Separator />
             <Button
@@ -226,6 +235,7 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+      </Card>
+    </PageLayout>
   )
 }

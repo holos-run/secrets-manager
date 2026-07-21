@@ -23,6 +23,7 @@ import {
   useUpdateOrganizationSharing,
   useDeleteOrganization,
 } from '@/queries/organizations'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/orgs/$orgName/settings/')({
   component: OrgSettingsRoute,
@@ -97,26 +98,32 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
 
   if (isPending) {
     return (
-      <Card>
-        <CardContent className="pt-6 space-y-4">
+      <PageLayout>
+        <PageHeader eyebrow={`${orgName} / Settings`} title="Organization settings" />
+        <Card>
+        <CardContent className="flex flex-col gap-4 pt-6">
           <Skeleton className="h-5 w-48" />
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
         </CardContent>
-      </Card>
+        </Card>
+      </PageLayout>
     )
   }
 
   if (error) {
     return (
-      <Card>
+      <PageLayout>
+        <PageHeader eyebrow={`${orgName} / Settings`} title="Organization settings" />
+        <Card>
         <CardContent className="pt-6">
           <Alert variant="destructive">
             <AlertDescription>{error.message}</AlertDescription>
           </Alert>
         </CardContent>
-      </Card>
+        </Card>
+      </PageLayout>
     )
   }
 
@@ -126,15 +133,17 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
   const roleGrants = (org?.roleGrants ?? []) as Grant[]
 
   return (
-    <Card>
-      <CardContent className="pt-6 space-y-6">
-        <div>
-          <p className="text-sm text-muted-foreground">{orgName} / Settings</p>
-          <h2 className="text-xl font-semibold mt-1">Settings</h2>
-        </div>
+    <PageLayout>
+      <PageHeader
+        eyebrow={`${orgName} / Settings`}
+        title="Organization settings"
+        description="Manage organization metadata, access grants, and lifecycle controls."
+      />
+      <Card>
+      <CardContent className="flex flex-col gap-6 pt-6">
 
         {/* General section */}
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <h3 className="text-sm font-medium">General</h3>
           <Separator />
 
@@ -173,7 +182,7 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
 
         {/* Danger Zone */}
         {isOwner && (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
             <Separator />
             <Button
@@ -207,6 +216,7 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+      </Card>
+    </PageLayout>
   )
 }

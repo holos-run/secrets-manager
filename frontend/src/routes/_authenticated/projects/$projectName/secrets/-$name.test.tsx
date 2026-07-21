@@ -124,7 +124,7 @@ describe('SecretPage sharing panel', () => {
     render(<SecretPage />)
 
     expect(useGetSecretRaw).toHaveBeenLastCalledWith('test-project', 'test-secret', false)
-    fireEvent.click(screen.getByRole('button', { name: 'Resource' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Resource' }))
 
     expect(useGetSecretRaw).toHaveBeenLastCalledWith('test-project', 'test-secret', true)
     expect(screen.getByText(/"kind": "Secret"/)).toBeInTheDocument()

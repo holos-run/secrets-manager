@@ -15,8 +15,11 @@ describe('ViewModeToggle', () => {
         ]}
       />,
     )
-    expect(screen.getByRole('button', { name: 'Data' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Resource' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Data' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Resource' })).toBeInTheDocument()
+    expect(screen.getByRole('tablist')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Data' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Resource' })).toHaveAttribute('aria-selected', 'false')
   })
 
   it('calls onValueChange when a non-active option is clicked', () => {
@@ -31,11 +34,11 @@ describe('ViewModeToggle', () => {
         ]}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Resource' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Resource' }))
     expect(onValueChange).toHaveBeenCalledWith('resource')
   })
 
-  it('calls onValueChange when the active option is re-clicked', () => {
+  it('keeps the active option selected when it is re-clicked', () => {
     const onValueChange = vi.fn()
     render(
       <ViewModeToggle
@@ -47,8 +50,8 @@ describe('ViewModeToggle', () => {
         ]}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Data' }))
-    expect(onValueChange).toHaveBeenCalledWith('data')
+    fireEvent.click(screen.getByRole('tab', { name: 'Data' }))
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 
   it('renders Claims/Raw options for profile page toggle', () => {
@@ -63,8 +66,8 @@ describe('ViewModeToggle', () => {
         ]}
       />,
     )
-    expect(screen.getByRole('button', { name: 'Claims' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Raw' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Claims' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Raw' })).toBeInTheDocument()
   })
 
   it('switching to raw view calls onValueChange with raw', () => {
@@ -79,7 +82,7 @@ describe('ViewModeToggle', () => {
         ]}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Raw' }))
+    fireEvent.click(screen.getByRole('tab', { name: 'Raw' }))
     expect(onValueChange).toHaveBeenCalledWith('raw')
   })
 })
