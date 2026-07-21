@@ -58,8 +58,8 @@ All tests should pass after completing these steps.
 Clone the repository and install tool dependencies:
 
 ```bash
-git clone https://github.com/holos-run/holos-console.git
-cd holos-console
+git clone https://github.com/holos-run/secrets-manager.git
+cd secrets-manager
 make tools
 ```
 

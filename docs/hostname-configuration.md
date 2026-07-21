@@ -1,6 +1,6 @@
 # Hostname Configuration
 
-This document explains how the hostname and port flow through the holos-console stack.
+This document explains how the hostname and port flow through the Secrets Manager stack.
 
 ## Key Concepts
 
@@ -97,7 +97,7 @@ make run
 ### Custom Hostname
 
 ```bash
-./holos-console \
+./secrets-manager \
   --listen=:9443 \
   --cert=myhost.local.pem \
   --key=myhost.local-key.pem \
@@ -110,7 +110,7 @@ make run
 When a reverse proxy terminates TLS, the listen address and external URLs differ:
 
 ```bash
-./holos-console \
+./secrets-manager \
   --plain-http \
   --listen=:8080 \
   --origin=https://console.example.com \
@@ -125,10 +125,10 @@ The proxy forwards to port 8080. The `--origin` and `--issuer` reflect the exter
 
 ```bash
 # Wrong: issuer must include /dex
-./holos-console --issuer=https://localhost:8443
+./secrets-manager --issuer=https://localhost:8443
 
 # Correct
-./holos-console --issuer=https://localhost:8443/dex
+./secrets-manager --issuer=https://localhost:8443/dex
 ```
 
 ### Mismatched Origin and Issuer Hosts

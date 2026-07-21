@@ -1,6 +1,6 @@
-# Holos Console
+# Holos Secrets Manager
 
-A Go HTTPS server that serves a web console UI for managing Kubernetes secrets with OIDC authentication and role-based access control. The built UI is embedded into the Go binary for single-binary deployment.
+A Go HTTPS server that serves a web UI for managing Kubernetes secrets with OIDC authentication and role-based access control. The built UI is embedded into the Go binary for single-binary deployment.
 
 ## Quick Start
 
