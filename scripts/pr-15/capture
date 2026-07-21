@@ -33,7 +33,7 @@ $AB eval "
   }
 "
 $AB wait --text "Show values" 2>/dev/null || $AB wait 1500
-$AB screenshot "$PR_SCREENSHOT_DIR/02-resource-values-masked.png"
+$AB screenshot --full "$PR_SCREENSHOT_DIR/02-resource-values-masked.png"
 
 echo "==> Capturing explicitly revealed Resource output"
 $AB eval "
@@ -45,6 +45,6 @@ $AB eval "
   }
 "
 $AB wait --text "test-key" 2>/dev/null || $AB wait 1000
-$AB screenshot "$PR_SCREENSHOT_DIR/03-resource-values-revealed.png"
+$AB screenshot --full "$PR_SCREENSHOT_DIR/03-resource-values-revealed.png"
 
 echo "Screenshots saved to $PR_SCREENSHOT_DIR"
