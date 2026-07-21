@@ -1,103 +1,86 @@
-import { useMemo } from 'react'
-import { create } from '@bufbuild/protobuf'
-import { createClient } from '@connectrpc/connect'
-import { useQuery, useTransport } from '@connectrpc/connect-query'
-import { useQuery as useTanstackQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  ListProjectsRequestSchema,
-  ProjectService,
-} from '@/gen/holos/console/v1/projects_pb.js'
+import { useMutation, useQuery } from '@connectrpc/connect-query'
+import { useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
+import { ProjectService } from '@/gen/holos/console/v1/projects_pb.js'
 import { useAuth } from '@/lib/auth'
+import { keys } from './keys'
 
 export function useListProjects(organization: string) {
   const { isAuthenticated } = useAuth()
+  const query = keys.projects.list(organization)
   return useQuery(
-    ProjectService.method.listProjects,
-    create(ListProjectsRequestSchema, { organization }),
+    query.schema,
+    query.input,
     { enabled: isAuthenticated && !!organization },
   )
 }
 
 export function useGetProject(name: string) {
   const { isAuthenticated } = useAuth()
-  const transport = useTransport()
-  const client = useMemo(() => createClient(ProjectService, transport), [transport])
-  return useTanstackQuery({
-    queryKey: ['connect-query', 'getProject', name],
-    queryFn: async () => {
-      const response = await client.getProject({ name })
-      return response.project
+  const query = keys.projects.detail(name)
+  return useQuery(
+    query.schema,
+    query.input,
+    {
+      enabled: isAuthenticated && name.length > 0,
+      select: (response) => response.project,
     },
-    enabled: isAuthenticated && name.length > 0,
-  })
+  )
 }
 
 export function useCreateProject() {
-  const transport = useTransport()
-  const client = useMemo(() => createClient(ProjectService, transport), [transport])
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (params: { name: string; displayName?: string; description?: string; organization: string }) =>
-      client.createProject(params),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['connect-query'] })
+  return useMutation(ProjectService.method.createProject, {
+    onSuccess: async (_response, { organization }) => {
+      if (!organization) return
+      await queryClient.invalidateQueries({ queryKey: keys.projects.list(organization).key })
     },
   })
 }
 
 export function useUpdateProject() {
-  const transport = useTransport()
-  const client = useMemo(() => createClient(ProjectService, transport), [transport])
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (params: { name: string; displayName?: string; description?: string }) =>
-      client.updateProject(params),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['connect-query'] })
+  return useMutation(ProjectService.method.updateProject, {
+    onSuccess: async (_response, { name }) => {
+      if (!name) return
+      await invalidateProject(queryClient, name)
     },
   })
 }
 
 export function useUpdateProjectSharing() {
-  const transport = useTransport()
-  const client = useMemo(() => createClient(ProjectService, transport), [transport])
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (params: {
-      name: string
-      userGrants: { principal: string; role: number }[]
-      roleGrants: { principal: string; role: number }[]
-    }) => client.updateProjectSharing(params),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['connect-query'] })
+  return useMutation(ProjectService.method.updateProjectSharing, {
+    onSuccess: async (_response, { name }) => {
+      if (!name) return
+      await invalidateProject(queryClient, name)
     },
   })
 }
 
 export function useUpdateProjectDefaultSharing() {
-  const transport = useTransport()
-  const client = useMemo(() => createClient(ProjectService, transport), [transport])
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (params: {
-      name: string
-      defaultUserGrants: { principal: string; role: number }[]
-      defaultRoleGrants: { principal: string; role: number }[]
-    }) => client.updateProjectDefaultSharing(params),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['connect-query'] })
+  return useMutation(ProjectService.method.updateProjectDefaultSharing, {
+    onSuccess: async (_response, { name }) => {
+      if (!name) return
+      await invalidateProject(queryClient, name)
     },
   })
 }
 
 export function useDeleteProject() {
-  const transport = useTransport()
-  const client = useMemo(() => createClient(ProjectService, transport), [transport])
   const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (params: { name: string }) => client.deleteProject(params),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['connect-query'] })
+  return useMutation(ProjectService.method.deleteProject, {
+    onSuccess: async (_response, { name }) => {
+      if (!name) return
+      await invalidateProject(queryClient, name)
     },
   })
+}
+
+async function invalidateProject(queryClient: QueryClient, name: string) {
+  // Update and delete requests do not carry the organization, so invalidate
+  // every listProjects input while keeping unrelated service queries cached.
+  await queryClient.invalidateQueries({ queryKey: keys.projects.lists().key })
+  await queryClient.invalidateQueries({ queryKey: keys.projects.detail(name).key })
 }
