@@ -13,10 +13,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"github.com/holos-run/holos-console/console/resolver"
-	"github.com/holos-run/holos-console/console/rpc"
-	"github.com/holos-run/holos-console/console/secrets"
-	consolev1 "github.com/holos-run/holos-console/gen/holos/console/v1"
+	"github.com/holos-run/secrets-manager/console/resolver"
+	"github.com/holos-run/secrets-manager/console/rpc"
+	"github.com/holos-run/secrets-manager/console/secrets"
+	consolev1 "github.com/holos-run/secrets-manager/gen/holos/console/v1"
 )
 
 // contextWithClaims creates a context with OIDC claims.

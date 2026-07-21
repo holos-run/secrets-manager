@@ -1,5 +1,5 @@
 package organizations
 
-import "github.com/holos-run/holos-console/console/resolver"
+import "github.com/holos-run/secrets-manager/console/resolver"
 
 var testMetadataResolver = &resolver.Resolver{}

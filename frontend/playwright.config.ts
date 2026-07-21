@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
- * Playwright E2E test configuration for holos-console.
+ * Playwright E2E test configuration for secrets-manager.
  *
  * Tests run against the full application stack (Go backend + React frontend).
  * Playwright automatically starts both servers via the webServer config.
@@ -61,7 +61,7 @@ export default defineConfig({
     {
       // Go backend - must be built first (make build or make test-e2e)
       // Use exec to ensure signals reach the Go binary directly
-      command: `exec ../bin/holos-console --enable-insecure-dex --cert ../certs/tls.crt --key ../certs/tls.key --listen :${backendPort}`,
+      command: `exec ../bin/secrets-manager --enable-insecure-dex --cert ../certs/tls.crt --key ../certs/tls.key --listen :${backendPort}`,
       url: `https://localhost:${backendPort}/`,
       timeout: 30_000,
       reuseExistingServer: !process.env.CI,

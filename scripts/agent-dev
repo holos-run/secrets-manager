@@ -52,7 +52,7 @@ trap cleanup EXIT
 
 # --- Start backend (serves embedded frontend) ---
 mkdir -p "$PROJECT_ROOT/tmp"
-exec ./bin/holos-console \
+exec ./bin/secrets-manager \
   --enable-insecure-dex \
   --cert certs/tls.crt \
   --key certs/tls.key \

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/holos-run/holos-console/console/secrets"
+	"github.com/holos-run/secrets-manager/console/secrets"
 )
 
 // OrgGrantResolver looks up organization-level grants for access fallback.

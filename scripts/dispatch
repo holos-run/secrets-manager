@@ -45,7 +45,7 @@ SLUG="$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g;
 BRANCH="feat/${SLUG}"
 
 # Worktree path
-WORKTREE_PATH="${PROJECT_ROOT}/../holos-console-${ISSUE}"
+WORKTREE_PATH="${PROJECT_ROOT}/../secrets-manager-${ISSUE}"
 
 # Create worktree if it doesn't exist
 if [[ -d "$WORKTREE_PATH" ]]; then

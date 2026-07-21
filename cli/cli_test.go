@@ -163,6 +163,27 @@ func TestDefaultAppName(t *testing.T) {
 	}
 }
 
+func TestCommandIdentity(t *testing.T) {
+	cmd := Command()
+	if got := cmd.Use; got != "secrets-manager" {
+		t.Errorf("command use = %q, want %q", got, "secrets-manager")
+	}
+	if got := cmd.Short; got != "Holos Secrets Manager serves the secrets management web interface" {
+		t.Errorf("command short description = %q, want Holos Secrets Manager description", got)
+	}
+}
+
+func TestDefaultClientID(t *testing.T) {
+	cmd := Command()
+	f := cmd.Flags().Lookup("client-id")
+	if f == nil {
+		t.Fatal("--client-id flag not found")
+	}
+	if got := f.DefValue; got != "secrets-manager" {
+		t.Errorf("default client-id = %q, want %q", got, "secrets-manager")
+	}
+}
+
 func TestDefaultOrgCreatorRoles(t *testing.T) {
 	cmd := Command()
 	f := cmd.Flags().Lookup("org-creator-roles")
