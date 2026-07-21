@@ -2984,17 +2984,6 @@ func TestGetSecret_NoGrantsDeniesAccess(t *testing.T) {
 	}
 }
 
-// mockDefaultShareResolver implements DefaultShareResolver for testing.
-type mockDefaultShareResolver struct {
-	defaultUsers []AnnotationGrant
-	defaultRoles []AnnotationGrant
-	err          error
-}
-
-func (m *mockDefaultShareResolver) GetDefaultGrants(_ context.Context, _ string) ([]AnnotationGrant, []AnnotationGrant, error) {
-	return m.defaultUsers, m.defaultRoles, m.err
-}
-
 // mockCombinedResolver implements both ProjectResolver and DefaultShareResolver.
 type mockCombinedResolver struct {
 	defaultUsers []AnnotationGrant
