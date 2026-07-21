@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# PR #16 — capture the console-wide visual design refresh.
+#
+# Called by scripts/browser-capture-pr 16. Expects:
+#   HOLOS_BACKEND_URL, PR_SCREENSHOT_DIR
+set -euo pipefail
+
+ORG_NAME="visual-refresh-demo"
+PROJECT_NAME="visual-refresh-project"
+SECRET_NAME="visual-refresh-secret"
+ORG_NAMESPACE="holos-org-$ORG_NAME"
+PROJECT_NAMESPACE="holos-prj-$PROJECT_NAME"
+
+cleanup() {
+  kubectl delete namespace "$PROJECT_NAMESPACE" "$ORG_NAMESPACE" --ignore-not-found >/dev/null
+}
+trap cleanup EXIT
+
+kubectl apply -f - <<YAML
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $ORG_NAMESPACE
+  labels:
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/organization: $ORG_NAME
+    holos.run/resource-type: organization
+  annotations:
+    holos.run/display-name: Visual Refresh Demo
+    holos.run/description: Visual verification organization
+    holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
+    holos.run/share-roles: '[]'
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $PROJECT_NAMESPACE
+  labels:
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/organization: $ORG_NAME
+    holos.run/project: $PROJECT_NAME
+    holos.run/resource-type: project
+  annotations:
+    holos.run/display-name: Visual Refresh Project
+    holos.run/description: Operator console visual verification
+    holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
+    holos.run/share-roles: '[]'
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: $SECRET_NAME
+  namespace: $PROJECT_NAMESPACE
+  labels:
+    app.kubernetes.io/managed-by: holos.run
+  annotations:
+    holos.run/description: Production service credentials
+    holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
+    holos.run/share-roles: '[]'
+type: Opaque
+stringData:
+  API_TOKEN: visual-verification-value
+YAML
+
+AB="agent-browser --session-name holos-dev"
+
+# Keep scope controls and navigation coherent in the first (profile) capture.
+$AB eval "localStorage.setItem('holos-selected-org', '$ORG_NAME'); localStorage.setItem('holos-selected-project', '$PROJECT_NAME')"
+
+capture() {
+  local path="$1"
+  local wait_text="$2"
+  local filename="$3"
+
+  echo "==> Capturing $filename"
+  $AB open "$HOLOS_BACKEND_URL$path"
+  $AB wait --load networkidle
+  $AB wait --text "$wait_text" 2>/dev/null || $AB wait 3000
+  $AB wait 750
+  $AB screenshot "$PR_SCREENSHOT_DIR/$filename"
+}
+
+capture "/profile" "Profile" "profile.png"
+capture "/orgs/$ORG_NAME/projects" "Visual Refresh Project" "projects-list.png"
+capture "/projects/$PROJECT_NAME/secrets" "$SECRET_NAME" "secrets-list.png"
+capture "/projects/$PROJECT_NAME/secrets/$SECRET_NAME" "API_TOKEN" "secret-detail.png"
+capture "/orgs/$ORG_NAME/settings" "Display Name" "org-settings.png"
+
+echo "Captured profile, projects, secrets, secret detail, and organization settings."
