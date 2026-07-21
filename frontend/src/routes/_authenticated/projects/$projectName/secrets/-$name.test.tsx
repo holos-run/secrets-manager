@@ -17,6 +17,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 vi.mock('@/queries/secrets', () => ({
   useGetSecret: vi.fn(),
   useGetSecretMetadata: vi.fn(),
+  useGetSecretRaw: vi.fn(),
   useUpdateSecret: vi.fn(),
   useUpdateSecretSharing: vi.fn(),
   useDeleteSecret: vi.fn(),
@@ -24,10 +25,7 @@ vi.mock('@/queries/secrets', () => ({
 
 vi.mock('@/lib/auth', () => ({ useAuth: vi.fn() }))
 
-vi.mock('@connectrpc/connect-query', () => ({ useTransport: vi.fn() }))
-vi.mock('@connectrpc/connect', () => ({ createClient: vi.fn(() => ({})) }))
-
-import { useGetSecret, useGetSecretMetadata, useUpdateSecret, useUpdateSecretSharing, useDeleteSecret } from '@/queries/secrets'
+import { useGetSecret, useGetSecretMetadata, useGetSecretRaw, useUpdateSecret, useUpdateSecretSharing, useDeleteSecret } from '@/queries/secrets'
 import { useAuth } from '@/lib/auth'
 import { SecretPage } from './$name'
 
@@ -49,6 +47,10 @@ function setupMocks(overrides: { metadata?: typeof mockMetadata; isOwner?: boole
   ;(useGetSecretMetadata as Mock).mockReturnValue({
     data: metadata,
     isLoading: false,
+  })
+  ;(useGetSecretRaw as Mock).mockReturnValue({
+    data: '{"kind":"Secret"}',
+    error: null,
   })
   ;(useUpdateSecret as Mock).mockReturnValue({ mutateAsync: vi.fn(), isPending: false })
   ;(useUpdateSecretSharing as Mock).mockReturnValue({
@@ -112,5 +114,16 @@ describe('SecretPage sharing panel', () => {
     })
     render(<SecretPage />)
     expect(screen.getByText(/no sharing grants/i)).toBeInTheDocument()
+  })
+
+  it('loads the raw resource through the query hook when Resource is selected', () => {
+    setupMocks()
+    render(<SecretPage />)
+
+    expect(useGetSecretRaw).toHaveBeenLastCalledWith('test-project', 'test-secret', false)
+    fireEvent.click(screen.getByRole('button', { name: 'Resource' }))
+
+    expect(useGetSecretRaw).toHaveBeenLastCalledWith('test-project', 'test-secret', true)
+    expect(screen.getByText(/"kind": "Secret"/)).toBeInTheDocument()
   })
 })

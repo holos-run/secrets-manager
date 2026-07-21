@@ -106,7 +106,12 @@ Specifically:
 - All data fetching uses `useQuery` or `useSuspenseQuery` with generated query
   descriptors from `@connectrpc/connect-query`.
 - All data mutations use `useMutation` with generated mutation descriptors.
-- Cache invalidation after mutations uses the generated query keys.
+- Cache invalidation after mutations uses partial keys produced by the shared
+  `frontend/src/queries/keys.ts` factory. The factory delegates to
+  `createConnectQueryKey`, so its filters match the transport-aware keys that
+  connect-query creates for reads without duplicating their internal shape.
+- Routes and components consume query hooks; ConnectRPC transport and mutation
+  details stay inside `frontend/src/queries/`.
 - No global client-state library (Redux, Zustand, etc.) is used for server
   state. TanStack Query is the sole manager of data fetched from the backend.
 - Client-only state (UI state, form state) uses React's built-in primitives
