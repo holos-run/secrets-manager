@@ -7,6 +7,7 @@ import { OrgProvider } from '@/lib/org-context'
 import { ProjectProvider } from '@/lib/project-context'
 import { Separator } from '@/components/ui/separator'
 import { getAppConfig } from '@/lib/app-config'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/_authenticated')({
   component: AuthenticatedLayout,
@@ -24,8 +25,12 @@ export function AuthenticatedLayout() {
 
   if (isLoading || !isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center" aria-label="Loading application">
+        <div className="flex w-full max-w-lg flex-col gap-4 p-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
       </div>
     )
   }
