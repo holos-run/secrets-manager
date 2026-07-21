@@ -17,10 +17,10 @@ func TestListProjects_ReturnsOnlyProjectNamespaces(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-project-a",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "project-a",
-				resolver.OrganizationLabel: "acme",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "project-a",
+				testMetadataResolver.OrganizationLabel(): "acme",
 			},
 		},
 	}
@@ -28,10 +28,10 @@ func TestListProjects_ReturnsOnlyProjectNamespaces(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-project-b",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "project-b",
-				resolver.OrganizationLabel: "acme",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "project-b",
+				testMetadataResolver.OrganizationLabel(): "acme",
 			},
 		},
 	}
@@ -39,8 +39,8 @@ func TestListProjects_ReturnsOnlyProjectNamespaces(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-org-acme",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeOrganization,
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeOrganization,
 			},
 		},
 	}
@@ -88,9 +88,9 @@ func TestListProjects_ExcludesTerminatingNamespaces(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-active",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "active",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "active",
 			},
 		},
 	}
@@ -98,9 +98,9 @@ func TestListProjects_ExcludesTerminatingNamespaces(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-terminating",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "terminating",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "terminating",
 			},
 			DeletionTimestamp: &now,
 		},
@@ -125,10 +125,10 @@ func TestListProjects_FilterByOrg(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-foo",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "foo",
-				resolver.OrganizationLabel: "acme",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "foo",
+				testMetadataResolver.OrganizationLabel(): "acme",
 			},
 		},
 	}
@@ -136,10 +136,10 @@ func TestListProjects_FilterByOrg(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-bar",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "bar",
-				resolver.OrganizationLabel: "acme",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "bar",
+				testMetadataResolver.OrganizationLabel(): "acme",
 			},
 		},
 	}
@@ -147,10 +147,10 @@ func TestListProjects_FilterByOrg(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-baz",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "baz",
-				resolver.OrganizationLabel: "beta",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "baz",
+				testMetadataResolver.OrganizationLabel(): "beta",
 			},
 		},
 	}
@@ -171,14 +171,14 @@ func TestGetProject_ReturnsByDerivedNamespace(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
-				resolver.OrganizationLabel: "acme",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
+				testMetadataResolver.OrganizationLabel(): "acme",
 			},
 			Annotations: map[string]string{
-				DisplayNameAnnotation:         "My Project",
-				secrets.DescriptionAnnotation: "Test project",
+				testMetadataResolver.DisplayNameAnnotation(): "My Project",
+				testMetadataResolver.DescriptionAnnotation(): "Test project",
 			},
 		},
 	}
@@ -192,8 +192,8 @@ func TestGetProject_ReturnsByDerivedNamespace(t *testing.T) {
 	if result.Name != "holos-prj-my-project" {
 		t.Errorf("expected namespace 'holos-prj-my-project', got %q", result.Name)
 	}
-	if result.Annotations[DisplayNameAnnotation] != "My Project" {
-		t.Errorf("expected display-name 'My Project', got %q", result.Annotations[DisplayNameAnnotation])
+	if result.Annotations[testMetadataResolver.DisplayNameAnnotation()] != "My Project" {
+		t.Errorf("expected display-name 'My Project', got %q", result.Annotations[testMetadataResolver.DisplayNameAnnotation()])
 	}
 }
 
@@ -202,10 +202,10 @@ func TestGetProject_ReturnsOrganization(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
-				resolver.OrganizationLabel: "acme",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
+				testMetadataResolver.OrganizationLabel(): "acme",
 			},
 		},
 	}
@@ -216,8 +216,8 @@ func TestGetProject_ReturnsOrganization(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if GetOrganization(result) != "acme" {
-		t.Errorf("expected organization 'acme', got %q", GetOrganization(result))
+	if GetOrganization(testMetadataResolver, result) != "acme" {
+		t.Errorf("expected organization 'acme', got %q", GetOrganization(testMetadataResolver, result))
 	}
 }
 
@@ -263,17 +263,17 @@ func TestCreateProject_UsesPrefixNamespace(t *testing.T) {
 	if result.Name != "holos-prj-new-project" {
 		t.Errorf("expected namespace 'holos-prj-new-project', got %q", result.Name)
 	}
-	if result.Labels[secrets.ManagedByLabel] != secrets.ManagedByValue {
+	if result.Labels[testMetadataResolver.ManagedByLabel()] != testMetadataResolver.ManagedByValue() {
 		t.Errorf("expected managed-by label, got %v", result.Labels)
 	}
-	if result.Labels[resolver.ResourceTypeLabel] != resolver.ResourceTypeProject {
+	if result.Labels[testMetadataResolver.ResourceTypeLabel()] != resolver.ResourceTypeProject {
 		t.Error("expected resource-type=project label")
 	}
-	if result.Labels[resolver.ProjectLabel] != "new-project" {
-		t.Errorf("expected project label 'new-project', got %q", result.Labels[resolver.ProjectLabel])
+	if result.Labels[testMetadataResolver.ProjectLabel()] != "new-project" {
+		t.Errorf("expected project label 'new-project', got %q", result.Labels[testMetadataResolver.ProjectLabel()])
 	}
-	if result.Annotations[DisplayNameAnnotation] != "New Project" {
-		t.Errorf("expected display-name 'New Project', got %q", result.Annotations[DisplayNameAnnotation])
+	if result.Annotations[testMetadataResolver.DisplayNameAnnotation()] != "New Project" {
+		t.Errorf("expected display-name 'New Project', got %q", result.Annotations[testMetadataResolver.DisplayNameAnnotation()])
 	}
 }
 
@@ -285,8 +285,8 @@ func TestCreateProject_SetsOrgLabelWhenProvided(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if result.Labels[resolver.OrganizationLabel] != "acme" {
-		t.Errorf("expected organization label 'acme', got %q", result.Labels[resolver.OrganizationLabel])
+	if result.Labels[testMetadataResolver.OrganizationLabel()] != "acme" {
+		t.Errorf("expected organization label 'acme', got %q", result.Labels[testMetadataResolver.OrganizationLabel()])
 	}
 }
 
@@ -298,7 +298,7 @@ func TestCreateProject_OmitsOrgLabelWhenEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if _, ok := result.Labels[resolver.OrganizationLabel]; ok {
+	if _, ok := result.Labels[testMetadataResolver.OrganizationLabel()]; ok {
 		t.Error("expected no organization label when org is empty")
 	}
 }
@@ -308,9 +308,9 @@ func TestCreateProject_ReturnsAlreadyExistsForDuplicateName(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-existing",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "existing",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "existing",
 			},
 		},
 	}
@@ -331,12 +331,12 @@ func TestUpdateProject_UpdatesDescriptionAndDisplayName(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
 			},
 			Annotations: map[string]string{
-				secrets.ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"owner"}]`,
+				testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"owner"}]`,
 			},
 		},
 	}
@@ -349,11 +349,11 @@ func TestUpdateProject_UpdatesDescriptionAndDisplayName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if GetDescription(result) != "Updated desc" {
-		t.Errorf("expected description 'Updated desc', got %q", GetDescription(result))
+	if GetDescription(testMetadataResolver, result) != "Updated desc" {
+		t.Errorf("expected description 'Updated desc', got %q", GetDescription(testMetadataResolver, result))
 	}
-	if GetDisplayName(result) != "Updated Name" {
-		t.Errorf("expected display-name 'Updated Name', got %q", GetDisplayName(result))
+	if GetDisplayName(testMetadataResolver, result) != "Updated Name" {
+		t.Errorf("expected display-name 'Updated Name', got %q", GetDisplayName(testMetadataResolver, result))
 	}
 }
 
@@ -376,9 +376,9 @@ func TestDeleteProject_DeletesManagedNamespace(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
 			},
 		},
 	}
@@ -413,9 +413,9 @@ func TestListProjects_FiltersPrefixMismatchNamespaces(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-project-a",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "project-a",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "project-a",
 			},
 		},
 	}
@@ -423,9 +423,9 @@ func TestListProjects_FiltersPrefixMismatchNamespaces(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "other-prj-project-b",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "project-b",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "project-b",
 			},
 		},
 	}
@@ -449,16 +449,16 @@ func TestGetDefaultShareUsers_ParsesAnnotation(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
 			},
 			Annotations: map[string]string{
-				DefaultShareUsersAnnotation: `[{"principal":"alice@example.com","role":"viewer"}]`,
+				testMetadataResolver.DefaultShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"viewer"}]`,
 			},
 		},
 	}
-	grants, err := GetDefaultShareUsers(ns)
+	grants, err := GetDefaultShareUsers(testMetadataResolver, ns)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -475,13 +475,13 @@ func TestGetDefaultShareUsers_ReturnsNilWhenAbsent(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
 			},
 		},
 	}
-	grants, err := GetDefaultShareUsers(ns)
+	grants, err := GetDefaultShareUsers(testMetadataResolver, ns)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -495,16 +495,16 @@ func TestGetDefaultShareRoles_ParsesAnnotation(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
 			},
 			Annotations: map[string]string{
-				DefaultShareRolesAnnotation: `[{"principal":"engineering","role":"editor"}]`,
+				testMetadataResolver.DefaultShareRolesAnnotation(): `[{"principal":"engineering","role":"editor"}]`,
 			},
 		},
 	}
-	grants, err := GetDefaultShareRoles(ns)
+	grants, err := GetDefaultShareRoles(testMetadataResolver, ns)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -521,9 +521,9 @@ func TestUpdateProjectDefaultSharing_PersistsAnnotations(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
 			},
 		},
 	}
@@ -537,14 +537,14 @@ func TestUpdateProjectDefaultSharing_PersistsAnnotations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	gotUsers, err := GetDefaultShareUsers(result)
+	gotUsers, err := GetDefaultShareUsers(testMetadataResolver, result)
 	if err != nil {
 		t.Fatalf("failed to parse default share-users: %v", err)
 	}
 	if len(gotUsers) != 1 || gotUsers[0].Principal != "alice@example.com" {
 		t.Errorf("expected alice@example.com in default share-users, got %v", gotUsers)
 	}
-	gotRoles, err := GetDefaultShareRoles(result)
+	gotRoles, err := GetDefaultShareRoles(testMetadataResolver, result)
 	if err != nil {
 		t.Fatalf("failed to parse default share-roles: %v", err)
 	}
@@ -571,13 +571,13 @@ func TestUpdateProjectSharing_UpdatesShareAnnotations(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "holos-prj-my-project",
 			Labels: map[string]string{
-				secrets.ManagedByLabel:     secrets.ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "my-project",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "my-project",
 			},
 			Annotations: map[string]string{
-				secrets.ShareUsersAnnotation: `[{"principal":"old@example.com","role":"viewer"}]`,
-				secrets.ShareRolesAnnotation: `[]`,
+				testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"old@example.com","role":"viewer"}]`,
+				testMetadataResolver.ShareRolesAnnotation(): `[]`,
 			},
 		},
 	}
@@ -596,7 +596,7 @@ func TestUpdateProjectSharing_UpdatesShareAnnotations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	users, err := GetShareUsers(result)
+	users, err := GetShareUsers(testMetadataResolver, result)
 	if err != nil {
 		t.Fatalf("failed to parse share-users: %v", err)
 	}

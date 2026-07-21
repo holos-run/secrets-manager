@@ -25,8 +25,8 @@ func (r *ProjectGrantResolver) GetProjectGrants(ctx context.Context, project str
 	if err != nil {
 		return nil, nil, err
 	}
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(r.k8s.Resolver, ns)
+	shareRoles, _ := GetShareRoles(r.k8s.Resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
@@ -41,7 +41,7 @@ func (r *ProjectGrantResolver) GetDefaultGrants(ctx context.Context, project str
 	if err != nil {
 		return nil, nil, err
 	}
-	defaultUsers, _ := GetDefaultShareUsers(ns)
-	defaultRoles, _ := GetDefaultShareRoles(ns)
+	defaultUsers, _ := GetDefaultShareUsers(r.k8s.Resolver, ns)
+	defaultRoles, _ := GetDefaultShareRoles(r.k8s.Resolver, ns)
 	return defaultUsers, defaultRoles, nil
 }

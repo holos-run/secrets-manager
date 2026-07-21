@@ -84,9 +84,9 @@ func testProjectNS() *corev1.Namespace {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "prj-test-namespace",
 			Labels: map[string]string{
-				ManagedByLabel:             ManagedByValue,
-				resolver.ResourceTypeLabel: resolver.ResourceTypeProject,
-				resolver.ProjectLabel:      "test-namespace",
+				testMetadataResolver.ManagedByLabel():    testMetadataResolver.ManagedByValue(),
+				testMetadataResolver.ResourceTypeLabel(): resolver.ResourceTypeProject,
+				testMetadataResolver.ProjectLabel():      "test-namespace",
 			},
 		},
 	}
@@ -100,7 +100,7 @@ func TestHandler_GetSecret(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"viewer"}]`,
 				},
 			},
 			Data: map[string][]byte{
@@ -185,7 +185,7 @@ func TestHandler_GetSecret(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"other@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"other@example.com","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{
@@ -302,7 +302,7 @@ func TestHandler_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareRolesAnnotation: `[{"principal":"owner","role":"owner"}]`,
+					testMetadataResolver.ShareRolesAnnotation(): `[{"principal":"owner","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{
@@ -378,7 +378,7 @@ func TestHandler_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{
@@ -453,7 +453,7 @@ func TestHandler_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareRolesAnnotation: `[{"principal":"owner","role":"owner"}]`,
+					testMetadataResolver.ShareRolesAnnotation(): `[{"principal":"owner","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -497,7 +497,7 @@ func TestHandler_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -540,10 +540,10 @@ func TestHandler_DeleteSecret(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"owner"}]`,
 				},
 			},
 		}
@@ -596,10 +596,10 @@ func TestHandler_DeleteSecret(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"editor"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"editor"}]`,
 				},
 			},
 		}
@@ -636,10 +636,10 @@ func TestHandler_DeleteSecret(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"viewer"}]`,
 				},
 			},
 		}
@@ -734,10 +734,10 @@ func TestHandler_DeleteSecret_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"owner"}]`,
 				},
 			},
 		}
@@ -780,10 +780,10 @@ func TestHandler_DeleteSecret_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"other@example.com","role":"editor"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"other@example.com","role":"editor"}]`,
 				},
 			},
 		}
@@ -1158,10 +1158,10 @@ func TestHandler_UpdateSecret(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"editor"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"editor"}]`,
 				},
 			},
 			Data: map[string][]byte{
@@ -1232,10 +1232,10 @@ func TestHandler_UpdateSecret(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"viewer"}]`,
 				},
 			},
 			Data: map[string][]byte{"k": []byte("v")},
@@ -1387,10 +1387,10 @@ func TestHandler_UpdateSecret_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"editor"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"editor"}]`,
 				},
 			},
 			Data: map[string][]byte{"k": []byte("v")},
@@ -1441,10 +1441,10 @@ func TestHandler_UpdateSecret_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{"k": []byte("v")},
@@ -1497,7 +1497,7 @@ func TestHandler_GetSecret_MultipleKeys(t *testing.T) {
 				Name:      "multi-key-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareRolesAnnotation: `[{"principal":"owner","role":"owner"}]`,
+					testMetadataResolver.ShareRolesAnnotation(): `[{"principal":"owner","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{
@@ -1552,10 +1552,10 @@ func TestHandler_ListSecrets(t *testing.T) {
 				Name:      "labeled-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"owner"}]`,
 				},
 			},
 		}
@@ -1564,7 +1564,7 @@ func TestHandler_ListSecrets(t *testing.T) {
 				Name:      "unlabeled-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"owner"}]`,
 				},
 			},
 		}
@@ -1609,10 +1609,10 @@ func TestHandler_ListSecrets(t *testing.T) {
 				Name:      "accessible-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"viewer"}]`,
 				},
 			},
 		}
@@ -1621,10 +1621,10 @@ func TestHandler_ListSecrets(t *testing.T) {
 				Name:      "inaccessible-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"other@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"other@example.com","role":"owner"}]`,
 				},
 			},
 		}
@@ -1745,10 +1745,10 @@ func TestHandler_UpdateSharing(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -1795,7 +1795,7 @@ func TestHandler_UpdateSharing(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to get updated secret: %v", err)
 		}
-		shareUsers, err := GetShareUsers(updated)
+		shareUsers, err := GetShareUsers(testMetadataResolver, updated)
 		if err != nil {
 			t.Fatalf("failed to parse share-users: %v", err)
 		}
@@ -1809,7 +1809,7 @@ func TestHandler_UpdateSharing(t *testing.T) {
 		if userMap["bob@example.com"] != "viewer" {
 			t.Errorf("expected bob=viewer, got %q", userMap["bob@example.com"])
 		}
-		shareRoles, err := GetShareRoles(updated)
+		shareRoles, err := GetShareRoles(testMetadataResolver, updated)
 		if err != nil {
 			t.Fatalf("failed to parse share-roles: %v", err)
 		}
@@ -1829,10 +1829,10 @@ func TestHandler_UpdateSharing(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"bob@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"bob@example.com","role":"viewer"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -1967,7 +1967,7 @@ func TestHandler_GetSecretRaw(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"viewer"}]`,
 				},
 			},
 			Data: map[string][]byte{
@@ -2020,7 +2020,7 @@ func TestHandler_GetSecretRaw(t *testing.T) {
 				ResourceVersion:   rv,
 				CreationTimestamp: metav1.Now(),
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"viewer"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -2068,7 +2068,7 @@ func TestHandler_GetSecretRaw(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"other@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"other@example.com","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -2266,10 +2266,10 @@ func TestHandler_UpdateSecret_StringData(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"editor"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"editor"}]`,
 				},
 			},
 			Data: map[string][]byte{"old-key": []byte("old-value")},
@@ -2315,10 +2315,10 @@ func TestHandler_UpdateSecret_StringData(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"editor"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"editor"}]`,
 				},
 			},
 			Data: map[string][]byte{"k": []byte("v")},
@@ -2363,10 +2363,10 @@ func TestHandler_UpdateSharing_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"owner"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -2416,10 +2416,10 @@ func TestHandler_UpdateSharing_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"bob@example.com","role":"viewer"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"bob@example.com","role":"viewer"}]`,
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -2471,10 +2471,10 @@ func TestHandler_ListSecrets_AuditLogging(t *testing.T) {
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
 				Labels: map[string]string{
-					ManagedByLabel: ManagedByValue,
+					testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue(),
 				},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"owner"}]`,
 				},
 			},
 		}
@@ -2518,11 +2518,11 @@ func TestHandler_DescriptionAndURL(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
-				Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+				Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 				Annotations: map[string]string{
-					ShareUsersAnnotation:  `[{"principal":"user@example.com","role":"owner"}]`,
-					DescriptionAnnotation: "Database credentials",
-					URLAnnotation:         "https://db.example.com",
+					testMetadataResolver.ShareUsersAnnotation():  `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.DescriptionAnnotation(): "Database credentials",
+					testMetadataResolver.URLAnnotation():         "https://db.example.com",
 				},
 			},
 		}
@@ -2554,9 +2554,9 @@ func TestHandler_DescriptionAndURL(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
-				Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+				Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 				Annotations: map[string]string{
-					ShareUsersAnnotation: `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"user@example.com","role":"owner"}]`,
 				},
 			},
 		}
@@ -2611,11 +2611,11 @@ func TestHandler_DescriptionAndURL(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to get created secret: %v", err)
 		}
-		if GetDescription(secret) != "API key for staging" {
-			t.Errorf("expected description 'API key for staging', got %q", GetDescription(secret))
+		if GetDescription(testMetadataResolver, secret) != "API key for staging" {
+			t.Errorf("expected description 'API key for staging', got %q", GetDescription(testMetadataResolver, secret))
 		}
-		if GetURL(secret) != "https://staging.example.com" {
-			t.Errorf("expected URL 'https://staging.example.com', got %q", GetURL(secret))
+		if GetURL(testMetadataResolver, secret) != "https://staging.example.com" {
+			t.Errorf("expected URL 'https://staging.example.com', got %q", GetURL(testMetadataResolver, secret))
 		}
 	})
 
@@ -2624,10 +2624,10 @@ func TestHandler_DescriptionAndURL(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
-				Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+				Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 				Annotations: map[string]string{
-					ShareUsersAnnotation:  `[{"principal":"user@example.com","role":"owner"}]`,
-					DescriptionAnnotation: "Old description",
+					testMetadataResolver.ShareUsersAnnotation():  `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.DescriptionAnnotation(): "Old description",
 				},
 			},
 			Data: map[string][]byte{"key": []byte("value")},
@@ -2658,11 +2658,11 @@ func TestHandler_DescriptionAndURL(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to get updated secret: %v", err)
 		}
-		if GetDescription(updated) != "New description" {
-			t.Errorf("expected 'New description', got %q", GetDescription(updated))
+		if GetDescription(testMetadataResolver, updated) != "New description" {
+			t.Errorf("expected 'New description', got %q", GetDescription(testMetadataResolver, updated))
 		}
-		if GetURL(updated) != "https://new.example.com" {
-			t.Errorf("expected 'https://new.example.com', got %q", GetURL(updated))
+		if GetURL(testMetadataResolver, updated) != "https://new.example.com" {
+			t.Errorf("expected 'https://new.example.com', got %q", GetURL(testMetadataResolver, updated))
 		}
 	})
 
@@ -2671,11 +2671,11 @@ func TestHandler_DescriptionAndURL(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "my-secret",
 				Namespace: "prj-test-namespace",
-				Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+				Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 				Annotations: map[string]string{
-					ShareUsersAnnotation:  `[{"principal":"user@example.com","role":"owner"}]`,
-					DescriptionAnnotation: "Important secret",
-					URLAnnotation:         "https://important.example.com",
+					testMetadataResolver.ShareUsersAnnotation():  `[{"principal":"user@example.com","role":"owner"}]`,
+					testMetadataResolver.DescriptionAnnotation(): "Important secret",
+					testMetadataResolver.URLAnnotation():         "https://important.example.com",
 				},
 			},
 		}
@@ -2726,7 +2726,7 @@ func TestGetSecret_ProjectViewerCannotReadData(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: "prj-test-namespace",
-			Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+			Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 		},
 		Data: map[string][]byte{"key": []byte("value")},
 	}
@@ -2763,7 +2763,7 @@ func TestGetSecret_ProjectEditorCannotReadData(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: "prj-test-namespace",
-			Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+			Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 		},
 		Data: map[string][]byte{"key": []byte("value")},
 	}
@@ -2800,7 +2800,7 @@ func TestListSecrets_ProjectViewerCanListMetadata(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: "prj-test-namespace",
-			Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+			Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 		},
 		Data: map[string][]byte{"key": []byte("value")},
 	}
@@ -2858,7 +2858,7 @@ func TestDeleteSecret_ProjectOwnerCanDelete(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: "prj-test-namespace",
-			Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+			Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 		},
 	}
 	fakeClient := fake.NewClientset(testProjectNS(), secret)
@@ -2887,7 +2887,7 @@ func TestUpdateSharing_ProjectOwnerCanAdmin(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: "prj-test-namespace",
-			Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+			Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 			UID:       types.UID("test-uid"),
 		},
 	}
@@ -2924,7 +2924,7 @@ func TestListSecrets_NoGrantsDeniesAccess(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: "prj-test-namespace",
-			Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+			Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 		},
 		Data: map[string][]byte{"key": []byte("value")},
 	}
@@ -2956,7 +2956,7 @@ func TestGetSecret_NoGrantsDeniesAccess(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-secret",
 			Namespace: "prj-test-namespace",
-			Labels:    map[string]string{ManagedByLabel: ManagedByValue},
+			Labels:    map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 		},
 		Data: map[string][]byte{"key": []byte("value")},
 	}
@@ -3044,7 +3044,7 @@ func TestCreateSecret_MergesDefaultGrants(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected secret to exist, got %v", err)
 	}
-	users, err := GetShareUsers(secret)
+	users, err := GetShareUsers(testMetadataResolver, secret)
 	if err != nil {
 		t.Fatalf("failed to parse share-users: %v", err)
 	}
@@ -3093,7 +3093,7 @@ func TestCreateSecret_RequestGrantOverridesDefaultForSamePrincipal(t *testing.T)
 	if err != nil {
 		t.Fatalf("expected secret to exist, got %v", err)
 	}
-	users, err := GetShareUsers(secret)
+	users, err := GetShareUsers(testMetadataResolver, secret)
 	if err != nil {
 		t.Fatalf("failed to parse share-users: %v", err)
 	}
@@ -3178,7 +3178,7 @@ func TestCreateSecret_CreatorAlwaysOwner(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected secret to exist, got %v", err)
 	}
-	users, err := GetShareUsers(secret)
+	users, err := GetShareUsers(testMetadataResolver, secret)
 	if err != nil {
 		t.Fatalf("failed to parse share-users: %v", err)
 	}
@@ -3227,7 +3227,7 @@ func TestCreateSecret_DefaultRoleGrantsMerged(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected secret to exist, got %v", err)
 	}
-	roles, err := GetShareRoles(secret)
+	roles, err := GetShareRoles(testMetadataResolver, secret)
 	if err != nil {
 		t.Fatalf("failed to parse share-roles: %v", err)
 	}
