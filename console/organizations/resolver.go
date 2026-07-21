@@ -23,8 +23,8 @@ func (r *OrgGrantResolver) GetOrgGrants(ctx context.Context, org string) (map[st
 	if err != nil {
 		return nil, nil, err
 	}
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(r.k8s.resolver, ns)
+	shareRoles, _ := GetShareRoles(r.k8s.resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)

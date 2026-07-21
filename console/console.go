@@ -102,6 +102,10 @@ type Config struct {
 	// Default: "prj-"
 	ProjectPrefix string
 
+	// MetadataDomain is the domain portion of console-managed Kubernetes label
+	// and annotation keys. Default: "holos.run".
+	MetadataDomain string
+
 	// DisableOrgCreation disables the implicit organization creation grant to all
 	// authenticated principals. Explicit OrgCreatorUsers and OrgCreatorRoles are
 	// still honored when this is true.
@@ -174,6 +178,12 @@ func (s *Server) Serve(ctx context.Context) error {
 	if s.cfg.ProjectPrefix == "" {
 		s.cfg.ProjectPrefix = "prj-"
 	}
+	if s.cfg.MetadataDomain == "" {
+		s.cfg.MetadataDomain = resolver.DefaultMetadataDomain
+	}
+	if err := (&resolver.Resolver{MetadataDomain: s.cfg.MetadataDomain}).ValidateMetadataDomain(); err != nil {
+		return fmt.Errorf("invalid metadata domain: %w", err)
+	}
 
 	// Load custom CA certificate pool for internal HTTP client (OIDC discovery, etc.)
 	caPool, err := loadCACertPool(s.cfg.CACertFile)
@@ -244,7 +254,12 @@ func (s *Server) Serve(ctx context.Context) error {
 
 	// Register services (protected - requires auth)
 	if k8sClientset != nil {
-		nsResolver := &resolver.Resolver{NamespacePrefix: s.cfg.NamespacePrefix, OrganizationPrefix: s.cfg.OrganizationPrefix, ProjectPrefix: s.cfg.ProjectPrefix}
+		nsResolver := &resolver.Resolver{
+			NamespacePrefix:    s.cfg.NamespacePrefix,
+			OrganizationPrefix: s.cfg.OrganizationPrefix,
+			ProjectPrefix:      s.cfg.ProjectPrefix,
+			MetadataDomain:     s.cfg.MetadataDomain,
+		}
 		slog.Info("kubernetes client initialized")
 
 		// Organization service (projectsK8s created first for linked-project precondition check)

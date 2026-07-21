@@ -180,7 +180,11 @@ Three-tier access control model evaluated in order (highest role wins):
 2. **Project-level**: Per-project grants stored as JSON annotations on K8s Namespace objects (prefix configurable via `--project-prefix`, default `prj-`)
 3. **Secret-level**: Per-secret grants stored as JSON annotations on K8s Secret objects
 
-Grant annotations: `console.holos.run/share-users`, `console.holos.run/share-roles`
+Grant annotations: `holos.run/share-users`, `holos.run/share-roles`
+
+The `--metadata-domain` flag (default `"holos.run"`) configures the domain part
+of all console-managed Kubernetes label and annotation keys and the value of
+the standard `app.kubernetes.io/managed-by` label.
 
 Namespace prefix scheme (three-part naming: `{namespace-prefix}{type-prefix}{name}`):
 - Organizations: `{namespace-prefix}{organization-prefix}{name}` (resource-type label: `organization`)

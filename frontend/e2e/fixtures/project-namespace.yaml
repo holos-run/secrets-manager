@@ -3,13 +3,13 @@ kind: Namespace
 metadata:
   name: holos-prj-time-test
   labels:
-    app.kubernetes.io/managed-by: console.holos.run
-    console.holos.run/organization: local-dev
-    console.holos.run/project: time-test
-    console.holos.run/resource-type: project
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/organization: local-dev
+    holos.run/project: time-test
+    holos.run/resource-type: project
     kubernetes.io/metadata.name: holos-prj-time-test
   annotations:
-    console.holos.run/description: "Test project for time bound verification"
-    console.holos.run/display-name: "Time Test"
-    console.holos.run/share-roles: '[]'
-    console.holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
+    holos.run/description: "Test project for time bound verification"
+    holos.run/display-name: "Time Test"
+    holos.run/share-roles: '[]'
+    holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
