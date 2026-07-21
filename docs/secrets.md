@@ -19,10 +19,10 @@ kind: Secret
 metadata:
   name: my-app-credentials
   labels:
-    app.kubernetes.io/managed-by: console.holos.run
+    app.kubernetes.io/managed-by: holos.run
   annotations:
-    console.holos.run/description: "Production database and API credentials"
-    console.holos.run/url: "https://myapp.example.com"
+    holos.run/description: "Production database and API credentials"
+    holos.run/url: "https://myapp.example.com"
 type: Opaque
 data:
   database-url: cG9zdGdyZXM6Ly9sb2NhbGhvc3QvbXlkYg==    # base64-encoded
@@ -31,11 +31,15 @@ data:
 
 The UI handles base64 encoding/decoding transparently -- you work with plaintext values.
 
+Managed metadata uses the `holos.run` domain by default. Operators can replace
+the domain for all managed label and annotation keys, and for the
+`app.kubernetes.io/managed-by` value, with `--metadata-domain`.
+
 ## UI Workflow
 
 ### Secrets List
 
-The `/projects/:projectName/secrets` page displays all secrets in the project's namespace (resolved via label lookup) that have the label `app.kubernetes.io/managed-by=console.holos.run`. Each secret shows:
+The `/projects/:projectName/secrets` page displays all secrets in the project's namespace (resolved via label lookup) that have the label `app.kubernetes.io/managed-by=holos.run`. Each secret shows:
 
 - The secret name (links to the detail page)
 - A description of the secret's purpose (when set), or a sharing summary (e.g., "2 users, 1 role") as secondary text
@@ -160,4 +164,4 @@ The `SecretsService` ConnectRPC API provides programmatic access to secrets. All
 | `DeleteSecret` | Owner | Delete a secret by name |
 | `UpdateSharing` | Owner | Update sharing grants without touching data |
 
-Secret data is transmitted as `map<string, bytes>` -- values are raw bytes, not base64-encoded, in the protobuf wire format. `CreateSecret` and `UpdateSecret` also accept a `string_data` field (`map<string, string>`) for plaintext values that are merged into `data` (with `string_data` taking precedence), matching Kubernetes `stringData` semantics. Both RPCs also accept optional `description` and `url` fields stored as Kubernetes annotations (`console.holos.run/description` and `console.holos.run/url`).
+Secret data is transmitted as `map<string, bytes>` -- values are raw bytes, not base64-encoded, in the protobuf wire format. `CreateSecret` and `UpdateSecret` also accept a `string_data` field (`map<string, string>`) for plaintext values that are merged into `data` (with `string_data` taking precedence), matching Kubernetes `stringData` semantics. Both RPCs also accept optional `description` and `url` fields stored as Kubernetes annotations (`holos.run/description` and `holos.run/url`).
