@@ -49,6 +49,7 @@ export function SecretsListPage() {
   const { data: project } = useGetProject(projectName)
   const deleteMutation = useDeleteSecret(projectName)
   const [createOpen, setCreateOpen] = useState(false)
+  const [createSession, setCreateSession] = useState(0)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
@@ -137,13 +138,17 @@ export function SecretsListPage() {
 
   const showLoading = authLoading || (isAuthenticated && isLoading)
   const creatorEmail = (user?.profile?.email as string | undefined) ?? ''
+  const openCreateDialog = () => {
+    setCreateSession((session) => session + 1)
+    setCreateOpen(true)
+  }
 
   return (
     <>
       <Card>
         <CardHeader className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
           <CardTitle>{projectName ? `${projectName} / Secrets` : 'Secrets'}</CardTitle>
-          <Button size="sm" onClick={() => setCreateOpen(true)} disabled={showLoading}>Create Secret</Button>
+          <Button size="sm" onClick={openCreateDialog} disabled={showLoading}>Create Secret</Button>
         </CardHeader>
         <CardContent>
           <ResourceTable
@@ -155,21 +160,20 @@ export function SecretsListPage() {
             loadingLabel="Loading secrets"
             searchPlaceholder="Search secrets…"
             emptyMessage="No secrets yet."
-            emptyAction={<Button size="sm" onClick={() => setCreateOpen(true)}>Create Secret</Button>}
+            emptyAction={<Button size="sm" onClick={openCreateDialog}>Create Secret</Button>}
           />
         </CardContent>
       </Card>
 
-      {createOpen && (
-        <CreateSecretDialog
-          open
-          onOpenChange={setCreateOpen}
-          projectName={projectName}
-          creatorEmail={creatorEmail}
-          defaultUserGrants={(project?.defaultUserGrants ?? []) as Grant[]}
-          defaultRoleGrants={(project?.defaultRoleGrants ?? []) as Grant[]}
-        />
-      )}
+      <CreateSecretDialog
+        key={createSession}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        projectName={projectName}
+        creatorEmail={creatorEmail}
+        defaultUserGrants={(project?.defaultUserGrants ?? []) as Grant[]}
+        defaultRoleGrants={(project?.defaultRoleGrants ?? []) as Grant[]}
+      />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
