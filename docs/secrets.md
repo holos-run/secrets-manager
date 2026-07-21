@@ -39,7 +39,7 @@ the domain for all managed label and annotation keys, and for the
 
 ### Secrets List
 
-The `/projects/:projectName/secrets` page displays all secrets in the project's namespace (resolved via label lookup) that have the label `app.kubernetes.io/managed-by=holos.run`. Each secret shows:
+The `/projects/:projectName/secrets` page displays all secrets in the project's namespace (resolved via label lookup) whose `app.kubernetes.io/managed-by` label matches the configured metadata domain (`holos.run` by default). Each secret shows:
 
 - The secret name (links to the detail page)
 - A description of the secret's purpose (when set), or a sharing summary (e.g., "2 users, 1 role") as secondary text
