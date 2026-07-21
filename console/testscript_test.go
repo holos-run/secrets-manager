@@ -204,9 +204,7 @@ func waitForTCP(addr string, timeout time.Duration) error {
 	for time.Now().Before(deadline) {
 		conn, err := net.DialTimeout("tcp", addr, 200*time.Millisecond)
 		if err == nil {
-			if err := conn.Close(); err != nil {
-				return err
-			}
+			_ = conn.Close()
 			return nil
 		}
 		lastErr = err
