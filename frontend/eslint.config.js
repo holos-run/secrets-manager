@@ -33,28 +33,9 @@ export default defineConfig([
     },
   },
   {
-    files: [
-      'src/components/secret-data-editor.tsx',
-      'src/components/secret-data-grid.tsx',
-    ],
-    rules: {
-      'react-hooks/refs': 'off',
-    },
-  },
-  {
     files: ['src/components/ui/sidebar.tsx'],
     rules: {
       'react-hooks/purity': 'off',
-    },
-  },
-  {
-    files: [
-      'src/hooks/use-mobile.ts',
-      'src/routes/_authenticated/profile.tsx',
-      'src/routes/_authenticated/projects/$projectName/secrets/$name.tsx',
-    ],
-    rules: {
-      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ])

@@ -32,6 +32,8 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (!user?.expires_at) {
+      // Reset derived timer state when the external OIDC session has no expiration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTimeRemaining(null)
       return
     }
