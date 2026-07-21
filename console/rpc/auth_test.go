@@ -52,12 +52,14 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"issuer":                 serverURL,
 			"jwks_uri":               serverURL + "/keys",
 			"authorization_endpoint": serverURL + "/auth",
 			"token_endpoint":         serverURL + "/token",
-		})
+		}); err != nil {
+			t.Errorf("encode discovery response: %v", err)
+		}
 	})
 
 	mux.HandleFunc("/keys", func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +71,9 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 		}
 		jwks := jose.JSONWebKeySet{Keys: []jose.JSONWebKey{jwk}}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(jwks)
+		if err := json.NewEncoder(w).Encode(jwks); err != nil {
+			t.Errorf("encode JWKS response: %v", err)
+		}
 	})
 
 	srv := httptest.NewServer(mux)
