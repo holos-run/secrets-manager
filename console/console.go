@@ -62,7 +62,7 @@ type Config struct {
 	// Origin is the public-facing base URL of the console.
 	// Used to construct OIDC redirect URIs (e.g., redirect_uri, post_logout_redirect_uri).
 	// When empty, redirect URIs are derived from Issuer for backward compatibility.
-	// Example: "https://holos-console.home.jeffmccune.com"
+	// Example: "https://secrets-manager.home.jeffmccune.com"
 	Origin string
 
 	// Issuer is the OIDC issuer URL for token validation.
@@ -691,10 +691,9 @@ func handleDebugOIDC(w http.ResponseWriter, r *http.Request, issuer string, clie
 	debugInfo := map[string]interface{}{
 		"discovery":         discovery,
 		"configured_issuer": issuer,
-		"notes": map[string]string{
-			"scopes_supported": "Check if 'groups' is in scopes_supported. If not, Dex may not include groups in ID tokens.",
-			"investigation":    "See holos-garage/Holos Garage/Holos/plans/holos-console-groups-claim-investigation.md",
-		},
+			"notes": map[string]string{
+				"scopes_supported": "Check if 'groups' is in scopes_supported. If not, Dex may not include groups in ID tokens.",
+			},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
