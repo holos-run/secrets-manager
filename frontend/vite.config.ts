@@ -13,7 +13,7 @@ const backendUrl = `https://localhost:${backendPort}`
 // Derive OIDC config from backend URL for Vite dev server
 const oidcConfig = {
   authority: `${backendUrl}/dex`,
-  client_id: 'holos-console',
+  client_id: 'secrets-manager',
   redirect_uri: `https://localhost:${vitePort}/pkce/verify`,
   post_logout_redirect_uri: `https://localhost:${vitePort}/`,
 }

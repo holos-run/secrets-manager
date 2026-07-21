@@ -29,7 +29,7 @@ function makeUser(profileOverrides = {}) {
       sub: 'test-user-id',
       email: 'test@example.com',
       iss: 'https://dex.example.com',
-      aud: 'holos-console',
+      aud: 'secrets-manager',
       groups: [],
       iat: 1700000000,
       exp: 1700003600,
@@ -81,13 +81,13 @@ describe('ProfilePage token claims — Claims view (default)', () => {
     setAuthState()
     render(<ProfilePage />)
     expect(screen.getByText('Audience (aud)')).toBeInTheDocument()
-    expect(screen.getByText('holos-console')).toBeInTheDocument()
+    expect(screen.getByText('secrets-manager')).toBeInTheDocument()
   })
 
   it('displays aud claim as array joined with comma', () => {
-    setAuthState({ user: makeUser({ aud: ['holos-console', 'other-client'] }) })
+    setAuthState({ user: makeUser({ aud: ['secrets-manager', 'other-client'] }) })
     render(<ProfilePage />)
-    expect(screen.getByText('holos-console, other-client')).toBeInTheDocument()
+    expect(screen.getByText('secrets-manager, other-client')).toBeInTheDocument()
   })
 
   it('displays sub, email, iat, exp, scopes, token type', () => {

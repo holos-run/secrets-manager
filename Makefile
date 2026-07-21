@@ -1,11 +1,11 @@
 OS = $(shell uname | tr A-Z a-z)
 
-PROJ=holos-console
+PROJ=secrets-manager
 ORG_PATH=github.com/holos-run
 REPO_PATH=$(ORG_PATH)/$(PROJ)
 
 VERSION := $(shell cat console/version/major console/version/minor console/version/patch | xargs printf "%s.%s.%s")
-BIN_NAME := holos-console
+BIN_NAME := secrets-manager
 
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_SUFFIX=$(shell test -n "`git status --porcelain`" && echo "-dirty" || echo "")
@@ -135,7 +135,7 @@ dispatch: ## Create worktree and spawn Claude Code agent for a GitHub issue.
 	./scripts/dispatch $(ISSUE)
 
 # Container image configuration
-DOCKER_REPO ?= ghcr.io/holos-run/holos-console
+DOCKER_REPO ?= ghcr.io/holos-run/secrets-manager
 GIT_SHA := $(shell git rev-parse --short HEAD)
 IMAGE_TAG ?= $(VERSION)-$(GIT_SHA)
 PLATFORMS ?= linux/amd64,linux/arm64

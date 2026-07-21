@@ -9,7 +9,7 @@ export const DEFAULT_PASSWORD = 'verysecret'
  */
 export function buildAuthorizeUrl(): string {
   const url = new URL('/dex/auth', 'https://localhost:5173')
-  url.searchParams.set('client_id', 'holos-console')
+  url.searchParams.set('client_id', 'secrets-manager')
   url.searchParams.set('redirect_uri', 'https://localhost:5173/pkce/verify')
   url.searchParams.set('response_type', 'code')
   url.searchParams.set('scope', 'openid profile email')

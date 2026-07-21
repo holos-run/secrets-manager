@@ -33,13 +33,13 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"github.com/holos-run/holos-console/console/oidc"
-	"github.com/holos-run/holos-console/console/organizations"
-	"github.com/holos-run/holos-console/console/projects"
-	"github.com/holos-run/holos-console/console/resolver"
-	"github.com/holos-run/holos-console/console/rpc"
-	"github.com/holos-run/holos-console/console/secrets"
-	"github.com/holos-run/holos-console/gen/holos/console/v1/consolev1connect"
+	"github.com/holos-run/secrets-manager/console/oidc"
+	"github.com/holos-run/secrets-manager/console/organizations"
+	"github.com/holos-run/secrets-manager/console/projects"
+	"github.com/holos-run/secrets-manager/console/resolver"
+	"github.com/holos-run/secrets-manager/console/rpc"
+	"github.com/holos-run/secrets-manager/console/secrets"
+	"github.com/holos-run/secrets-manager/gen/holos/console/v1/consolev1connect"
 )
 
 //go:embed all:dist
@@ -71,7 +71,7 @@ type Config struct {
 	Issuer string
 
 	// ClientID is the expected audience for tokens.
-	// Default: "holos-console"
+	// Default: "secrets-manager"
 	ClientID string
 
 	// IDTokenTTL is the lifetime of ID tokens.

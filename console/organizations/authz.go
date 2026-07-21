@@ -1,7 +1,7 @@
 package organizations
 
 import (
-	"github.com/holos-run/holos-console/console/rbac"
+	"github.com/holos-run/secrets-manager/console/rbac"
 )
 
 // CheckOrgReadAccess verifies the user has read permission on the organization.

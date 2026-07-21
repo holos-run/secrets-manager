@@ -24,7 +24,7 @@ function getConfig(): OIDCConfig {
   const origin = window.location.origin
   return {
     authority: `${origin}/dex`,
-    client_id: 'holos-console',
+    client_id: 'secrets-manager',
     redirect_uri: `${origin}/pkce/verify`,
     post_logout_redirect_uri: `${origin}/`,
   }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/holos-run/holos-console/console/resolver"
-	"github.com/holos-run/holos-console/console/secrets"
+	"github.com/holos-run/secrets-manager/console/resolver"
+	"github.com/holos-run/secrets-manager/console/secrets"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

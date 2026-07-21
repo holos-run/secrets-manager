@@ -1088,7 +1088,7 @@ const file_holos_console_v1_secrets_proto_rawDesc = "" +
 	"\fCreateSecret\x12%.holos.console.v1.CreateSecretRequest\x1a&.holos.console.v1.CreateSecretResponse\x12]\n" +
 	"\fDeleteSecret\x12%.holos.console.v1.DeleteSecretRequest\x1a&.holos.console.v1.DeleteSecretResponse\x12`\n" +
 	"\rUpdateSharing\x12&.holos.console.v1.UpdateSharingRequest\x1a'.holos.console.v1.UpdateSharingResponse\x12]\n" +
-	"\fGetSecretRaw\x12%.holos.console.v1.GetSecretRawRequest\x1a&.holos.console.v1.GetSecretRawResponseBCZAgithub.com/holos-run/holos-console/gen/holos/console/v1;consolev1b\x06proto3"
+	"\fGetSecretRaw\x12%.holos.console.v1.GetSecretRawRequest\x1a&.holos.console.v1.GetSecretRawResponseBEZCgithub.com/holos-run/secrets-manager/gen/holos/console/v1;consolev1b\x06proto3"
 
 var (
 	file_holos_console_v1_secrets_proto_rawDescOnce sync.Once

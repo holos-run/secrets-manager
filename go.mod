@@ -1,4 +1,4 @@
-module github.com/holos-run/holos-console
+module github.com/holos-run/secrets-manager
 
 go 1.25.0
 
