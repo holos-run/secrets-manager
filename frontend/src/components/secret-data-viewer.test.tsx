@@ -1,7 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { toast } from 'sonner'
 import { SecretDataViewer } from './secret-data-viewer'
+import { SECRET_MASK, SECRET_REVEAL_TIMEOUT_MS } from '@/lib/secret-display'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn() },
@@ -12,6 +13,10 @@ const encode = (s: string) => new TextEncoder().encode(s)
 describe('SecretDataViewer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders key names as labels', () => {
@@ -42,7 +47,7 @@ describe('SecretDataViewer', () => {
     // Value should not be visible
     expect(screen.queryByText('admin')).not.toBeInTheDocument()
     // Masked placeholder should be visible
-    expect(screen.getByText(/••••/)).toBeInTheDocument()
+    expect(screen.getByText(SECRET_MASK)).toBeInTheDocument()
   })
 
   it('clicking Reveal shows the value in a read-only monospace block', () => {
@@ -78,6 +83,24 @@ describe('SecretDataViewer', () => {
     // Hide
     fireEvent.click(screen.getByRole('button', { name: /hide/i }))
     expect(screen.queryByText('admin')).not.toBeInTheDocument()
+  })
+
+  it('automatically hides a revealed value after the shared timeout', () => {
+    vi.useFakeTimers()
+    render(
+      <SecretDataViewer
+        data={{ username: encode('admin') }}
+        onChange={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /reveal/i }))
+    expect(screen.getByText('admin')).toBeInTheDocument()
+
+    act(() => vi.advanceTimersByTime(SECRET_REVEAL_TIMEOUT_MS))
+
+    expect(screen.queryByText('admin')).not.toBeInTheDocument()
+    expect(screen.getByText(SECRET_MASK)).toBeInTheDocument()
   })
 
   it('clicking Copy calls navigator.clipboard.writeText with decoded value', async () => {

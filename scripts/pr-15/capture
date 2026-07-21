@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# PR #15 — capture token progress semantics and masked/revealed Resource output.
+#
+# Called by scripts/browser-capture-pr 15. Expects:
+#   HOLOS_BACKEND_URL, PR_SCREENSHOT_DIR
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+kubectl apply \
+  -f "$REPO_ROOT/frontend/e2e/fixtures/project-namespace.yaml" \
+  -f "$REPO_ROOT/frontend/e2e/fixtures/secret-no-time-bounds.yaml"
+
+AB="agent-browser --session-name holos-dev"
+
+echo "==> Capturing semantic token lifetime progress"
+$AB open "$HOLOS_BACKEND_URL/profile"
+$AB wait --load networkidle
+$AB wait --text "ID Token Status" 2>/dev/null || $AB wait 3000
+$AB screenshot "$PR_SCREENSHOT_DIR/01-token-progress.png"
+
+echo "==> Capturing masked Resource output"
+$AB open "$HOLOS_BACKEND_URL/projects/time-test/secrets/no-time-bounds"
+$AB wait --load networkidle
+$AB wait --text "Secret with grants" 2>/dev/null || $AB wait 3000
+$AB eval "
+  for (const button of document.querySelectorAll('button')) {
+    if (button.textContent.trim() === 'Resource') {
+      button.click();
+      break;
+    }
+  }
+"
+$AB wait --text "Show values" 2>/dev/null || $AB wait 1500
+$AB screenshot --full "$PR_SCREENSHOT_DIR/02-resource-values-masked.png"
+
+echo "==> Capturing explicitly revealed Resource output"
+$AB eval "
+  for (const button of document.querySelectorAll('button')) {
+    if (button.textContent.trim() === 'Show values') {
+      button.click();
+      break;
+    }
+  }
+"
+$AB wait --text "test-key" 2>/dev/null || $AB wait 1000
+$AB screenshot --full "$PR_SCREENSHOT_DIR/03-resource-values-revealed.png"
+
+echo "Screenshots saved to $PR_SCREENSHOT_DIR"
