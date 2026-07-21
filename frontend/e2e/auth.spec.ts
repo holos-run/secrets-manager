@@ -176,6 +176,10 @@ test.describe('Profile Page', () => {
 
     // Verify profile page shows token status after login
     await expect(page.getByText('ID Token Status')).toBeVisible({ timeout: 5000 })
+    const progress = page.getByRole('progressbar', { name: 'Token lifetime elapsed' })
+    await expect(progress).toBeVisible()
+    await expect(progress).toHaveAttribute('aria-valuemin', '0')
+    await expect(progress).toHaveAttribute('aria-valuemax', '100')
 
     // Verify token claims section is visible
     await expect(page.getByText('Token Claims')).toBeVisible()
@@ -233,7 +237,7 @@ test.describe('Profile Page', () => {
     await page.getByRole('button', { name: /raw/i }).last().click()
 
     // Verify JSON is displayed
-    const pre = page.getByRole('code')
+    const pre = page.locator('pre').first()
     await expect(pre).toBeVisible()
     await expect(pre).toContainText('"iss"')
     await expect(pre).toContainText('"aud"')
