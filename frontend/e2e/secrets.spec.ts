@@ -77,6 +77,16 @@ test.describe('Secrets Page', () => {
     // Verify the creator is shown as owner (admin user email)
     await expect(page.getByText(/admin@example.com|admin/)).toBeVisible()
 
+    // Resource output must not render decoded plaintext until the user explicitly reveals it.
+    await page.getByRole('button', { name: 'Resource' }).click()
+    const resource = page.locator('pre')
+    await expect(resource).toBeVisible()
+    await expect(resource).toContainText('••••••••')
+    await expect(resource).not.toContainText('TEST_KEY=test_value')
+    await page.getByRole('button', { name: 'Show values' }).click()
+    await expect(resource).toContainText('TEST_KEY=test_value')
+    await expect(page.getByRole('button', { name: 'Hide values' })).toBeVisible()
+
     // Clean up: delete the secret
     await page.getByRole('button', { name: /^delete$/i }).click()
     await expect(page.getByText(/are you sure/i)).toBeVisible()
