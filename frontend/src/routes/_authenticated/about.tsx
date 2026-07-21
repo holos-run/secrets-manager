@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useVersion } from '@/queries/version'
+import { getAppConfig } from '@/lib/app-config'
 
 export const Route = createFileRoute('/_authenticated/about')({
   component: AboutPage,
@@ -12,6 +13,7 @@ function formatValue(value: string) {
 
 export function AboutPage() {
   const { data, isLoading, error } = useVersion()
+  const { appName } = getAppConfig()
 
   return (
     <div className="space-y-4">
@@ -51,7 +53,7 @@ export function AboutPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>About Holos Console</CardTitle>
+          <CardTitle>About {appName}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 text-sm">
