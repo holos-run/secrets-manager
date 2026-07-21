@@ -78,7 +78,7 @@ func NewHandler(ctx context.Context, cfg Config) (http.Handler, error) {
 	// Create in-memory storage
 	store := memory.New(logger)
 
-	// Add static client for holos-console SPA
+	// Add static client for the Secrets Manager SPA.
 	store = storage.WithStaticClients(store, []storage.Client{
 		{
 			ID:           cfg.ClientID,

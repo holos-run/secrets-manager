@@ -5,8 +5,8 @@ import (
 
 	"connectrpc.com/connect"
 
-	consolev1 "github.com/holos-run/holos-console/gen/holos/console/v1"
-	"github.com/holos-run/holos-console/gen/holos/console/v1/consolev1connect"
+	consolev1 "github.com/holos-run/secrets-manager/gen/holos/console/v1"
+	"github.com/holos-run/secrets-manager/gen/holos/console/v1/consolev1connect"
 )
 
 // VersionInfo holds version information to be returned by the service.

@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/holos-run/holos-console/cli"
-	"github.com/holos-run/holos-console/console"
+	"github.com/holos-run/secrets-manager/cli"
+	"github.com/holos-run/secrets-manager/console"
 )
 
 func main() {

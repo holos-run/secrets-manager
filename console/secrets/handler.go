@@ -12,10 +12,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 
-	"github.com/holos-run/holos-console/console/rbac"
-	"github.com/holos-run/holos-console/console/rpc"
-	consolev1 "github.com/holos-run/holos-console/gen/holos/console/v1"
-	"github.com/holos-run/holos-console/gen/holos/console/v1/consolev1connect"
+	"github.com/holos-run/secrets-manager/console/rbac"
+	"github.com/holos-run/secrets-manager/console/rpc"
+	consolev1 "github.com/holos-run/secrets-manager/gen/holos/console/v1"
+	"github.com/holos-run/secrets-manager/gen/holos/console/v1/consolev1connect"
 )
 
 // auditResourceType is the resource_type value for all secret audit log events.

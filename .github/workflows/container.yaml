@@ -72,8 +72,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/holos-run/holos-console:${{ steps.tags.outputs.tag }}
-            ghcr.io/holos-run/holos-console:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}
+            ghcr.io/holos-run/secrets-manager:${{ steps.tags.outputs.tag }}
+            ghcr.io/holos-run/secrets-manager:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}
 
       - name: Setup Cosign to sign container images
         uses: sigstore/cosign-installer@v3.7.0
@@ -82,8 +82,8 @@ jobs:
         env:
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         run: |
-          cosign sign --yes ghcr.io/holos-run/holos-console:${{ steps.tags.outputs.tag }}@${DIGEST}
-          cosign sign --yes ghcr.io/holos-run/holos-console:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}@${DIGEST}
+          cosign sign --yes ghcr.io/holos-run/secrets-manager:${{ steps.tags.outputs.tag }}@${DIGEST}
+          cosign sign --yes ghcr.io/holos-run/secrets-manager:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}@${DIGEST}
 
     outputs:
       tag: ${{ steps.tags.outputs.tag }}
