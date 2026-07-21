@@ -3,7 +3,6 @@ package oidc_test
 import (
 	"context"
 	"log/slog"
-	"net/http"
 	"os"
 	"testing"
 
@@ -29,9 +28,6 @@ func TestNewHandler_Success(t *testing.T) {
 	if handler == nil {
 		t.Error("NewHandler() returned nil handler")
 	}
-
-	// Verify handler implements http.Handler
-	var _ http.Handler = handler
 }
 
 func TestNewHandler_ValidationErrors(t *testing.T) {

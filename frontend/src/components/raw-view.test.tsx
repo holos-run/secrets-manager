@@ -16,7 +16,7 @@ const namespaceRaw = JSON.stringify({
     uid: 'ns-uid-123',
     resourceVersion: '99999',
     creationTimestamp: '2025-06-01T00:00:00Z',
-    managedFields: [{ manager: 'holos-console' }],
+    managedFields: [{ manager: 'secrets-manager' }],
     labels: {
       'app.kubernetes.io/managed-by': 'holos.run',
       'holos.run/resource-type': 'organization',

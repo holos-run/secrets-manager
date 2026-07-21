@@ -1,6 +1,6 @@
 # Secrets Management
 
-holos-console provides a web UI for managing Kubernetes Secrets. Secrets are stored as standard Kubernetes `Opaque` secrets using the native `map<string, bytes>` data model, where each key is a filename and each value is the file content as raw bytes.
+Holos Secrets Manager provides a web UI for managing Kubernetes Secrets. Secrets are stored as standard Kubernetes `Opaque` secrets using the native `map<string, bytes>` data model, where each key is a filename and each value is the file content as raw bytes.
 
 ## Data Model
 
@@ -75,7 +75,7 @@ Owners can manage access grants on the secret detail page via the Sharing panel.
 
 ## Consuming Secrets in Pods
 
-Kubernetes secrets created through holos-console are standard `Opaque` secrets. They can be consumed by pods using any standard Kubernetes mechanism.
+Kubernetes secrets created through Holos Secrets Manager are standard `Opaque` secrets. They can be consumed by pods using any standard Kubernetes mechanism.
 
 ### Volume Mounts (Recommended)
 
@@ -156,7 +156,7 @@ The `SecretsService` ConnectRPC API provides programmatic access to secrets. All
 
 | RPC | Required Role | Description |
 |---|---|---|
-| `ListSecrets` | Viewer | List all console-managed secrets with metadata |
+| `ListSecrets` | Viewer | List all Secrets Manager-managed secrets with metadata |
 | `GetSecret` | Viewer | Retrieve a secret's data by name |
 | `CreateSecret` | Editor | Create a new secret with data and sharing grants |
 | `UpdateSecret` | Editor | Replace a secret's data map |
