@@ -205,6 +205,10 @@ describe('SecretDataGrid', () => {
 })
 
 describe('SecretDataGrid readOnly', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders key names and masked values', () => {
     const onChange = vi.fn()
     render(

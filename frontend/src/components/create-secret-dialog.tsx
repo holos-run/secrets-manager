@@ -120,10 +120,10 @@ export function CreateSecretDialog({
               placeholder="https://example.com/service"
             />
           </div>
-          <div>
-            <Label>Data</Label>
+          <fieldset className="flex flex-col gap-1">
+            <legend className="text-sm font-medium">Data</legend>
             <SecretDataGrid data={data} onChange={setData} />
-          </div>
+          </fieldset>
           <SharingPanel
             title="Sharing"
             description={hasDefaults ? 'Pre-filled from project default sharing settings' : undefined}

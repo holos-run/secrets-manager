@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Eye, EyeOff, Copy, Plus, Trash2 } from 'lucide-react'
+import { SECRET_MASK, useTimedSecretReveals } from '@/lib/secret-display'
 
 interface Entry {
   id: string
@@ -53,12 +54,14 @@ function entriesToData(entries: Entry[]): Record<string, Uint8Array> {
 }
 
 function AutoExpandTextarea({
+  id,
   value,
   onChange,
   placeholder,
   readOnly,
   className,
 }: {
+  id?: string
   value: string
   onChange?: (value: string) => void
   placeholder?: string
@@ -77,6 +80,7 @@ function AutoExpandTextarea({
 
   return (
     <textarea
+      id={id}
       ref={ref}
       rows={1}
       value={value}
@@ -99,7 +103,7 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
     // Show one empty row by default when no data
     return parsed.length > 0 ? parsed : [{ id: genId(), key: '', value: '', trailingNewline: false }]
   })
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
+  const { revealedKeys, reveal, hide } = useTimedSecretReveals()
 
   const emitChange = useCallback(
     (newEntries: Entry[]) => {
@@ -144,12 +148,8 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
   }
 
   const toggleReveal = (key: string) => {
-    setRevealedKeys((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
+    if (revealedKeys.has(key)) hide(key)
+    else reveal(key)
   }
 
   const handleCopy = (value: string) => {
@@ -190,15 +190,15 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
                     {rawValue}
                   </pre>
                 ) : (
-                  <p className="font-mono text-sm text-muted-foreground py-1">{'••••••••'}</p>
+                  <p className="font-mono text-sm text-muted-foreground py-1">{SECRET_MASK}</p>
                 )}
               </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="icon" aria-label={isRevealed ? 'hide' : 'reveal'} onClick={() => toggleReveal(key)}>
-                  {isRevealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {isRevealed ? <EyeOff data-icon="inline-start" /> : <Eye data-icon="inline-start" />}
                 </Button>
                 <Button variant="ghost" size="icon" aria-label="copy" onClick={() => handleCopy(rawValue)}>
-                  <Copy className="h-4 w-4" />
+                  <Copy data-icon="inline-start" />
                 </Button>
               </div>
             </div>
@@ -222,7 +222,9 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
         return (
           <div key={entry.id} className="grid grid-cols-[1fr_2fr_auto] gap-2 items-start">
             <div>
+              <label className="sr-only" htmlFor={`secret-key-${entry.id}`}>Secret key</label>
               <Input
+                id={`secret-key-${entry.id}`}
                 placeholder="key"
                 value={entry.key}
                 onChange={(e) => handleKeyChange(entry.id, e.target.value)}
@@ -233,7 +235,9 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
               )}
             </div>
             <div>
+              <label className="sr-only" htmlFor={`secret-value-${entry.id}`}>Secret value</label>
               <AutoExpandTextarea
+                id={`secret-value-${entry.id}`}
                 value={entry.value}
                 onChange={(v) => handleValueChange(entry.id, v)}
                 placeholder="value"
@@ -262,7 +266,7 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
               aria-label="remove row"
               onClick={() => handleRemoveRow(entry.id)}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 data-icon="inline-start" />
             </Button>
           </div>
         )
@@ -270,7 +274,7 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
 
       <div className="flex items-center gap-4 pt-2">
         <Button variant="outline" size="sm" onClick={handleAddRow}>
-          <Plus className="h-4 w-4 mr-1" />
+          <Plus data-icon="inline-start" />
           Add Row
         </Button>
       </div>

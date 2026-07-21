@@ -10,6 +10,7 @@ import { Braces, List } from 'lucide-react'
 import { toast } from 'sonner'
 import { ViewModeToggle } from '@/components/view-mode-toggle'
 import { useAuth } from '@/lib/auth'
+import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_authenticated/profile')({
   component: ProfilePage,
@@ -99,8 +100,8 @@ export function ProfilePage() {
   }
 
   const totalLifetime = user?.expires_in ?? 900
-  const progress = timeRemaining !== null
-    ? Math.min(100, ((totalLifetime - timeRemaining) / totalLifetime) * 100)
+  const progress = timeRemaining !== null && totalLifetime > 0
+    ? Math.max(0, Math.min(100, ((totalLifetime - timeRemaining) / totalLifetime) * 100))
     : 0
 
   const profile = user?.profile as Record<string, unknown> | undefined
@@ -133,12 +134,21 @@ export function ProfilePage() {
                 {timeRemaining !== null ? formatTime(timeRemaining) : 'N/A'}
               </span>
             </div>
-            <div className="w-full bg-muted rounded-full h-2">
+            <div
+              role="progressbar"
+              aria-label="Token lifetime elapsed"
+              aria-valuenow={Math.round(progress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="h-2 w-full rounded-full bg-muted"
+            >
               <div
-                className={`h-2 rounded-full transition-all ${
-                  timeRemaining !== null && timeRemaining < 60 ? 'bg-yellow-500' : 'bg-primary'
-                }`}
+                className={cn(
+                  'h-2 rounded-full bg-primary transition-all',
+                  timeRemaining !== null && timeRemaining < 60 && 'bg-destructive',
+                )}
                 style={{ width: `${progress}%` }}
+                aria-hidden="true"
               />
             </div>
           </div>
@@ -255,7 +265,6 @@ export function ProfilePage() {
                 </Button>
               </div>
               <pre
-                role="code"
                 className="rounded-md bg-muted p-4 text-sm font-mono overflow-auto whitespace-pre-wrap break-words"
               >
                 {rawJson}
