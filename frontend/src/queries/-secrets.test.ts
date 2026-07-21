@@ -181,4 +181,17 @@ describe('secret mutations', () => {
 
     expect(mutateAsync).toHaveBeenCalledWith(rpcVariables, undefined)
   })
+
+  it('does not refetch deleted detail queries before route navigation', async () => {
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    renderHook(() => useDeleteSecret('my-project'), { wrapper: makeWrapper(queryClient) })
+
+    const onSuccess = (useMutation as Mock).mock.calls[0][1].onSuccess
+    await act(async () => onSuccess({}, { name: 'my-secret', project: 'my-project' }))
+
+    expect(invalidateSpy).toHaveBeenCalledTimes(3)
+    for (const [filters] of invalidateSpy.mock.calls) {
+      expect(filters.refetchType).toBe('none')
+    }
+  })
 })
