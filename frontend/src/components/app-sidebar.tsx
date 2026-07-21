@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button'
 import { useOrg } from '@/lib/org-context'
 import { useProject } from '@/lib/project-context'
 import { useVersion } from '@/queries/version'
+import { getAppConfig } from '@/lib/app-config'
 import { CreateOrgDialog } from '@/components/create-org-dialog'
 import { CreateProjectDialog } from '@/components/create-project-dialog'
 
@@ -43,6 +44,7 @@ const bottomItems = [
 ]
 
 export function AppSidebar() {
+  const { appName } = getAppConfig()
   const { data: versionData } = useVersion()
   const router = useRouter()
   const pathname = router.state.location.pathname
@@ -106,7 +108,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-4 py-3">
-        <div className="font-semibold text-lg">Holos Console</div>
+        <div className="font-semibold text-lg">{appName}</div>
         {versionData?.version && (
           <div className="text-xs text-muted-foreground">{versionData.version}</div>
         )}

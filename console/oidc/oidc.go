@@ -79,7 +79,7 @@ func NewHandler(ctx context.Context, cfg Config) (http.Handler, error) {
 		{
 			ID:           cfg.ClientID,
 			RedirectURIs: cfg.RedirectURIs,
-			Name:         "Holos Console",
+			Name:         "Holos Secrets Manager",
 			Public:       true, // SPA = public client, no secret
 		},
 	})
