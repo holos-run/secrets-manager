@@ -1,5 +1,10 @@
 name: Container
 
+env:
+  REGISTRY: ghcr.io
+  REGISTRY_OWNER: holos-run
+  IMAGE_NAME: secrets-manager
+
 permissions:
   contents: write
 
@@ -57,10 +62,10 @@ jobs:
           echo "suffix=$(test -n "$(git status --porcelain)" && echo '-dirty' || echo '')" >> $GITHUB_OUTPUT
           echo "tag=$(/usr/bin/git describe --tags HEAD)$(test -n "$(git status --porcelain)" && echo '-dirty' || echo '')" >> $GITHUB_OUTPUT
 
-      - name: Login to ghcr.io
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -72,8 +77,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/holos-run/secrets-manager:${{ steps.tags.outputs.tag }}
-            ghcr.io/holos-run/secrets-manager:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.REGISTRY_OWNER }}/${{ env.IMAGE_NAME }}:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}
 
       - name: Setup Cosign to sign container images
         uses: sigstore/cosign-installer@v3.7.0
@@ -82,8 +87,8 @@ jobs:
         env:
           DIGEST: ${{ steps.build-and-push.outputs.digest }}
         run: |
-          cosign sign --yes ghcr.io/holos-run/secrets-manager:${{ steps.tags.outputs.tag }}@${DIGEST}
-          cosign sign --yes ghcr.io/holos-run/secrets-manager:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}@${DIGEST}
+          cosign sign --yes "${REGISTRY}/${REGISTRY_OWNER}/${IMAGE_NAME}:${{ steps.tags.outputs.tag }}@${DIGEST}"
+          cosign sign --yes "${REGISTRY}/${REGISTRY_OWNER}/${IMAGE_NAME}:${{ steps.sha.outputs.sha }}${{ steps.tags.outputs.suffix }}@${DIGEST}"
 
     outputs:
       tag: ${{ steps.tags.outputs.tag }}
