@@ -58,6 +58,15 @@ test.describe('Secrets Page', () => {
     // Wait for the secret to appear in the list
     await expect(page.getByRole('link', { name: secretName })).toBeVisible({ timeout: 10000 })
 
+    // The shared resource table exposes semantic sorting state and filtering.
+    const nameHeader = page.getByRole('columnheader', { name: /name/i })
+    await expect(nameHeader).toHaveAttribute('scope', 'col')
+    await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending')
+    await page.getByPlaceholder('Search secrets…').fill(secretName)
+    await expect(page.getByRole('link', { name: secretName })).toBeVisible()
+    await nameHeader.getByRole('button', { name: /name/i }).click()
+    await expect(nameHeader).toHaveAttribute('aria-sort', 'descending')
+
     // Navigate to the created secret
     await page.getByRole('link', { name: secretName }).click()
     await page.waitForURL(new RegExp(`/projects/${projectName}/secrets/${secretName}`), { timeout: 5000 })

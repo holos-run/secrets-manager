@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -22,6 +23,7 @@ import {
 import { useListOrganizations } from '@/queries/organizations'
 import { useCreateProject } from '@/queries/projects'
 import { toSlug } from '@/lib/slug'
+import { toast } from 'sonner'
 
 export interface CreateProjectDialogProps {
   open: boolean
@@ -77,13 +79,16 @@ export function CreateProjectDialog({
       setDescription('')
       setNameEdited(false)
       onCreated?.(response.name)
+      toast.success('Project created')
       onOpenChange(false)
       navigate({
         to: '/projects/$projectName/secrets',
         params: { projectName: response.name },
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create project')
+      const message = err instanceof Error ? err.message : 'Failed to create project'
+      setError(message)
+      toast.error(message)
     }
   }
 
@@ -107,11 +112,13 @@ export function CreateProjectDialog({
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.name} value={org.name}>
-                      {org.displayName || org.name}
-                    </SelectItem>
-                  ))}
+                  <SelectGroup>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.name} value={org.name}>
+                        {org.displayName || org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>

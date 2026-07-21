@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Braces, Check, Pencil, X, ExternalLink, Table2 } from 'lucide-react'
-import { ViewModeToggle } from '@/components/view-mode-toggle'
+import { ExternalLink } from 'lucide-react'
+import { InlineEditField } from '@/components/inline-edit-field'
+import { SecretPageActions } from '@/components/secret-page-actions'
+import { DeleteSecretDialog } from '@/components/delete-secret-dialog'
+import { SecretPageError, SecretPageLoading } from '@/components/secret-page-state'
 import { useAuth } from '@/lib/auth'
 import { SecretDataGrid } from '@/components/secret-data-grid'
 import { RawView } from '@/components/raw-view'
@@ -22,20 +16,11 @@ import { isSafeUrl } from '@/lib/utils'
 import { useGetSecret, useGetSecretMetadata, useGetSecretRaw, useUpdateSecret, useUpdateSecretSharing, useDeleteSecret } from '@/queries/secrets'
 import type { ShareGrant } from '@/gen/holos/console/v1/secrets_pb.js'
 import { isOwner as computeIsOwner } from '@/lib/isOwner'
+import { serializeSecretData } from '@/lib/serialize-secret-data'
 
 export const Route = createFileRoute('/_authenticated/projects/$projectName/secrets/$name')({
   component: SecretPage,
 })
-
-function serializeData(data: Record<string, Uint8Array>): string {
-  const sorted = Object.keys(data).sort()
-  const obj: Record<string, string> = {}
-  const decoder = new TextDecoder()
-  for (const key of sorted) {
-    obj[key] = decoder.decode(data[key])
-  }
-  return JSON.stringify(obj)
-}
 
 export function SecretPage() {
   const { projectName, name } = Route.useParams()
@@ -58,12 +43,6 @@ export function SecretPage() {
   const [originalDescription, setOriginalDescription] = useState<string | null>(null)
   const [originalUrl, setOriginalUrl] = useState<string | null>(null)
 
-  // Inline editing state
-  const [editingDescription, setEditingDescription] = useState(false)
-  const [draftDescription, setDraftDescription] = useState('')
-  const [editingUrl, setEditingUrl] = useState(false)
-  const [draftUrl, setDraftUrl] = useState('')
-
   // View mode
   const [editMode, setEditMode] = useState(false)
   const [includeAllFields, setIncludeAllFields] = useState(false)
@@ -83,7 +62,7 @@ export function SecretPage() {
     if (fetchedData && originalDataSerialized === null) {
       // Snapshot the first async query result so later edits can be compared for dirtiness.
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setOriginalDataSerialized(serializeData(fetchedData))
+      setOriginalDataSerialized(serializeSecretData(fetchedData))
       if (secretData === null) setSecretData(fetchedData)
     }
   }, [fetchedData, originalDataSerialized, secretData])
@@ -109,7 +88,7 @@ export function SecretPage() {
 
   const isDirty =
     originalDataSerialized !== null &&
-    (serializeData(effectiveData) !== originalDataSerialized ||
+    (serializeSecretData(effectiveData) !== originalDataSerialized ||
      effectiveDescription !== (originalDescription ?? '') ||
      effectiveUrl !== (originalUrl ?? ''))
 
@@ -120,19 +99,21 @@ export function SecretPage() {
   const isOwner = computeIsOwner(userEmail, userGroups, effectiveUserGrants, effectiveRoleGrants)
 
   const handleSaveSharing = async (newUserGrants: Grant[], newRoleGrants: Grant[]) => {
-    const response = await updateSharingMutation.mutateAsync({
-      name,
-      userGrants: newUserGrants,
-      roleGrants: newRoleGrants,
-    })
-    if (response.metadata) {
-      setLocalUserGrants(response.metadata.userGrants)
-      setLocalRoleGrants(response.metadata.roleGrants)
+    try {
+      const response = await updateSharingMutation.mutateAsync({
+        name,
+        userGrants: newUserGrants,
+        roleGrants: newRoleGrants,
+      })
+      if (response.metadata) {
+        setLocalUserGrants(response.metadata.userGrants)
+        setLocalRoleGrants(response.metadata.roleGrants)
+      }
+      toast.success('Sharing saved')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+      throw err
     }
-  }
-
-  const handleViewModeChange = (newMode: string) => {
-    setViewMode(newMode as 'editor' | 'raw')
   }
 
   const handleSave = async () => {
@@ -145,11 +126,14 @@ export function SecretPage() {
         description: effectiveDescription,
         url: effectiveUrl,
       })
-      setOriginalDataSerialized(serializeData(effectiveData))
+      setOriginalDataSerialized(serializeSecretData(effectiveData))
       setOriginalDescription(effectiveDescription)
       setOriginalUrl(effectiveUrl)
+      toast.success('Secret saved')
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : String(err))
+      const message = err instanceof Error ? err.message : String(err)
+      setSaveError(message)
+      toast.error(message)
     }
   }
 
@@ -165,42 +149,23 @@ export function SecretPage() {
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(name)
+      toast.success('Secret deleted')
       setDeleteOpen(false)
       navigate({ to: '/projects/$projectName/secrets', params: { projectName } })
-    } catch { /* error via mutation */ }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
   }
 
   const isLoading = dataLoading || metaLoading
 
   if (authLoading || (isAuthenticated && isLoading)) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <span>Loading...</span>
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return <SecretPageLoading />
   }
 
   const displayError = dataError || rawError
   if (displayError) {
-    const msg = displayError.message.toLowerCase()
-    let displayMessage = displayError.message
-    if (msg.includes('not found') || msg.includes('not_found')) {
-      displayMessage = `Secret "${name}" not found`
-    } else if (msg.includes('permission') || msg.includes('denied')) {
-      displayMessage = 'Permission denied: You are not authorized to view this secret'
-    }
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <Alert variant="destructive"><AlertDescription>{displayMessage}</AlertDescription></Alert>
-        </CardContent>
-      </Card>
-    )
+    return <SecretPageError error={displayError} name={name} />
   }
 
   return (
@@ -209,110 +174,45 @@ export function SecretPage() {
         <p className="text-sm text-muted-foreground">{projectName} / Secrets</p>
         <h2 className="text-xl font-semibold">{name}</h2>
 
-        {/* Description */}
-        <div className="flex items-center gap-2">
-          {editingDescription ? (
-            <>
-              <Input
-                autoFocus
-                value={draftDescription}
-                onChange={(e) => setDraftDescription(e.target.value)}
-                placeholder="What is this secret used for?"
-                onKeyDown={(e) => { if (e.key === 'Enter') { setDescription(draftDescription); setEditingDescription(false) } }}
-                className="flex-1"
-              />
-              <Button variant="ghost" size="icon" aria-label="save description" onClick={() => { setDescription(draftDescription); setEditingDescription(false) }}>
-                <Check className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" aria-label="cancel editing description" onClick={() => setEditingDescription(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <p className={`flex-1 text-sm ${effectiveDescription ? '' : 'text-muted-foreground'}`}>
-                {effectiveDescription || 'No description'}
-              </p>
-              <Button variant="ghost" size="icon" aria-label="edit description" onClick={() => { setDraftDescription(effectiveDescription); setEditingDescription(true) }}>
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-        </div>
+        {/* Metadata edits are staged locally; the page-level Save button persists both fields. */}
+        <InlineEditField
+          label="Description"
+          value={effectiveDescription}
+          emptyText="No description"
+          placeholder="What is this secret used for?"
+          onSave={(nextDescription) => setDescription(nextDescription)}
+        />
 
-        {/* URL */}
-        <div className="flex items-center gap-2">
-          {editingUrl ? (
-            <>
-              <Input
-                autoFocus
-                value={draftUrl}
-                onChange={(e) => setDraftUrl(e.target.value)}
-                placeholder="https://example.com/service"
-                onKeyDown={(e) => { if (e.key === 'Enter') { setUrl(draftUrl); setEditingUrl(false) } }}
-                className="flex-1"
-              />
-              <Button variant="ghost" size="icon" aria-label="save url" onClick={() => { setUrl(draftUrl); setEditingUrl(false) }}>
-                <Check className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" aria-label="cancel editing url" onClick={() => setEditingUrl(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            <>
-              {effectiveUrl ? (
-                isSafeUrl(effectiveUrl) ? (
-                  <a
-                    href={effectiveUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 text-sm text-primary hover:underline flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    {effectiveUrl}
-                  </a>
-                ) : (
-                  <p className="flex-1 text-sm text-muted-foreground">{effectiveUrl}</p>
-                )
-              ) : (
-                <p className="flex-1 text-sm text-muted-foreground">No URL</p>
-              )}
-              <Button variant="ghost" size="icon" aria-label="edit url" onClick={() => { setDraftUrl(effectiveUrl); setEditingUrl(true) }}>
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-        </div>
+        <InlineEditField
+          label="URL"
+          value={effectiveUrl}
+          emptyText="No URL"
+          placeholder="https://example.com/service"
+          onSave={(nextUrl) => setUrl(nextUrl)}
+          renderValue={(currentUrl) => isSafeUrl(currentUrl) ? (
+            <a
+              href={currentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-primary hover:underline"
+            >
+              <ExternalLink />
+              {currentUrl}
+            </a>
+          ) : currentUrl}
+        />
 
-        <div className="flex items-center gap-2">
-          <ViewModeToggle
-            value={viewMode}
-            onValueChange={handleViewModeChange}
-            options={[
-              { value: 'editor', label: 'Data', icon: <Table2 className="h-3.5 w-3.5" /> },
-              { value: 'raw', label: 'Resource', icon: <Braces className="h-3.5 w-3.5" /> },
-            ]}
-          />
-          <div className="flex-1" />
-          {viewMode === 'editor' && !editMode && (
-            <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
-              <Pencil className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
-          )}
-          {viewMode === 'editor' && editMode && (
-            <>
-              <Button size="sm" onClick={handleSave} disabled={!isDirty || updateMutation.isPending}>
-                {updateMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleCancel}>
-                Cancel
-              </Button>
-            </>
-          )}
-          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>Delete</Button>
-        </div>
+        <SecretPageActions
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          editMode={editMode}
+          onEdit={() => setEditMode(true)}
+          onSave={() => void handleSave()}
+          onCancel={handleCancel}
+          onDelete={() => setDeleteOpen(true)}
+          isDirty={isDirty}
+          isSaving={updateMutation.isPending}
+        />
 
         {viewMode === 'editor' && (
           <>
@@ -336,25 +236,14 @@ export function SecretPage() {
         />
       </CardContent>
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Secret</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete secret &quot;{name}&quot;? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          {deleteMutation.error && (
-            <Alert variant="destructive"><AlertDescription>{deleteMutation.error.message}</AlertDescription></Alert>
-          )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteSecretDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        name={name}
+        error={deleteMutation.error}
+        isPending={deleteMutation.isPending}
+        onConfirm={() => void handleDelete()}
+      />
     </Card>
   )
 }
