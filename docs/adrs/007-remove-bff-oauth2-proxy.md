@@ -48,5 +48,5 @@ Specifically removed:
 ## References
 
 - [ADR 002: BFF Architecture with oauth2-proxy](002-bff-architecture-oauth2-proxy.md) (reversed)
-- [Security Review FINDING-02](https://github.com/holos-run/holos-console/issues/134)
+- [Security Review FINDING-02](https://github.com/holos-run/secrets-manager/issues/134)
 - [IETF OAuth 2.0 for Browser-Based Applications](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-browser-based-apps)

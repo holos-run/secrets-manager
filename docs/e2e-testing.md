@@ -26,7 +26,7 @@ make dev &
 
 > **Note:** Only one server can bind a port at a time. If `make run` fails with "address already in use", kill the existing process first:
 > ```bash
-> pkill -f holos-console
+> pkill -f secrets-manager
 > ```
 
 ### Step 2 — Run a specific test
@@ -53,7 +53,7 @@ Edit the test or component, then re-run the same command. The servers stay runni
 When done:
 
 ```bash
-pkill -f holos-console
+pkill -f secrets-manager
 pkill -f vite
 ```
 
@@ -63,7 +63,7 @@ pkill -f vite
 
 ```bash
 # Start a K8s-backed backend on 8444 (main server stays on 8443):
-KUBECONFIG=$(k3d kubeconfig get workload) ./bin/holos-console \
+KUBECONFIG=$(k3d kubeconfig get workload) ./bin/secrets-manager \
   --enable-insecure-dex --cert certs/tls.crt --key certs/tls.key --listen :8444 &
 
 # Run tests against it (Playwright starts Vite on 5174, proxying to 8444):

@@ -1,16 +1,16 @@
 # Authentication
 
-This document describes the authentication system in holos-console.
+This document describes the authentication system in secrets-manager.
 
 ## Overview
 
-holos-console uses OIDC (OpenID Connect) with PKCE (Proof Key for Code Exchange) for authentication. The application embeds [Dex](https://dexidp.io/), a CNCF identity provider, which can be enabled for local development via the `--enable-insecure-dex` flag. For production, configure an external OIDC provider.
+secrets-manager uses OIDC (OpenID Connect) with PKCE (Proof Key for Code Exchange) for authentication. The application embeds [Dex](https://dexidp.io/), a CNCF identity provider, which can be enabled for local development via the `--enable-insecure-dex` flag. For production, configure an external OIDC provider.
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      holos-console binary                       │
+│                     secrets-manager binary                      │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌──────────────────┐      ┌──────────────────────────────────┐ │
@@ -50,7 +50,7 @@ The auto-login connector:
 ### Enabling Embedded Dex for Development
 
 ```bash
-./holos-console --enable-insecure-dex --cert certs/tls.crt --key certs/tls.key
+./secrets-manager --enable-insecure-dex --cert certs/tls.crt --key certs/tls.key
 ```
 
 Or use the Makefile shortcut which includes the flag:
@@ -65,7 +65,7 @@ Override via environment variable before starting the server:
 
 ```bash
 export HOLOS_DEX_INITIAL_ADMIN_USERNAME=myuser
-./holos-console --enable-insecure-dex --cert certs/tls.crt --key certs/tls.key
+./secrets-manager --enable-insecure-dex --cert certs/tls.crt --key certs/tls.key
 ```
 
 ## Authentication Flow
@@ -84,7 +84,7 @@ export HOLOS_DEX_INITIAL_ADMIN_USERNAME=myuser
 |------|---------|-------------|
 | `--enable-insecure-dex` | `false` | Enable the built-in Dex OIDC provider with auto-login |
 | `--issuer` | (none) | OIDC issuer URL for token validation |
-| `--client-id` | `holos-console` | Expected audience for tokens |
+| `--client-id` | `secrets-manager` | Expected audience for tokens |
 | `--listen` | `:8443` | Address to listen on |
 | `--cert` | (auto-generated) | TLS certificate file |
 | `--key` | (auto-generated) | TLS key file |
@@ -96,9 +96,9 @@ export HOLOS_DEX_INITIAL_ADMIN_USERNAME=myuser
 For production, configure an external identity provider:
 
 ```bash
-./holos-console \
+./secrets-manager \
   --issuer=https://dex.example.com \
-  --client-id=holos-console \
+  --client-id=secrets-manager \
   --cert server.crt \
   --key server.key
 ```
@@ -111,7 +111,7 @@ Your external OIDC provider must:
 
 1. Support PKCE with S256 challenge method
 2. Allow public clients (no client secret)
-3. Have `holos-console` registered as a client with redirect URI matching your deployment
+3. Have `secrets-manager` registered as a client with redirect URI matching your deployment
 
 ### Example: Configuring Dex as External Provider
 
@@ -120,8 +120,8 @@ Your external OIDC provider must:
 issuer: https://dex.example.com
 
 staticClients:
-  - id: holos-console
-    name: Holos Console
+  - id: secrets-manager
+    name: Holos Secrets Manager
     public: true
     redirectURIs:
       - https://console.example.com/pkce/verify

@@ -36,7 +36,7 @@ When a behavior can be verified with a unit test, write a unit test. Do not add 
 
 ### Identifying Your Agent Slot
 
-Agents run in worktrees whose path encodes the agent slot. Identify your slot from your working directory — for example, if `pwd` is `/path/to/worktrees/holos-run/agent-2/holos-console`, your slot is `agent-2`.
+Agents run in worktrees whose path encodes the agent slot. Identify your slot from your working directory — for example, if `pwd` is `/path/to/worktrees/holos-run/agent-2/secrets-manager`, your slot is `agent-2`.
 
 **Issue title**: Prepend the slot to issue titles created by the agent so they show up clearly in `gh issue list`, e.g. `[agent-2] feat: add Playwright E2E test infrastructure`.
 
@@ -92,8 +92,8 @@ EOF
 ## Build Commands
 
 ```bash
-make build          # Build executable to bin/holos-console
-make debug          # Build with debug symbols to bin/holos-console-debug
+make build          # Build executable to bin/secrets-manager
+make debug          # Build with debug symbols to bin/secrets-manager-debug
 make test           # Run all tests (Go + UI unit tests)
 make test-go        # Run Go tests with race detector
 make test-ui        # Run UI unit tests (one-shot)
@@ -269,7 +269,7 @@ in a new worktree:
 
     scripts/dispatch <issue-number>
 
-This creates a git worktree at ../holos-console-<N>, opens a new tmux window
+This creates a git worktree at ../secrets-manager-<N>, opens a new tmux window
 named i<N>, and starts a Claude Code agent that reads the issue and implements
 the plan. The script returns immediately so the main agent can continue planning.
 
@@ -394,7 +394,7 @@ Workflow:
 5. **Reference in PR** using the **commit SHA** in raw GitHub URLs so images remain accessible after the branch is deleted on merge:
    ```bash
    SHA=$(git rev-parse HEAD)
-   gh pr comment <N> --body "![description](https://raw.githubusercontent.com/holos-run/holos-console/${SHA}/docs/screenshots/pr-<N>/filename.png)"
+   gh pr comment <N> --body "![description](https://raw.githubusercontent.com/holos-run/secrets-manager/${SHA}/docs/screenshots/pr-<N>/filename.png)"
    ```
    Using the commit SHA (not the branch name) is the conventional approach — the SHA is immutable and resolves correctly both before and after merge. **Important**: PRs with screenshot references must be merged using a **merge commit** (not squash), so the referenced commit SHA survives in the target branch history.
 6. **Annotate**: Include a brief caption describing what the screenshot shows and which script produced it.
