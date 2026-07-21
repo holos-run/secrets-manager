@@ -25,7 +25,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   // Use list reporter for console output (CI-friendly)
   // HTML reporter opens a browser which blocks non-interactive execution
   reporter: 'list',
