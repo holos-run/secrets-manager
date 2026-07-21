@@ -221,7 +221,6 @@ export async function apiDeleteProject(page: Page, name: string): Promise<void> 
  */
 export async function selectOrg(page: Page, orgName: string): Promise<void> {
   await page.goto('/profile')
-  await page.waitForLoadState('networkidle')
 
   const sidebarTrigger = page.getByRole('button', { name: /toggle sidebar/i })
   if (await sidebarTrigger.isVisible({ timeout: 2000 }).catch(() => false)) {

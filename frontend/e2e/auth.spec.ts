@@ -4,7 +4,6 @@ import {
   DEFAULT_PASSWORD,
   buildAuthorizeUrl,
   navigateToDexLogin,
-  navigatePastConnectorSelection,
   loginViaProfilePage,
 } from './helpers'
 
