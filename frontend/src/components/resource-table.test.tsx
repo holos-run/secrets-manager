@@ -83,6 +83,20 @@ describe('ResourceTable', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
+  it('renders errors in the shared alert surface', () => {
+    render(
+      <ResourceTable
+        columns={columns}
+        data={data}
+        error={new Error('Unable to load items')}
+        emptyMessage="No items"
+      />,
+    )
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Unable to load items')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
   it('paginates rows with shared controls', () => {
     const manyItems = Array.from({ length: 26 }, (_, index) => ({
       name: `item-${index.toString().padStart(2, '0')}`,

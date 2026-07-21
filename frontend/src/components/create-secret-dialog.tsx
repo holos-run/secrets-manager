@@ -57,21 +57,6 @@ export function CreateSecretDialog({
   const [userGrants, setUserGrants] = useState<Grant[]>(() => initialGrants(creatorEmail, defaultUserGrants))
   const [roleGrants, setRoleGrants] = useState<Grant[]>(() => defaultRoleGrants.map((grant) => ({ ...grant })))
 
-  const reset = () => {
-    setName('')
-    setDescription('')
-    setUrl('')
-    setData({})
-    setError(null)
-    setUserGrants(initialGrants(creatorEmail, defaultUserGrants))
-    setRoleGrants(defaultRoleGrants.map((grant) => ({ ...grant })))
-  }
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) reset()
-    onOpenChange(nextOpen)
-  }
-
   const handleCreate = async () => {
     if (!name.trim()) {
       setError('Secret name is required')
@@ -99,7 +84,7 @@ export function CreateSecretDialog({
   const hasDefaults = defaultUserGrants.length > 0 || defaultRoleGrants.length > 0
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create Secret</DialogTitle>

@@ -174,6 +174,7 @@ export function SecretPage() {
         <p className="text-sm text-muted-foreground">{projectName} / Secrets</p>
         <h2 className="text-xl font-semibold">{name}</h2>
 
+        {/* Metadata edits are staged locally; the page-level Save button persists both fields. */}
         <InlineEditField
           label="Description"
           value={effectiveDescription}
