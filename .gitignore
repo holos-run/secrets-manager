@@ -49,3 +49,7 @@ frontend/test-results/
 
 ## Debug bins
 cmd/__*
+
+# Agents
+.claude
+.codex
