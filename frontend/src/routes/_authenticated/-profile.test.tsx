@@ -114,6 +114,17 @@ describe('ProfilePage token claims — Claims view (default)', () => {
     await waitFor(() => expect(refreshTokens).toHaveBeenCalled())
     expect(toast.success).toHaveBeenCalledWith('Tokens refreshed')
   })
+
+  it('exposes token lifetime progress with semantic ARIA values', () => {
+    setAuthState()
+    render(<ProfilePage />)
+
+    const progress = screen.getByRole('progressbar', { name: /token lifetime elapsed/i })
+    expect(progress).toHaveAttribute('aria-valuemin', '0')
+    expect(progress).toHaveAttribute('aria-valuemax', '100')
+    expect(Number(progress.getAttribute('aria-valuenow'))).toBeGreaterThanOrEqual(0)
+    expect(Number(progress.getAttribute('aria-valuenow'))).toBeLessThanOrEqual(100)
+  })
 })
 
 describe('ProfilePage token claims — Raw view', () => {
@@ -127,8 +138,9 @@ describe('ProfilePage token claims — Raw view', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /raw/i }))
 
-    const pre = screen.getByRole('code')
+    const pre = document.querySelector('pre')
     expect(pre).toBeInTheDocument()
+    expect(screen.queryByRole('code')).not.toBeInTheDocument()
     expect(pre.textContent).toContain('"iss"')
     expect(pre.textContent).toContain('"aud"')
     expect(pre.textContent).toContain('"sub"')

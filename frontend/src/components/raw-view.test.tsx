@@ -1,7 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { RawView } from './raw-view'
 import { vi } from 'vitest'
 import { toast } from 'sonner'
+import { SECRET_MASK, SECRET_REVEAL_TIMEOUT_MS } from '@/lib/secret-display'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn() },
@@ -59,11 +60,21 @@ const secretRaw = JSON.stringify({
 })
 
 describe('RawView', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  function codeBlock(): HTMLPreElement {
+    const pre = document.querySelector('pre')
+    expect(pre).toBeInTheDocument()
+    return pre as HTMLPreElement
+  }
+
   describe('with Namespace (no data field)', () => {
     it('pretty-prints JSON without errors', () => {
       render(<RawView raw={namespaceRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
 
-      const pre = screen.getByRole('code')
+      const pre = codeBlock()
       const parsed = JSON.parse(pre.textContent || '')
 
       expect(parsed.apiVersion).toBe('v1')
@@ -74,7 +85,7 @@ describe('RawView', () => {
     it('strips server-managed metadata fields when includeAllFields is off', () => {
       render(<RawView raw={namespaceRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
 
-      const pre = screen.getByRole('code')
+      const pre = codeBlock()
       const parsed = JSON.parse(pre.textContent || '')
 
       expect(parsed.metadata.uid).toBeUndefined()
@@ -90,7 +101,7 @@ describe('RawView', () => {
     it('preserves all fields when includeAllFields is on', () => {
       render(<RawView raw={namespaceRaw} includeAllFields={true} onToggleIncludeAllFields={vi.fn()} />)
 
-      const pre = screen.getByRole('code')
+      const pre = codeBlock()
       const parsed = JSON.parse(pre.textContent || '')
 
       expect(parsed.metadata.uid).toBe('ns-uid-123')
@@ -122,7 +133,7 @@ describe('RawView', () => {
     it('does not create a stringData field', () => {
       render(<RawView raw={namespaceRaw} includeAllFields={true} onToggleIncludeAllFields={vi.fn()} />)
 
-      const pre = screen.getByRole('code')
+      const pre = codeBlock()
       const parsed = JSON.parse(pre.textContent || '')
       expect(parsed.stringData).toBeUndefined()
       expect(parsed.data).toBeUndefined()
@@ -130,17 +141,62 @@ describe('RawView', () => {
   })
 
   describe('with Secret (has data field)', () => {
-    it('converts data (base64) to stringData (plaintext) and removes data field', () => {
+    it('masks decoded stringData by default and removes the base64 data field', () => {
       render(<RawView raw={secretRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
 
-      const pre = screen.getByRole('code')
+      const pre = codeBlock()
       const parsed = JSON.parse(pre.textContent || '')
 
       expect(parsed.stringData).toBeDefined()
+      expect(parsed.stringData.username).toBe(SECRET_MASK)
+      expect(parsed.stringData.password).toBe(SECRET_MASK)
+      expect(parsed.data).toBeUndefined()
+      expect(pre).not.toHaveTextContent('admin')
+      expect(pre).not.toHaveTextContent('secret123')
+    })
+
+    it('reveals decoded secret values only after explicit confirmation', () => {
+      render(<RawView raw={secretRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
+
+      fireEvent.click(screen.getByRole('button', { name: /show values/i }))
+
+      const parsed = JSON.parse(codeBlock().textContent || '')
       expect(parsed.stringData.username).toBe('admin')
       expect(parsed.stringData.password).toBe('secret123')
-      expect(parsed.data).toBeUndefined()
+      expect(screen.getByRole('button', { name: /hide values/i })).toBeInTheDocument()
     })
+
+    it('automatically masks decoded secret values after the shared timeout', () => {
+      vi.useFakeTimers()
+      render(<RawView raw={secretRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
+
+      fireEvent.click(screen.getByRole('button', { name: /show values/i }))
+      expect(codeBlock()).toHaveTextContent('secret123')
+
+      act(() => vi.advanceTimersByTime(SECRET_REVEAL_TIMEOUT_MS))
+
+      expect(codeBlock()).not.toHaveTextContent('secret123')
+      expect(codeBlock()).toHaveTextContent(SECRET_MASK)
+    })
+
+    it('copies the masked representation until values are explicitly shown', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      Object.assign(navigator, { clipboard: { writeText } })
+      render(<RawView raw={secretRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
+
+      fireEvent.click(screen.getByRole('button', { name: /copy to clipboard/i }))
+
+      await waitFor(() => expect(writeText).toHaveBeenCalled())
+      expect(writeText.mock.calls[0][0]).toContain(SECRET_MASK)
+      expect(writeText.mock.calls[0][0]).not.toContain('secret123')
+    })
+  })
+
+  it('uses a semantic pre element without the non-standard code role', () => {
+    render(<RawView raw={namespaceRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
+
+    expect(codeBlock()).not.toHaveAttribute('role')
+    expect(screen.queryByRole('code')).not.toBeInTheDocument()
   })
 
   describe('toggle', () => {
