@@ -306,6 +306,7 @@ func (s *Server) Serve(ctx context.Context) error {
 		oidcHandler, err := oidc.NewHandler(ctx, oidc.Config{
 			Issuer:          s.cfg.Issuer,
 			ClientID:        s.cfg.ClientID,
+			AppName:         s.cfg.AppName,
 			RedirectURIs:    redirectURIs,
 			Logger:          slog.Default(),
 			IDTokenTTL:      s.cfg.IDTokenTTL,

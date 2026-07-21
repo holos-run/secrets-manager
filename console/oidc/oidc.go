@@ -22,6 +22,10 @@ type Config struct {
 	// ClientID is the OAuth2 client ID for the SPA.
 	ClientID string
 
+	// AppName is the client display name shown by the identity provider.
+	// Default: "Holos Secrets Manager"
+	AppName string
+
 	// RedirectURIs are the allowed OAuth2 redirect URIs.
 	RedirectURIs []string
 
@@ -79,7 +83,7 @@ func NewHandler(ctx context.Context, cfg Config) (http.Handler, error) {
 		{
 			ID:           cfg.ClientID,
 			RedirectURIs: cfg.RedirectURIs,
-			Name:         "Holos Secrets Manager",
+			Name:         clientDisplayName(cfg.AppName),
 			Public:       true, // SPA = public client, no secret
 		},
 	})
@@ -148,4 +152,11 @@ func NewHandler(ctx context.Context, cfg Config) (http.Handler, error) {
 	)
 
 	return dexServer, nil
+}
+
+func clientDisplayName(appName string) string {
+	if appName == "" {
+		return "Holos Secrets Manager"
+	}
+	return appName
 }
