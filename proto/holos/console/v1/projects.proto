@@ -8,7 +8,8 @@ import "holos/console/v1/secrets.proto";
 option go_package = "github.com/holos-run/holos-console/gen/holos/console/v1;consolev1";
 
 // ProjectService provides CRUD operations for projects.
-// A project is a Kubernetes Namespace labeled app.kubernetes.io/managed-by=holos.run.
+// A project is a Kubernetes Namespace whose app.kubernetes.io/managed-by label
+// matches the configured metadata domain (holos.run by default).
 service ProjectService {
   // ListProjects returns all projects the user has access to.
   rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse);

@@ -133,7 +133,8 @@ export const UpdateProjectDefaultSharingResponseSchema = /*@__PURE__*/
 
 /**
  * ProjectService provides CRUD operations for projects.
- * A project is a Kubernetes Namespace labeled app.kubernetes.io/managed-by=holos.run.
+ * A project is a Kubernetes Namespace whose app.kubernetes.io/managed-by label
+ * matches the configured metadata domain (holos.run by default).
  *
  * @generated from service holos.console.v1.ProjectService
  */

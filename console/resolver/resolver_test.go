@@ -55,6 +55,33 @@ func TestMetadataKeys(t *testing.T) {
 	}
 }
 
+func TestValidateMetadataDomain(t *testing.T) {
+	tests := []struct {
+		name    string
+		domain  string
+		wantErr bool
+	}{
+		{name: "empty uses default"},
+		{name: "default", domain: "holos.run"},
+		{name: "custom", domain: "secrets.example.com"},
+		{name: "url is invalid", domain: "https://example.com", wantErr: true},
+		{name: "uppercase is invalid", domain: "Example.com", wantErr: true},
+		{name: "too long for managed-by value", domain: "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz.example.com", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := (&Resolver{MetadataDomain: tt.domain}).ValidateMetadataDomain()
+			if tt.wantErr && err == nil {
+				t.Fatal("ValidateMetadataDomain() error = nil, want an error")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("ValidateMetadataDomain() error = %v", err)
+			}
+		})
+	}
+}
+
 func TestOrgNamespace(t *testing.T) {
 	r := &Resolver{OrganizationPrefix: "org-", ProjectPrefix: "prj-"}
 	got := r.OrgNamespace("acme")
