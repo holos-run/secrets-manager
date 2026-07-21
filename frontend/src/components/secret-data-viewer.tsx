@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Eye, EyeOff, Copy, Pencil, Plus } from 'lucide-react'
+import { SECRET_MASK, useTimedSecretReveals } from '@/lib/secret-display'
 
 export interface SecretDataViewerProps {
   data: Record<string, Uint8Array>
@@ -15,7 +16,7 @@ const decoder = new TextDecoder()
 const encoder = new TextEncoder()
 
 export function SecretDataViewer({ data, onChange }: SecretDataViewerProps) {
-  const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
+  const { revealedKeys, reveal, hide } = useTimedSecretReveals()
   const [editingKey, setEditingKey] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [trailingNewline, setTrailingNewline] = useState(true)
@@ -24,15 +25,8 @@ export function SecretDataViewer({ data, onChange }: SecretDataViewerProps) {
   const [newKeyValue, setNewKeyValue] = useState('')
 
   const toggleReveal = (key: string) => {
-    setRevealedKeys((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) {
-        next.delete(key)
-      } else {
-        next.add(key)
-      }
-      return next
-    })
+    if (revealedKeys.has(key)) hide(key)
+    else reveal(key)
   }
 
   const handleCopy = (key: string) => {
@@ -121,31 +115,31 @@ export function SecretDataViewer({ data, onChange }: SecretDataViewerProps) {
                 </pre>
                 <div className="flex gap-1 mt-2">
                   <Button variant="ghost" size="sm" onClick={() => toggleReveal(key)}>
-                    <EyeOff className="h-4 w-4 mr-1" />
+                    <EyeOff data-icon="inline-start" />
                     Hide
                   </Button>
                   <Button variant="ghost" size="icon" aria-label="copy" onClick={() => handleCopy(key)}>
-                    <Copy className="h-4 w-4" />
+                    <Copy data-icon="inline-start" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleEditStart(key)}>
-                    <Pencil className="h-4 w-4 mr-1" />
+                    <Pencil data-icon="inline-start" />
                     Edit
                   </Button>
                 </div>
               </div>
             ) : (
               <div>
-                <p className="font-mono text-sm text-muted-foreground">{'••••••••'}</p>
+                <p className="font-mono text-sm text-muted-foreground">{SECRET_MASK}</p>
                 <div className="flex gap-1 mt-2">
                   <Button variant="ghost" size="sm" onClick={() => toggleReveal(key)}>
-                    <Eye className="h-4 w-4 mr-1" />
+                    <Eye data-icon="inline-start" />
                     Reveal
                   </Button>
                   <Button variant="ghost" size="icon" aria-label="copy" onClick={() => handleCopy(key)}>
-                    <Copy className="h-4 w-4" />
+                    <Copy data-icon="inline-start" />
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => handleEditStart(key)}>
-                    <Pencil className="h-4 w-4 mr-1" />
+                    <Pencil data-icon="inline-start" />
                     Edit
                   </Button>
                 </div>
@@ -187,7 +181,7 @@ export function SecretDataViewer({ data, onChange }: SecretDataViewerProps) {
         </div>
       ) : (
         <Button variant="outline" size="sm" onClick={() => setAddingKey(true)}>
-          <Plus className="h-4 w-4 mr-1" />
+          <Plus data-icon="inline-start" />
           Add Key
         </Button>
       )}

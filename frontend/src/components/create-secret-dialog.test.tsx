@@ -46,6 +46,15 @@ describe('CreateSecretDialog', () => {
     expect(screen.getByDisplayValue('engineering')).toBeInTheDocument()
   })
 
+  it('associates form labels and groups the secret data fields', () => {
+    renderDialog()
+
+    expect(screen.getByLabelText('Name')).toHaveAttribute('id', 'secret-name')
+    expect(screen.getByLabelText('Description')).toHaveAttribute('id', 'secret-description')
+    expect(screen.getByLabelText('URL')).toHaveAttribute('id', 'secret-url')
+    expect(screen.getByRole('group', { name: 'Data' })).toBeInTheDocument()
+  })
+
   it('keeps a new grant input focused while typing its principal', async () => {
     const { userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
