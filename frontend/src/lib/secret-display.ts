@@ -40,12 +40,6 @@ export function useTimedSecretReveals() {
     )
   }, [])
 
-  const hideAll = useCallback(() => {
-    for (const timer of timers.current.values()) clearTimeout(timer)
-    timers.current.clear()
-    setRevealedKeys(new Set())
-  }, [])
-
   useEffect(() => {
     const activeTimers = timers.current
     return () => {
@@ -54,5 +48,5 @@ export function useTimedSecretReveals() {
     }
   }, [])
 
-  return { revealedKeys, reveal, hide, hideAll }
+  return { revealedKeys, reveal, hide }
 }
