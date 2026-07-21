@@ -245,11 +245,11 @@ Build metadata (commit, tree state, date) injected via ldflags in Makefile.
 
 ### Container Builds
 
-Trigger container image builds using the `container.yaml` GitHub workflow. The workflow runs from `main` and accepts a `git_ref` input specifying what to check out and build:
+Trigger container image builds using the `container.yaml` GitHub workflow. The workflow runs from `main` and accepts a `git_ref` input specifying what to check out and build, plus an optional `tag` input specifying the image tag to publish. When `tag` is omitted, manually dispatched builds use the checked-out commit's short SHA:
 
 ```bash
 gh workflow run container.yaml --ref main -f git_ref=refs/heads/<branch-name>
-gh workflow run container.yaml --ref main -f git_ref=refs/tags/v1.2.3
+gh workflow run container.yaml --ref main -f git_ref=refs/tags/v1.2.3 -f tag=v1.2.3
 ```
 
 ### Tool Dependencies
