@@ -45,6 +45,8 @@ export function SecretDataEditor({ initialData, onChange }: SecretDataEditorProp
   const nextIdRef = useRef(0)
   const genId = useCallback(() => `entry-${++nextIdRef.current}`, [])
 
+  // The lazy initializer runs once and uses the ref only to allocate stable opaque row IDs.
+  // eslint-disable-next-line react-hooks/refs
   const [entries, setEntries] = useState<Entry[]>(() => dataToEntries(initialData, genId))
   const [trailingNewline, setTrailingNewline] = useState(true)
 

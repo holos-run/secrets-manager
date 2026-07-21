@@ -88,6 +88,8 @@ export function SecretPage() {
   // Initialize local state from fetched data
   useEffect(() => {
     if (fetchedData && originalDataSerialized === null) {
+      // Snapshot the first async query result so later edits can be compared for dirtiness.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOriginalDataSerialized(serializeData(fetchedData))
       if (secretData === null) setSecretData(fetchedData)
     }
@@ -95,6 +97,8 @@ export function SecretPage() {
 
   useEffect(() => {
     if (metadata && originalDescription === null) {
+      // Snapshot the first async metadata result so later edits can be compared for dirtiness.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOriginalDescription(metadata.description ?? '')
       if (description === null) setDescription(metadata.description ?? '')
     }
