@@ -35,7 +35,7 @@ describe('readStoredToken', () => {
   it('returns the access_token from a valid oidc.user entry', () => {
     const futureExp = Math.floor(Date.now() / 1000) + 3600
     sessionStorage.setItem(
-      'oidc.user:https://localhost:8443/dex:holos-console',
+      'oidc.user:https://localhost:8443/dex:secrets-manager',
       JSON.stringify({ access_token: 'valid-token-abc', expires_at: futureExp }),
     )
     expect(readStoredToken()).toBe('valid-token-abc')
@@ -44,7 +44,7 @@ describe('readStoredToken', () => {
   it('returns null when the stored token is expired', () => {
     const pastExp = Math.floor(Date.now() / 1000) - 60
     sessionStorage.setItem(
-      'oidc.user:https://localhost:8443/dex:holos-console',
+      'oidc.user:https://localhost:8443/dex:secrets-manager',
       JSON.stringify({ access_token: 'expired-token', expires_at: pastExp }),
     )
     expect(readStoredToken()).toBeNull()
@@ -52,14 +52,14 @@ describe('readStoredToken', () => {
 
   it('returns null when access_token is missing from the stored entry', () => {
     sessionStorage.setItem(
-      'oidc.user:https://localhost:8443/dex:holos-console',
+      'oidc.user:https://localhost:8443/dex:secrets-manager',
       JSON.stringify({ expires_at: Math.floor(Date.now() / 1000) + 3600 }),
     )
     expect(readStoredToken()).toBeNull()
   })
 
   it('returns null when the stored JSON is malformed', () => {
-    sessionStorage.setItem('oidc.user:https://localhost:8443/dex:holos-console', 'not-json')
+    sessionStorage.setItem('oidc.user:https://localhost:8443/dex:secrets-manager', 'not-json')
     expect(readStoredToken()).toBeNull()
   })
 })

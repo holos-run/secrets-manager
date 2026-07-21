@@ -8,7 +8,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/holos-run/holos-console/gen/holos/console/v1"
+	v1 "github.com/holos-run/secrets-manager/gen/holos/console/v1"
 	http "net/http"
 	strings "strings"
 )

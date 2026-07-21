@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	consolev1 "github.com/holos-run/holos-console/gen/holos/console/v1"
+	consolev1 "github.com/holos-run/secrets-manager/gen/holos/console/v1"
 )
 
 // Role type alias for the proto-generated Role enum.

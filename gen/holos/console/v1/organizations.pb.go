@@ -861,7 +861,7 @@ const file_holos_console_v1_organizations_proto_rawDesc = "" +
 	"\x12UpdateOrganization\x12+.holos.console.v1.UpdateOrganizationRequest\x1a,.holos.console.v1.UpdateOrganizationResponse\x12o\n" +
 	"\x12DeleteOrganization\x12+.holos.console.v1.DeleteOrganizationRequest\x1a,.holos.console.v1.DeleteOrganizationResponse\x12\x84\x01\n" +
 	"\x19UpdateOrganizationSharing\x122.holos.console.v1.UpdateOrganizationSharingRequest\x1a3.holos.console.v1.UpdateOrganizationSharingResponse\x12o\n" +
-	"\x12GetOrganizationRaw\x12+.holos.console.v1.GetOrganizationRawRequest\x1a,.holos.console.v1.GetOrganizationRawResponseBCZAgithub.com/holos-run/holos-console/gen/holos/console/v1;consolev1b\x06proto3"
+	"\x12GetOrganizationRaw\x12+.holos.console.v1.GetOrganizationRawRequest\x1a,.holos.console.v1.GetOrganizationRawResponseBEZCgithub.com/holos-run/secrets-manager/gen/holos/console/v1;consolev1b\x06proto3"
 
 var (
 	file_holos_console_v1_organizations_proto_rawDescOnce sync.Once

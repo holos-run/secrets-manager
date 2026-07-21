@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/holos-run/holos-console/console"
+	"github.com/holos-run/secrets-manager/console"
 )
 
 var (
@@ -42,8 +42,8 @@ var (
 // Command returns the root cobra command for the CLI.
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "holos-console",
-		Short:   "holos-console serves the Holos web console",
+		Use:     "secrets-manager",
+		Short:   "Holos Secrets Manager serves the secrets management web interface",
 		Version: console.GetVersion(),
 		Args:    cobra.NoArgs,
 		CompletionOptions: cobra.CompletionOptions{
@@ -82,9 +82,9 @@ func Command() *cobra.Command {
 
 	// OIDC flags
 	cmd.Flags().BoolVar(&enableInsecureDex, "enable-insecure-dex", false, "Enable the built-in Dex OIDC provider with auto-login (INSECURE: intended for local development only)")
-	cmd.Flags().StringVar(&origin, "origin", "", "Public-facing base URL of the console for OIDC redirect URIs (e.g., https://holos-console.example.com)")
+	cmd.Flags().StringVar(&origin, "origin", "", "Public-facing base URL of the console for OIDC redirect URIs (e.g., https://secrets-manager.example.com)")
 	cmd.Flags().StringVar(&issuer, "issuer", "", "OIDC issuer URL for token validation (e.g., https://idp.example.com/dex)")
-	cmd.Flags().StringVar(&clientID, "client-id", "holos-console", "Expected audience for tokens")
+	cmd.Flags().StringVar(&clientID, "client-id", "secrets-manager", "Expected audience for tokens")
 
 	// Token TTL flags
 	cmd.Flags().StringVar(&idTokenTTL, "id-token-ttl", "1h", "ID token lifetime (e.g., 1h, 15m, 30s for testing)")
