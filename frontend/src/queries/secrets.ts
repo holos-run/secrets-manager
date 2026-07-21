@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@connectrpc/connect-query'
 import { useQueryClient } from '@tanstack/react-query'
-import type { QueryClient } from '@tanstack/react-query'
+import type { QueryClient, QueryKey } from '@tanstack/react-query'
 import { SecretsService } from '@/gen/holos/console/v1/secrets_pb.js'
 import type { SecretMetadata } from '@/gen/holos/console/v1/secrets_pb.js'
 import { useAuth } from '@/lib/auth'
@@ -107,7 +107,7 @@ export function useDeleteSecret(project: string) {
   const mutation = useMutation(SecretsService.method.deleteSecret, {
     onSuccess: async (_response, { name }) => {
       if (!name) return
-      await invalidateSecret(queryClient, project, name)
+      await invalidateSecret(queryClient, project, name, false)
     },
   })
 
@@ -160,8 +160,14 @@ async function invalidateSecret(
   queryClient: QueryClient,
   project: string,
   name: string,
+  refetch = true,
 ) {
-  await queryClient.invalidateQueries({ queryKey: keys.secrets.list(project).key })
-  await queryClient.invalidateQueries({ queryKey: keys.secrets.detail(project, name).key })
-  await queryClient.invalidateQueries({ queryKey: keys.secrets.raw(project, name).key })
+  const invalidate = (queryKey: QueryKey) => (
+    refetch
+      ? queryClient.invalidateQueries({ queryKey })
+      : queryClient.invalidateQueries({ queryKey, refetchType: 'none' })
+  )
+  await invalidate(keys.secrets.list(project).key)
+  await invalidate(keys.secrets.detail(project, name).key)
+  await invalidate(keys.secrets.raw(project, name).key)
 }
