@@ -152,6 +152,22 @@ describe('ProjectsIndexPage', () => {
     expect(screen.getByText('Beta Project')).toBeInTheDocument()
   })
 
+  it('sorts by display name with semantic aria-sort state', () => {
+    setupMocks([
+      makeProject('zebra', 'Zebra Project'),
+      makeProject('alpha', 'Alpha Project'),
+    ])
+    render(<ProjectsIndexPage />)
+    const header = screen.getByRole('columnheader', { name: /display name/i })
+    expect(header).toHaveAttribute('scope', 'col')
+    expect(header).toHaveAttribute('aria-sort', 'none')
+
+    fireEvent.click(screen.getByRole('button', { name: /display name/i }))
+
+    expect(header).toHaveAttribute('aria-sort', 'ascending')
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent('Alpha Project')
+  })
+
   it('clicking a project row navigates to /projects/$projectName/secrets and sets selectedProject', () => {
     setupMocks([makeProject('my-project', 'My Project')])
     render(<ProjectsIndexPage />)

@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# PR #13 — capture the shared resource table, create dialog, and inline editor.
+#
+# Called by scripts/browser-capture-pr 13. Expects:
+#   HOLOS_BACKEND_URL, PR_SCREENSHOT_DIR
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+kubectl apply \
+  -f "$REPO_ROOT/frontend/e2e/fixtures/project-namespace.yaml" \
+  -f "$REPO_ROOT/frontend/e2e/fixtures/secret-no-time-bounds.yaml"
+
+AB="agent-browser --session-name holos-dev"
+SECRETS_URL="$HOLOS_BACKEND_URL/projects/time-test/secrets"
+
+echo "==> Capturing the shared secrets resource table"
+$AB open "$SECRETS_URL"
+$AB wait --load networkidle
+$AB wait --text "no-time-bounds" 2>/dev/null || $AB wait 3000
+$AB screenshot "$PR_SCREENSHOT_DIR/01-shared-resource-table.png"
+
+echo "==> Capturing the extracted Create Secret dialog"
+$AB eval "
+  for (const button of document.querySelectorAll('button')) {
+    if (button.textContent.trim() === 'Create Secret' && !button.disabled) {
+      button.click();
+      break;
+    }
+  }
+"
+$AB wait 700
+$AB screenshot "$PR_SCREENSHOT_DIR/02-create-secret-dialog.png"
+
+echo "==> Capturing the shared inline editor"
+$AB eval "
+  for (const button of document.querySelectorAll('[role=\"dialog\"] button')) {
+    if (button.textContent.trim() === 'Cancel') {
+      button.click();
+      break;
+    }
+  }
+"
+$AB open "$SECRETS_URL/no-time-bounds"
+$AB wait --load networkidle
+$AB wait --text "Secret with grants" 2>/dev/null || $AB wait 3000
+$AB eval "document.querySelector('[aria-label=\"edit description\"]')?.click()"
+$AB wait 500
+$AB screenshot "$PR_SCREENSHOT_DIR/03-inline-edit-field.png"
+
+echo "Screenshots saved to $PR_SCREENSHOT_DIR"

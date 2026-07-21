@@ -31,6 +31,7 @@ import {
   useDeleteOrganization,
 } from '@/queries/organizations'
 import { useAuth } from '@/lib/auth'
+import { toast } from 'sonner'
 import { OrgSettingsPage } from './index'
 
 const mockOrg = {
@@ -208,6 +209,7 @@ describe('OrgSettingsPage', () => {
           expect.objectContaining({ name: 'test-org' }),
         )
       })
+      expect(toast.success).toHaveBeenCalledWith('Sharing saved')
     })
   })
 
@@ -246,6 +248,7 @@ describe('OrgSettingsPage', () => {
       await waitFor(() => {
         expect(mutateAsync).toHaveBeenCalledWith({ name: 'test-org' })
       })
+      expect(toast.success).toHaveBeenCalledWith('Organization deleted')
     })
   })
 })
