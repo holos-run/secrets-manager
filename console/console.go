@@ -691,9 +691,9 @@ func handleDebugOIDC(w http.ResponseWriter, r *http.Request, issuer string, clie
 	debugInfo := map[string]interface{}{
 		"discovery":         discovery,
 		"configured_issuer": issuer,
-			"notes": map[string]string{
-				"scopes_supported": "Check if 'groups' is in scopes_supported. If not, Dex may not include groups in ID tokens.",
-			},
+		"notes": map[string]string{
+			"scopes_supported": "Check if 'groups' is in scopes_supported. If not, Dex may not include groups in ID tokens.",
+		},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
