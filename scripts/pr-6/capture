@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# PR #6 — capture the application-name fallback surfaces.
+#
+# Called by scripts/browser-capture-pr 6. Expects:
+#   HOLOS_BACKEND_URL, PR_SCREENSHOT_DIR
+set -euo pipefail
+
+AB="agent-browser --session-name holos-dev"
+
+echo "==> Capturing sidebar branding fallback"
+$AB open "$HOLOS_BACKEND_URL/profile"
+$AB wait --load networkidle
+$AB wait --text "Holos Secrets Manager"
+$AB screenshot "$PR_SCREENSHOT_DIR/sidebar-branding.png"
+
+echo "==> Capturing About branding fallback"
+$AB open "$HOLOS_BACKEND_URL/about"
+$AB wait --load networkidle
+$AB wait --text "About Holos Secrets Manager"
+$AB screenshot "$PR_SCREENSHOT_DIR/about-branding.png"
+
+echo "Screenshots saved to $PR_SCREENSHOT_DIR"
