@@ -16,8 +16,8 @@ func TestDeriveOrigin(t *testing.T) {
 		{
 			name:       "explicit origin takes precedence",
 			listenAddr: ":8443",
-			origin:     "https://holos-console.home.jeffmccune.com",
-			want:       "https://holos-console.home.jeffmccune.com",
+			origin:     "https://secrets-manager.home.jeffmccune.com",
+			want:       "https://secrets-manager.home.jeffmccune.com",
 		},
 		{
 			name:       "derive from port-only listen",
@@ -47,9 +47,9 @@ func TestDeriveOrigin(t *testing.T) {
 		{
 			name:       "plain http explicit origin unchanged",
 			listenAddr: ":8080",
-			origin:     "https://holos-console.example.com",
+			origin:     "https://secrets-manager.example.com",
 			plainHTTP:  true,
-			want:       "https://holos-console.example.com",
+			want:       "https://secrets-manager.example.com",
 		},
 	}
 	for _, tt := range tests {

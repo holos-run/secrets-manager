@@ -10,8 +10,8 @@ func TestDeriveRedirectURI(t *testing.T) {
 	}{
 		{
 			name:   "standard origin",
-			origin: "https://holos-console.home.jeffmccune.com",
-			want:   "https://holos-console.home.jeffmccune.com/pkce/verify",
+			origin: "https://secrets-manager.home.jeffmccune.com",
+			want:   "https://secrets-manager.home.jeffmccune.com/pkce/verify",
 		},
 		{
 			name:   "localhost origin",
@@ -20,8 +20,8 @@ func TestDeriveRedirectURI(t *testing.T) {
 		},
 		{
 			name:   "trailing slash stripped",
-			origin: "https://holos-console.example.com/",
-			want:   "https://holos-console.example.com/pkce/verify",
+			origin: "https://secrets-manager.example.com/",
+			want:   "https://secrets-manager.example.com/pkce/verify",
 		},
 		{
 			name:   "plain http origin",
@@ -47,8 +47,8 @@ func TestDerivePostLogoutRedirectURI(t *testing.T) {
 	}{
 		{
 			name:   "standard origin",
-			origin: "https://holos-console.home.jeffmccune.com",
-			want:   "https://holos-console.home.jeffmccune.com/",
+			origin: "https://secrets-manager.home.jeffmccune.com",
+			want:   "https://secrets-manager.home.jeffmccune.com/",
 		},
 		{
 			name:   "localhost origin",
