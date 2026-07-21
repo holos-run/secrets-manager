@@ -5,8 +5,44 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"testing/fstest"
 )
+
+func TestUIHandlerInjectsAppConfigAndTitle(t *testing.T) {
+	uiContent := fstest.MapFS{
+		"index.html": {Data: []byte("<html><head><title>Holos Secrets Manager</title></head><body></body></html>")},
+	}
+	handler := newUIHandler(uiContent, nil, AppConfig{AppName: "Acme & Sons <Secrets>"})
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	if !strings.Contains(body, "<title>Acme &amp; Sons &lt;Secrets&gt;</title>") {
+		t.Errorf("response title was not replaced safely: %s", body)
+	}
+	if !strings.Contains(body, `<script>window.__APP_CONFIG__={"app_name":"Acme \u0026 Sons \u003cSecrets\u003e"};</script>`) {
+		t.Errorf("response did not include app config: %s", body)
+	}
+}
+
+func TestUIHandlerDefaultsEmptyAppName(t *testing.T) {
+	uiContent := fstest.MapFS{
+		"index.html": {Data: []byte("<html><head><title>Holos Secrets Manager</title></head><body></body></html>")},
+	}
+	handler := newUIHandler(uiContent, nil, AppConfig{})
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if !strings.Contains(rec.Body.String(), `window.__APP_CONFIG__={"app_name":"Holos Secrets Manager"}`) {
+		t.Errorf("response did not include default app config: %s", rec.Body.String())
+	}
+}
 
 func TestLogRequests_HealthCheck_Suppressed(t *testing.T) {
 	// When LogHealthChecks is false (default), /healthz and /readyz should not be logged.

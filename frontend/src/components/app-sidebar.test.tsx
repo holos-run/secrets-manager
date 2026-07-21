@@ -106,7 +106,21 @@ describe('AppSidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockNavigate.mockReset()
+    delete (window as Window & { __APP_CONFIG__?: { app_name?: string } }).__APP_CONFIG__
     setDefaults()
+  })
+
+  it('renders the default application name', () => {
+    render(<AppSidebar />)
+    expect(screen.getByText('Holos Secrets Manager')).toBeInTheDocument()
+  })
+
+  it('renders the server-provided application name', () => {
+    ;(window as Window & { __APP_CONFIG__?: { app_name?: string } }).__APP_CONFIG__ = {
+      app_name: 'Acme Secrets Manager',
+    }
+    render(<AppSidebar />)
+    expect(screen.getByText('Acme Secrets Manager')).toBeInTheDocument()
   })
 
   it('renders without a theme toggle button', () => {
