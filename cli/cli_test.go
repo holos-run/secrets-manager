@@ -141,6 +141,17 @@ func TestDefaultNamespacePrefix(t *testing.T) {
 	}
 }
 
+func TestDefaultMetadataDomain(t *testing.T) {
+	cmd := Command()
+	f := cmd.Flags().Lookup("metadata-domain")
+	if f == nil {
+		t.Fatal("--metadata-domain flag not found")
+	}
+	if got := f.DefValue; got != "holos.run" {
+		t.Errorf("default metadata-domain = %q, want %q", got, "holos.run")
+	}
+}
+
 func TestDefaultAppName(t *testing.T) {
 	cmd := Command()
 	f := cmd.Flags().Lookup("app-name")

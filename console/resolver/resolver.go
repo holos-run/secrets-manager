@@ -6,20 +6,19 @@ package resolver
 import (
 	"fmt"
 	"strings"
+
+	k8svalidation "k8s.io/apimachinery/pkg/util/validation"
 )
 
-// Label and annotation constants for resource type identification.
 const (
-	// ResourceTypeLabel distinguishes organization and project namespaces.
-	ResourceTypeLabel = "console.holos.run/resource-type"
+	// DefaultMetadataDomain is used for managed Kubernetes metadata when no
+	// operator override is configured.
+	DefaultMetadataDomain = "holos.run"
 	// ResourceTypeOrganization is the resource-type label value for organization namespaces.
 	ResourceTypeOrganization = "organization"
 	// ResourceTypeProject is the resource-type label value for project namespaces.
 	ResourceTypeProject = "project"
-	// OrganizationLabel stores the organization name on organization and project namespaces.
-	OrganizationLabel = "console.holos.run/organization"
-	// ProjectLabel stores the project name on project namespaces.
-	ProjectLabel = "console.holos.run/project"
+	managedByLabel      = "app.kubernetes.io/managed-by"
 )
 
 // Resolver translates between user-facing resource names and Kubernetes namespace names.
@@ -29,6 +28,72 @@ type Resolver struct {
 	NamespacePrefix    string // default "holos-"
 	OrganizationPrefix string // default "org-"
 	ProjectPrefix      string // default "prj-"
+	MetadataDomain     string // default "holos.run"
+}
+
+// MetadataDomainValue returns the configured Kubernetes metadata domain.
+func (r *Resolver) MetadataDomainValue() string {
+	if r.MetadataDomain == "" {
+		return DefaultMetadataDomain
+	}
+	return r.MetadataDomain
+}
+
+func (r *Resolver) metadataKey(path string) string {
+	return r.MetadataDomainValue() + "/" + path
+}
+
+// ResourceTypeLabel distinguishes organization and project namespaces.
+func (r *Resolver) ResourceTypeLabel() string { return r.metadataKey("resource-type") }
+
+// OrganizationLabel stores the organization name on organization and project namespaces.
+func (r *Resolver) OrganizationLabel() string { return r.metadataKey("organization") }
+
+// ProjectLabel stores the project name on project namespaces.
+func (r *Resolver) ProjectLabel() string { return r.metadataKey("project") }
+
+// DisplayNameAnnotation stores the human-readable resource name.
+func (r *Resolver) DisplayNameAnnotation() string { return r.metadataKey("display-name") }
+
+// DescriptionAnnotation stores the human-readable resource description.
+func (r *Resolver) DescriptionAnnotation() string { return r.metadataKey("description") }
+
+// URLAnnotation stores the URL associated with a secret.
+func (r *Resolver) URLAnnotation() string { return r.metadataKey("url") }
+
+// ShareUsersAnnotation stores per-user sharing grants.
+func (r *Resolver) ShareUsersAnnotation() string { return r.metadataKey("share-users") }
+
+// ShareRolesAnnotation stores per-role sharing grants.
+func (r *Resolver) ShareRolesAnnotation() string { return r.metadataKey("share-roles") }
+
+// DefaultShareUsersAnnotation stores project defaults for per-user grants.
+func (r *Resolver) DefaultShareUsersAnnotation() string {
+	return r.metadataKey("default-share-users")
+}
+
+// DefaultShareRolesAnnotation stores project defaults for per-role grants.
+func (r *Resolver) DefaultShareRolesAnnotation() string {
+	return r.metadataKey("default-share-roles")
+}
+
+// ManagedByLabel is the standard Kubernetes label key used for ownership.
+func (r *Resolver) ManagedByLabel() string { return managedByLabel }
+
+// ManagedByValue identifies resources managed for this metadata domain.
+func (r *Resolver) ManagedByValue() string { return r.MetadataDomainValue() }
+
+// ValidateMetadataDomain verifies that the domain is valid both as the DNS
+// prefix of Kubernetes metadata keys and as the managed-by label value.
+func (r *Resolver) ValidateMetadataDomain() error {
+	domain := r.MetadataDomainValue()
+	var problems []string
+	problems = append(problems, k8svalidation.IsDNS1123Subdomain(domain)...)
+	problems = append(problems, k8svalidation.IsValidLabelValue(domain)...)
+	if len(problems) > 0 {
+		return fmt.Errorf("%q is not valid Kubernetes metadata: %s", domain, strings.Join(problems, "; "))
+	}
+	return nil
 }
 
 // OrgNamespace returns the Kubernetes namespace name for an organization.

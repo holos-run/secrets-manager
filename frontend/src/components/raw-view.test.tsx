@@ -18,11 +18,11 @@ const namespaceRaw = JSON.stringify({
     creationTimestamp: '2025-06-01T00:00:00Z',
     managedFields: [{ manager: 'holos-console' }],
     labels: {
-      'app.kubernetes.io/managed-by': 'console.holos.run',
-      'console.holos.run/resource-type': 'organization',
+      'app.kubernetes.io/managed-by': 'holos.run',
+      'holos.run/resource-type': 'organization',
     },
     annotations: {
-      'console.holos.run/share-users': '[]',
+      'holos.run/share-users': '[]',
     },
   },
   spec: {
@@ -45,10 +45,10 @@ const secretRaw = JSON.stringify({
     creationTimestamp: '2025-01-01T00:00:00Z',
     managedFields: [{ manager: 'kubectl' }],
     labels: {
-      'app.kubernetes.io/managed-by': 'console.holos.run',
+      'app.kubernetes.io/managed-by': 'holos.run',
     },
     annotations: {
-      'console.holos.run/share-users': '[]',
+      'holos.run/share-users': '[]',
     },
   },
   data: {

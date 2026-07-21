@@ -13,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/holos-run/holos-console/console/rbac"
-	"github.com/holos-run/holos-console/console/resolver"
 	"github.com/holos-run/holos-console/console/rpc"
 	"github.com/holos-run/holos-console/console/secrets"
 	consolev1 "github.com/holos-run/holos-console/gen/holos/console/v1"
@@ -57,8 +56,8 @@ func (h *Handler) ListProjects(
 	now := time.Now()
 	var result []*consolev1.Project
 	for _, ns := range allProjects {
-		shareUsers, _ := GetShareUsers(ns)
-		shareRoles, _ := GetShareRoles(ns)
+		shareUsers, _ := GetShareUsers(h.k8s.Resolver, ns)
+		shareRoles, _ := GetShareRoles(h.k8s.Resolver, ns)
 		activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 		activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
@@ -106,13 +105,13 @@ func (h *Handler) GetProject(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
-	org := GetOrganization(ns)
+	org := GetOrganization(h.k8s.Resolver, ns)
 	if err := h.checkAccessWithOrg(claims.Email, claims.Roles, activeUsers, activeRoles, rbac.PermissionProjectsRead); err != nil {
 		slog.WarnContext(ctx, "project access denied",
 			slog.String("action", "project_read_denied"),
@@ -161,7 +160,7 @@ func (h *Handler) CreateProject(
 	if err != nil {
 		return nil, mapK8sError(err)
 	}
-	if err := CheckProjectCreateAccess(claims.Email, claims.Roles, allProjects); err != nil {
+	if err := CheckProjectCreateAccess(h.k8s.Resolver, claims.Email, claims.Roles, allProjects); err != nil {
 		// Fall back to org-level grants for create permission
 		orgUsers, orgRoles := h.resolveOrgGrants(ctx, req.Msg.Organization)
 		if err := rbac.CheckAccessGrants(claims.Email, claims.Roles, orgUsers, orgRoles, rbac.PermissionProjectsCreate); err != nil {
@@ -222,13 +221,13 @@ func (h *Handler) UpdateProject(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
-	org := GetOrganization(ns)
+	org := GetOrganization(h.k8s.Resolver, ns)
 	if err := h.checkAccessWithOrg(claims.Email, claims.Roles, activeUsers, activeRoles, rbac.PermissionProjectsWrite); err != nil {
 		slog.WarnContext(ctx, "project update denied",
 			slog.String("action", "project_update_denied"),
@@ -276,13 +275,13 @@ func (h *Handler) DeleteProject(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
-	org := GetOrganization(ns)
+	org := GetOrganization(h.k8s.Resolver, ns)
 	if err := h.checkAccessWithOrg(claims.Email, claims.Roles, activeUsers, activeRoles, rbac.PermissionProjectsDelete); err != nil {
 		slog.WarnContext(ctx, "project delete denied",
 			slog.String("action", "project_delete_denied"),
@@ -330,13 +329,13 @@ func (h *Handler) UpdateProjectSharing(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
-	org := GetOrganization(ns)
+	org := GetOrganization(h.k8s.Resolver, ns)
 	if err := h.checkAccessWithOrg(claims.Email, claims.Roles, activeUsers, activeRoles, rbac.PermissionProjectsAdmin); err != nil {
 		slog.WarnContext(ctx, "project sharing update denied",
 			slog.String("action", "project_sharing_denied"),
@@ -366,8 +365,8 @@ func (h *Handler) UpdateProjectSharing(
 		slog.String("email", claims.Email),
 	)
 
-	updatedUsers, _ := GetShareUsers(updated)
-	updatedRoles, _ := GetShareRoles(updated)
+	updatedUsers, _ := GetShareUsers(h.k8s.Resolver, updated)
+	updatedRoles, _ := GetShareRoles(h.k8s.Resolver, updated)
 	updatedActiveUsers := secrets.ActiveGrantsMap(updatedUsers, now)
 	updatedActiveGroups := secrets.ActiveGrantsMap(updatedRoles, now)
 	userRole := rbac.BestRoleFromGrants(claims.Email, claims.Roles, updatedActiveUsers, updatedActiveGroups)
@@ -396,13 +395,13 @@ func (h *Handler) UpdateProjectDefaultSharing(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
-	org := GetOrganization(ns)
+	org := GetOrganization(h.k8s.Resolver, ns)
 	if err := h.checkAccessWithOrg(claims.Email, claims.Roles, activeUsers, activeRoles, rbac.PermissionProjectsAdmin); err != nil {
 		slog.WarnContext(ctx, "project default sharing update denied",
 			slog.String("action", "project_default_sharing_denied"),
@@ -432,8 +431,8 @@ func (h *Handler) UpdateProjectDefaultSharing(
 		slog.String("email", claims.Email),
 	)
 
-	updatedShareUsers, _ := GetShareUsers(updated)
-	updatedShareRoles, _ := GetShareRoles(updated)
+	updatedShareUsers, _ := GetShareUsers(h.k8s.Resolver, updated)
+	updatedShareRoles, _ := GetShareRoles(h.k8s.Resolver, updated)
 	updatedActiveUsers := secrets.ActiveGrantsMap(updatedShareUsers, now)
 	updatedActiveRoles := secrets.ActiveGrantsMap(updatedShareRoles, now)
 	userRole := rbac.BestRoleFromGrants(claims.Email, claims.Roles, updatedActiveUsers, updatedActiveRoles)
@@ -462,13 +461,13 @@ func (h *Handler) GetProjectRaw(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
-	org := GetOrganization(ns)
+	org := GetOrganization(h.k8s.Resolver, ns)
 	if err := h.checkAccessWithOrg(claims.Email, claims.Roles, activeUsers, activeRoles, rbac.PermissionProjectsRead); err != nil {
 		slog.WarnContext(ctx, "project raw access denied",
 			slog.String("action", "project_raw_denied"),
@@ -522,15 +521,15 @@ func (h *Handler) buildProject(ns interface{ GetName() string }, shareUsers, sha
 	if a, ok := ns.(annotated); ok {
 		annotations := a.GetAnnotations()
 		if annotations != nil {
-			p.DisplayName = annotations[DisplayNameAnnotation]
-			p.Description = annotations[secrets.DescriptionAnnotation]
+			p.DisplayName = annotations[h.k8s.Resolver.DisplayNameAnnotation()]
+			p.Description = annotations[h.k8s.Resolver.DescriptionAnnotation()]
 		}
 		// Populate default sharing grants from annotations
 		if nsTyped, ok := ns.(*corev1.Namespace); ok {
-			if defaultUsers, err := GetDefaultShareUsers(nsTyped); err == nil {
+			if defaultUsers, err := GetDefaultShareUsers(h.k8s.Resolver, nsTyped); err == nil {
 				p.DefaultUserGrants = annotationGrantsToProto(defaultUsers)
 			}
-			if defaultRoles, err := GetDefaultShareRoles(nsTyped); err == nil {
+			if defaultRoles, err := GetDefaultShareRoles(h.k8s.Resolver, nsTyped); err == nil {
 				p.DefaultRoleGrants = annotationGrantsToProto(defaultRoles)
 			}
 		}
@@ -538,8 +537,8 @@ func (h *Handler) buildProject(ns interface{ GetName() string }, shareUsers, sha
 	if l, ok := ns.(labeled); ok {
 		labels := l.GetLabels()
 		if labels != nil {
-			p.Organization = labels[resolver.OrganizationLabel]
-			p.Name = labels[resolver.ProjectLabel]
+			p.Organization = labels[h.k8s.Resolver.OrganizationLabel()]
+			p.Name = labels[h.k8s.Resolver.ProjectLabel()]
 		}
 	}
 	// Fallback: derive project name from namespace if label is missing (pre-label namespaces)
@@ -548,14 +547,14 @@ func (h *Handler) buildProject(ns interface{ GetName() string }, shareUsers, sha
 		if err != nil {
 			slog.Warn("project namespace missing label and prefix mismatch",
 				slog.String("namespace", ns.GetName()),
-				slog.String("label", resolver.ProjectLabel),
+				slog.String("label", h.k8s.Resolver.ProjectLabel()),
 				slog.Any("error", err),
 			)
 		} else {
 			p.Name = name
 			slog.Warn("project namespace missing label, falling back to namespace parsing",
 				slog.String("namespace", ns.GetName()),
-				slog.String("label", resolver.ProjectLabel),
+				slog.String("label", h.k8s.Resolver.ProjectLabel()),
 			)
 		}
 	}
@@ -597,7 +596,7 @@ func (h *Handler) checkAccessWithOrg(
 // bestRoleWithOrg returns the best role from project grants and org grants.
 func (h *Handler) bestRoleWithOrg(email string, roles []string, projUsers, projRoles map[string]string, ns *corev1.Namespace) rbac.Role {
 	projRole := rbac.BestRoleFromGrants(email, roles, projUsers, projRoles)
-	orgUsers, orgRoles := h.resolveOrgGrants(context.Background(), GetOrganization(ns))
+	orgUsers, orgRoles := h.resolveOrgGrants(context.Background(), GetOrganization(h.k8s.Resolver, ns))
 	orgRole := rbac.BestRoleFromGrants(email, roles, orgUsers, orgRoles)
 	if rbac.RoleLevel(orgRole) > rbac.RoleLevel(projRole) {
 		return orgRole

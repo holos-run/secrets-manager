@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/holos-run/holos-console/console/rbac"
+	"github.com/holos-run/holos-console/console/resolver"
 	"github.com/holos-run/holos-console/console/secrets"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -37,10 +38,10 @@ func CheckProjectListAccess(email string, roles []string, shareUsers, shareRoles
 }
 
 // CheckProjectCreateAccess verifies the user is an owner on at least one existing project.
-func CheckProjectCreateAccess(email string, roles []string, allProjects []*corev1.Namespace) error {
+func CheckProjectCreateAccess(r *resolver.Resolver, email string, roles []string, allProjects []*corev1.Namespace) error {
 	for _, ns := range allProjects {
-		shareUsers, _ := GetShareUsers(ns)
-		shareRoles, _ := GetShareRoles(ns)
+		shareUsers, _ := GetShareUsers(r, ns)
+		shareRoles, _ := GetShareRoles(r, ns)
 		activeUsers := secrets.ActiveGrantsMap(shareUsers, timeNow())
 		activeRoles := secrets.ActiveGrantsMap(shareRoles, timeNow())
 		if err := rbac.CheckAccessGrants(email, roles, activeUsers, activeRoles, rbac.PermissionProjectsCreate); err == nil {

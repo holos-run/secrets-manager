@@ -29,6 +29,7 @@ var (
 	namespacePrefix    string
 	organizationPrefix string
 	projectPrefix      string
+	metadataDomain     string
 	disableOrgCreation bool
 	orgCreatorUsers    string
 	orgCreatorRoles    string
@@ -93,6 +94,7 @@ func Command() *cobra.Command {
 	cmd.Flags().StringVar(&namespacePrefix, "namespace-prefix", "holos-", "Global prefix for all namespace names (default \"holos-\"), enabling multi-instance isolation (e.g., prod-, ci-)")
 	cmd.Flags().StringVar(&organizationPrefix, "organization-prefix", "org-", "Prefix for organization namespace names")
 	cmd.Flags().StringVar(&projectPrefix, "project-prefix", "prj-", "Prefix for project namespace names")
+	cmd.Flags().StringVar(&metadataDomain, "metadata-domain", "holos.run", "Domain part of all managed Kubernetes label and annotation keys")
 
 	// Organization creation permission flags
 	cmd.Flags().BoolVar(&disableOrgCreation, "disable-org-creation", false, "Disable the implicit organization creation grant to all authenticated principals")
@@ -244,6 +246,7 @@ func Run(cmd *cobra.Command, args []string) error {
 		NamespacePrefix:    namespacePrefix,
 		OrganizationPrefix: organizationPrefix,
 		ProjectPrefix:      projectPrefix,
+		MetadataDomain:     metadataDomain,
 		DisableOrgCreation: disableOrgCreation,
 		OrgCreatorUsers:    splitCSV(orgCreatorUsers),
 		OrgCreatorRoles:    splitCSV(orgCreatorRoles),
