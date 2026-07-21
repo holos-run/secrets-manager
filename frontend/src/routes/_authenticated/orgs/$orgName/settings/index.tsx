@@ -3,8 +3,6 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
@@ -16,8 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Check, Pencil, X } from 'lucide-react'
 import { SharingPanel, type Grant } from '@/components/sharing-panel'
+import { InlineEditField } from '@/components/inline-edit-field'
 import { Role } from '@/gen/holos/console/v1/rbac_pb'
 import {
   useGetOrganization,
@@ -52,47 +50,47 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
   const updateOrganizationSharing = useUpdateOrganizationSharing()
   const deleteOrganization = useDeleteOrganization()
 
-  // Display Name inline edit
-  const [editingDisplayName, setEditingDisplayName] = useState(false)
-  const [draftDisplayName, setDraftDisplayName] = useState('')
-
-  // Description inline edit
-  const [editingDescription, setEditingDescription] = useState(false)
-  const [draftDescription, setDraftDescription] = useState('')
-
-  // Delete dialog
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const handleSaveDisplayName = async () => {
+  const handleSaveDisplayName = async (displayName: string) => {
     try {
-      await updateOrganization.mutateAsync({ name: orgName, displayName: draftDisplayName })
-      setEditingDisplayName(false)
+      await updateOrganization.mutateAsync({ name: orgName, displayName })
       toast.success('Saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
+      throw err
     }
   }
 
-  const handleSaveDescription = async () => {
+  const handleSaveDescription = async (description: string) => {
     try {
-      await updateOrganization.mutateAsync({ name: orgName, description: draftDescription })
-      setEditingDescription(false)
+      await updateOrganization.mutateAsync({ name: orgName, description })
       toast.success('Saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
+      throw err
     }
   }
 
   const handleSaveSharing = async (userGrants: Grant[], roleGrants: Grant[]) => {
-    await updateOrganizationSharing.mutateAsync({ name: orgName, userGrants, roleGrants })
+    try {
+      await updateOrganizationSharing.mutateAsync({ name: orgName, userGrants, roleGrants })
+      toast.success('Sharing saved')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+      throw err
+    }
   }
 
   const handleDelete = async () => {
     try {
       await deleteOrganization.mutateAsync({ name: orgName })
+      toast.success('Organization deleted')
       setDeleteOpen(false)
       navigate({ to: '/' })
-    } catch { /* error shown via mutation */ }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
   }
 
   const isOwner = org?.userRole === Role.OWNER
@@ -140,51 +138,13 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
           <h3 className="text-sm font-medium">General</h3>
           <Separator />
 
-          {/* Display Name */}
-          <div className="flex items-center gap-2">
-            <span className="w-32 text-sm text-muted-foreground shrink-0">Display Name</span>
-            {editingDisplayName ? (
-              <>
-                <Input
-                  autoFocus
-                  aria-label="display name"
-                  value={draftDisplayName}
-                  onChange={(e) => setDraftDisplayName(e.target.value)}
-                  className="flex-1"
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveDisplayName() }}
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="save display name"
-                  onClick={handleSaveDisplayName}
-                  disabled={updateOrganization.isPending}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="cancel display name"
-                  onClick={() => setEditingDisplayName(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <span className="flex-1 text-sm">{displayName || <span className="text-muted-foreground">No display name</span>}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="edit display name"
-                  onClick={() => { setDraftDisplayName(displayName); setEditingDisplayName(true) }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
+          <InlineEditField
+            label="Display Name"
+            value={displayName}
+            emptyText="No display name"
+            onSave={handleSaveDisplayName}
+            isSaving={updateOrganization.isPending}
+          />
 
           {/* Name (slug) - read-only */}
           <div className="flex items-center gap-2">
@@ -192,54 +152,14 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
             <span className="flex-1 text-sm font-mono">{orgName}</span>
           </div>
 
-          {/* Description */}
-          <div className="flex items-start gap-2">
-            <span className="w-32 text-sm text-muted-foreground shrink-0 pt-2">Description</span>
-            {editingDescription ? (
-              <>
-                <Textarea
-                  autoFocus
-                  aria-label="description"
-                  value={draftDescription}
-                  onChange={(e) => setDraftDescription(e.target.value)}
-                  className="flex-1"
-                />
-                <div className="flex flex-col gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="save description"
-                    onClick={handleSaveDescription}
-                    disabled={updateOrganization.isPending}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="cancel description"
-                    onClick={() => setEditingDescription(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <span className={`flex-1 text-sm ${description ? '' : 'text-muted-foreground'}`}>
-                  {description || 'No description'}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="edit description"
-                  onClick={() => { setDraftDescription(description); setEditingDescription(true) }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
+          <InlineEditField
+            label="Description"
+            value={description}
+            emptyText="No description"
+            multiline
+            onSave={handleSaveDescription}
+            isSaving={updateOrganization.isPending}
+          />
         </div>
 
         {/* Sharing section */}

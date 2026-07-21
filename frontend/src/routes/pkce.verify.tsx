@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { getUserManager } from '@/lib/auth'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export const Route = createFileRoute('/pkce/verify')({
   component: PKCEVerify,
@@ -39,9 +40,9 @@ function PKCEVerify() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-2">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      <p className="text-muted-foreground">Completing authentication...</p>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3" aria-label="Completing authentication">
+      <Skeleton className="h-8 w-64" />
+      <Skeleton className="h-5 w-48" />
     </div>
   )
 }

@@ -12,6 +12,7 @@ vi.mock('@/queries/projects', () => ({
   useListProjects: vi.fn(),
   useCreateProject: vi.fn(),
 }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
@@ -89,6 +90,7 @@ vi.mock('@/components/ui/select', () => ({
       })}
     </div>
   ),
+  SelectGroup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   SelectItem: ({ children, value, onValueChange }: { children: React.ReactNode; value: string; onValueChange?: (v: string) => void }) => (
     <button data-testid={`select-item-${value}`} onClick={() => onValueChange?.(value)}>
       {children}
@@ -99,6 +101,7 @@ vi.mock('@/components/ui/select', () => ({
 import { useListOrganizations } from '@/queries/organizations'
 import { useCreateProject } from '@/queries/projects'
 import { CreateProjectDialog } from './create-project-dialog'
+import { toast } from 'sonner'
 
 describe('CreateProjectDialog', () => {
   const mockMutateAsync = vi.fn()
@@ -190,6 +193,7 @@ describe('CreateProjectDialog', () => {
     await waitFor(() => {
       expect(onOpenChange).toHaveBeenCalledWith(false)
     })
+    expect(toast.success).toHaveBeenCalledWith('Project created')
   })
 
   it('renders error alert on server error', async () => {
@@ -203,6 +207,7 @@ describe('CreateProjectDialog', () => {
       expect(screen.getByRole('alert')).toBeDefined()
       expect(screen.getByText(/project already exists/i)).toBeDefined()
     })
+    expect(toast.error).toHaveBeenCalledWith('project already exists')
   })
 
   it('does not close dialog on error', async () => {

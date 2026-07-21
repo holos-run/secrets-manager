@@ -28,6 +28,7 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 import { useGetProject, useUpdateProject, useUpdateProjectSharing, useUpdateProjectDefaultSharing, useDeleteProject } from '@/queries/projects'
 import { useAuth } from '@/lib/auth'
 import { ProjectSettingsPage } from './index'
+import { toast } from 'sonner'
 
 const mockProject = {
   name: 'test-project',
@@ -214,6 +215,7 @@ describe('ProjectSettingsPage', () => {
           expect.objectContaining({ name: 'test-project' }),
         )
       })
+      expect(toast.success).toHaveBeenCalledWith('Sharing saved')
     })
   })
 
@@ -244,6 +246,7 @@ describe('ProjectSettingsPage', () => {
           expect.objectContaining({ name: 'test-project' }),
         )
       })
+      expect(toast.success).toHaveBeenCalledWith('Default sharing saved')
     })
 
     it('non-owners cannot edit default sharing grants', () => {
@@ -290,6 +293,7 @@ describe('ProjectSettingsPage', () => {
       await waitFor(() => {
         expect(mutateAsync).toHaveBeenCalledWith({ name: 'test-project' })
       })
+      expect(toast.success).toHaveBeenCalledWith('Project deleted')
     })
   })
 })
