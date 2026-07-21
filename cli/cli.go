@@ -15,16 +15,17 @@ import (
 )
 
 var (
-	listenAddr      string
-	certFile        string
-	keyFile         string
-	caCertFile      string
-	plainHTTP       bool
-	origin          string
-	issuer          string
-	clientID        string
-	idTokenTTL      string
-	refreshTokenTTL string
+	listenAddr         string
+	certFile           string
+	keyFile            string
+	caCertFile         string
+	plainHTTP          bool
+	appName            string
+	origin             string
+	issuer             string
+	clientID           string
+	idTokenTTL         string
+	refreshTokenTTL    string
 	namespacePrefix    string
 	organizationPrefix string
 	projectPrefix      string
@@ -32,9 +33,9 @@ var (
 	orgCreatorUsers    string
 	orgCreatorRoles    string
 	rolesClaim         string
-	enableInsecureDex bool
-	logHealthChecks   bool
-	logLevel          string
+	enableInsecureDex  bool
+	logHealthChecks    bool
+	logLevel           string
 )
 
 // Command returns the root cobra command for the CLI.
@@ -76,6 +77,7 @@ func Command() *cobra.Command {
 	cmd.Flags().StringVar(&keyFile, "key", "", "TLS key file (auto-generated if empty)")
 	cmd.Flags().StringVar(&caCertFile, "ca-cert", "", "PEM-encoded CA certificate file to trust (e.g., mkcert CA root)")
 	cmd.Flags().BoolVar(&plainHTTP, "plain-http", false, "Listen on plain HTTP instead of HTTPS")
+	cmd.Flags().StringVar(&appName, "app-name", console.DefaultAppName, "Application name displayed in the web interface")
 
 	// OIDC flags
 	cmd.Flags().BoolVar(&enableInsecureDex, "enable-insecure-dex", false, "Enable the built-in Dex OIDC provider with auto-login (INSECURE: intended for local development only)")
@@ -227,25 +229,26 @@ func Run(cmd *cobra.Command, args []string) error {
 	}
 
 	cfg := console.Config{
-		ListenAddr:       listenAddr,
-		CertFile:         certFile,
-		KeyFile:          keyFile,
-		CACertFile:       caCertFile,
-		PlainHTTP:        plainHTTP,
-		Origin:           derivedOrigin,
-		Issuer:           derivedIssuer,
-		ClientID:         clientID,
-		EnableInsecureDex: enableInsecureDex,
-		IDTokenTTL:       idTTL,
-		RefreshTokenTTL:  refreshTTL,
-		NamespacePrefix:     namespacePrefix,
-		OrganizationPrefix:  organizationPrefix,
-		ProjectPrefix:       projectPrefix,
-		DisableOrgCreation:  disableOrgCreation,
-		OrgCreatorUsers:     splitCSV(orgCreatorUsers),
-		OrgCreatorRoles:     splitCSV(orgCreatorRoles),
-		RolesClaim:          rolesClaim,
-		LogHealthChecks:     logHealthChecks,
+		ListenAddr:         listenAddr,
+		CertFile:           certFile,
+		KeyFile:            keyFile,
+		CACertFile:         caCertFile,
+		PlainHTTP:          plainHTTP,
+		AppName:            appName,
+		Origin:             derivedOrigin,
+		Issuer:             derivedIssuer,
+		ClientID:           clientID,
+		EnableInsecureDex:  enableInsecureDex,
+		IDTokenTTL:         idTTL,
+		RefreshTokenTTL:    refreshTTL,
+		NamespacePrefix:    namespacePrefix,
+		OrganizationPrefix: organizationPrefix,
+		ProjectPrefix:      projectPrefix,
+		DisableOrgCreation: disableOrgCreation,
+		OrgCreatorUsers:    splitCSV(orgCreatorUsers),
+		OrgCreatorRoles:    splitCSV(orgCreatorRoles),
+		RolesClaim:         rolesClaim,
+		LogHealthChecks:    logHealthChecks,
 	}
 
 	server := console.New(cfg)
