@@ -3,6 +3,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Eye, EyeOff } from 'lucide-react'
+import { SECRET_MASK, useTimedSecretReveals } from '@/lib/secret-display'
 import {
   Tooltip,
   TooltipContent,
@@ -28,6 +30,17 @@ interface RawViewProps {
 }
 
 export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: RawViewProps) {
+  const { revealedKeys, reveal, hide } = useTimedSecretReveals()
+  const showValues = revealedKeys.has('raw-values')
+  const isSecret = useMemo(() => {
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>
+      return parsed.kind === 'Secret' && parsed.data !== null && typeof parsed.data === 'object'
+    } catch {
+      return false
+    }
+  }, [raw])
+
   const formattedJson = useMemo(() => {
     let obj: Record<string, unknown>
     try {
@@ -40,9 +53,9 @@ export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: Raw
       const stringData: Record<string, string> = {}
       for (const [key, value] of Object.entries(obj.data as Record<string, string>)) {
         try {
-          stringData[key] = atob(value)
+          stringData[key] = showValues ? atob(value) : SECRET_MASK
         } catch {
-          stringData[key] = value
+          stringData[key] = showValues ? value : SECRET_MASK
         }
       }
       obj.stringData = stringData
@@ -56,7 +69,7 @@ export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: Raw
     }
 
     return JSON.stringify(obj, null, 2)
-  }, [raw, includeAllFields])
+  }, [raw, includeAllFields, showValues])
 
   const handleCopy = () => {
     navigator.clipboard.writeText(formattedJson)
@@ -88,9 +101,18 @@ export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: Raw
         <Button variant="outline" size="sm" onClick={handleCopy} aria-label="Copy to Clipboard">
           Copy to Clipboard
         </Button>
+        {isSecret ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => showValues ? hide('raw-values') : reveal('raw-values')}
+          >
+            {showValues ? <EyeOff data-icon="inline-start" /> : <Eye data-icon="inline-start" />}
+            {showValues ? 'Hide values' : 'Show values'}
+          </Button>
+        ) : null}
       </div>
       <pre
-        role="code"
         className="rounded-md bg-muted p-4 text-sm font-mono overflow-auto whitespace-pre-wrap break-words"
       >
         {formattedJson}
