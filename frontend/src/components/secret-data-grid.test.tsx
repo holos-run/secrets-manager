@@ -1,7 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { toast } from 'sonner'
 import { SecretDataGrid } from './secret-data-grid'
+import { SECRET_MASK, SECRET_REVEAL_TIMEOUT_MS } from '@/lib/secret-display'
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn() },
@@ -10,6 +11,10 @@ vi.mock('sonner', () => ({
 const encode = (s: string) => new TextEncoder().encode(s)
 
 describe('SecretDataGrid', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders existing key-value pairs in a grid', () => {
     const onChange = vi.fn()
     render(
@@ -211,7 +216,7 @@ describe('SecretDataGrid readOnly', () => {
     )
 
     expect(screen.getByText('username')).toBeInTheDocument()
-    expect(screen.getByText(/••••/)).toBeInTheDocument()
+    expect(screen.getByText(SECRET_MASK)).toBeInTheDocument()
     expect(screen.queryByText('admin')).not.toBeInTheDocument()
   })
 
@@ -243,6 +248,44 @@ describe('SecretDataGrid readOnly', () => {
     expect(screen.getByText('admin')).toBeInTheDocument()
     fireEvent.click(screen.getByLabelText('hide'))
     expect(screen.queryByText('admin')).not.toBeInTheDocument()
+  })
+
+  it('automatically hides a revealed value after the shared timeout', () => {
+    vi.useFakeTimers()
+    const onChange = vi.fn()
+    render(
+      <SecretDataGrid
+        data={{ username: encode('admin') }}
+        onChange={onChange}
+        readOnly
+      />,
+    )
+
+    fireEvent.click(screen.getByLabelText('reveal'))
+    expect(screen.getByText('admin')).toBeInTheDocument()
+
+    act(() => vi.advanceTimersByTime(SECRET_REVEAL_TIMEOUT_MS))
+
+    expect(screen.queryByText('admin')).not.toBeInTheDocument()
+    expect(screen.getByText(SECRET_MASK)).toBeInTheDocument()
+  })
+
+  it('cancels reveal timers when the grid unmounts', () => {
+    vi.useFakeTimers()
+    const { unmount } = render(
+      <SecretDataGrid
+        data={{ username: encode('admin') }}
+        onChange={vi.fn()}
+        readOnly
+      />,
+    )
+
+    fireEvent.click(screen.getByLabelText('reveal'))
+    expect(vi.getTimerCount()).toBe(1)
+
+    unmount()
+
+    expect(vi.getTimerCount()).toBe(0)
   })
 
   it('copy button copies the value and shows a toast', async () => {
