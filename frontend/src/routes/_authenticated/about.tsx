@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useVersion } from '@/queries/version'
 import { getAppConfig } from '@/lib/app-config'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/about')({
   component: AboutPage,
@@ -18,7 +19,12 @@ export function AboutPage() {
   const { appName } = getAppConfig()
 
   return (
-    <div className="space-y-4">
+    <PageLayout>
+      <PageHeader
+        eyebrow="System"
+        title="About"
+        description={`Build and runtime details for ${appName}.`}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Server Version</CardTitle>
@@ -36,7 +42,7 @@ export function AboutPage() {
               <AlertDescription>Failed to load version info: {error.message}</AlertDescription>
             </Alert>
           ) : (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Version</p>
                 <p>{formatValue(data?.version ?? '')}</p>
@@ -63,7 +69,7 @@ export function AboutPage() {
           <CardTitle>About {appName}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 text-sm">
+          <div className="flex flex-col gap-3 text-sm">
             <p>Copyright &copy; 2024&ndash;present Open Infrastructure Services, LLC. All rights reserved.</p>
             <p>Holos is a trademark of Open Infrastructure Services, LLC.</p>
             <p>
@@ -81,6 +87,6 @@ export function AboutPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageLayout>
   )
 }

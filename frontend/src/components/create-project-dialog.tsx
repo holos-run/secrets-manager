@@ -99,13 +99,13 @@ export function CreateProjectDialog({
           <DialogTitle>New Project</DialogTitle>
         </DialogHeader>
         <form role="form" onSubmit={handleSubmit}>
-          <div className="space-y-4 py-2">
+          <div className="flex flex-col gap-4 py-2">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label htmlFor="project-org">Organization</Label>
               <Select defaultValue={defaultOrganization} onValueChange={setOrganization}>
                 <SelectTrigger id="project-org">
@@ -122,7 +122,7 @@ export function CreateProjectDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label htmlFor="project-display-name">Display Name</Label>
               <Input
                 id="project-display-name"
@@ -131,7 +131,7 @@ export function CreateProjectDialog({
                 placeholder="My Project"
               />
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label htmlFor="project-name">Name</Label>
               <Input
                 id="project-name"
@@ -155,7 +155,7 @@ export function CreateProjectDialog({
                 </p>
               )}
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label htmlFor="project-description">Description</Label>
               <Textarea
                 id="project-description"

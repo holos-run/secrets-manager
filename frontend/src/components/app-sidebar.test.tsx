@@ -14,10 +14,12 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
       children,
       to,
       params,
+      ...props
     }: {
       children: React.ReactNode
       to: string
       params?: Record<string, string>
+      'aria-current'?: 'page'
     }) => {
       let href = to as string
       if (params) {
@@ -25,7 +27,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
           href = href.replace(`$${k}`, v)
         })
       }
-      return <a href={href}>{children}</a>
+      return <a href={href} {...props}>{children}</a>
     },
     useRouter: () => ({ state: { location: { pathname: '/' } }, navigate: mockNavigate }),
     useNavigate: () => vi.fn(),
@@ -43,8 +45,8 @@ vi.mock('@/components/ui/sidebar', () => ({
   ),
   SidebarHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   SidebarMenu: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
-  SidebarMenuButton: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) =>
-    asChild ? <>{children}</> : <li>{children}</li>,
+  SidebarMenuButton: ({ children, asChild, isActive, ...props }: { children: React.ReactNode; asChild?: boolean; isActive?: boolean }) =>
+    asChild ? <>{children}</> : <button data-active={isActive || undefined} {...props}>{children}</button>,
   SidebarMenuItem: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
   SidebarSeparator: () => <hr />,
 }))
@@ -216,7 +218,8 @@ describe('AppSidebar — org selected', () => {
       isLoading: false,
     })
     render(<AppSidebar />)
-    expect(screen.queryByTestId('sidebar-group-label')).toBeNull()
+    const labels = screen.getAllByTestId('sidebar-group-label').map((label) => label.textContent)
+    expect(labels).not.toContain('My Org')
   })
 })
 

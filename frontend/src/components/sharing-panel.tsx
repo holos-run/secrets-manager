@@ -158,11 +158,11 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
         {!hasGrants ? (
           <p className="text-sm text-muted-foreground">No sharing grants configured.</p>
         ) : (
-          <div className="space-y-2 mt-2">
+          <div className="mt-2 flex flex-col gap-2">
             {userGrants.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground">Users</p>
-                <ul className="space-y-1">
+                <ul className="flex flex-col gap-1">
                   {userGrants.map((g) => (
                     <li key={g.principal} className="text-sm">
                       <span className="font-medium">{g.principal}</span>
@@ -175,7 +175,7 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
             {roleGrants.length > 0 && (
               <div>
                 <p className="text-xs text-muted-foreground">Roles</p>
-                <ul className="space-y-1">
+                <ul className="flex flex-col gap-1">
                   {roleGrants.map((g) => (
                     <li key={g.principal} className="text-sm">
                       <span className="font-medium">{g.principal}</span>
@@ -192,7 +192,7 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
   }
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-6 flex flex-col gap-4">
       <h3 className="text-sm font-medium">{title}</h3>
       {description && (
         <p className="text-sm text-muted-foreground">{description}</p>
@@ -201,7 +201,7 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
       <div>
         <p className="text-xs text-muted-foreground mb-2">Users</p>
         {editUserGrants.map((g, i) => (
-          <div key={i} className="space-y-2 mb-3">
+          <div key={i} className="mb-3 flex flex-col gap-2">
             <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
               <Input
                 placeholder="Email address"
@@ -268,7 +268,7 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
       <div>
         <p className="text-xs text-muted-foreground mb-2">Roles</p>
         {editRoleGrants.map((g, i) => (
-          <div key={i} className="space-y-2 mb-3">
+          <div key={i} className="mb-3 flex flex-col gap-2">
             <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
               <Input
                 placeholder="Role name"
