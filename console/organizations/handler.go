@@ -13,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/holos-run/holos-console/console/rbac"
-	"github.com/holos-run/holos-console/console/resolver"
 	"github.com/holos-run/holos-console/console/rpc"
 	"github.com/holos-run/holos-console/console/secrets"
 	consolev1 "github.com/holos-run/holos-console/gen/holos/console/v1"
@@ -63,8 +62,8 @@ func (h *Handler) ListOrganizations(
 	now := time.Now()
 	var result []*consolev1.Organization
 	for _, ns := range allOrgs {
-		shareUsers, _ := GetShareUsers(ns)
-		shareRoles, _ := GetShareRoles(ns)
+		shareUsers, _ := GetShareUsers(h.k8s.resolver, ns)
+		shareRoles, _ := GetShareRoles(h.k8s.resolver, ns)
 		activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 		activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
 
@@ -108,8 +107,8 @@ func (h *Handler) GetOrganization(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
@@ -209,8 +208,8 @@ func (h *Handler) UpdateOrganization(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
@@ -260,8 +259,8 @@ func (h *Handler) DeleteOrganization(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
@@ -322,8 +321,8 @@ func (h *Handler) UpdateOrganizationSharing(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
@@ -355,8 +354,8 @@ func (h *Handler) UpdateOrganizationSharing(
 		slog.String("email", claims.Email),
 	)
 
-	updatedUsers, _ := GetShareUsers(updated)
-	updatedRoles, _ := GetShareRoles(updated)
+	updatedUsers, _ := GetShareUsers(h.k8s.resolver, updated)
+	updatedRoles, _ := GetShareRoles(h.k8s.resolver, updated)
 	updatedActiveUsers := secrets.ActiveGrantsMap(updatedUsers, now)
 	updatedActiveGroups := secrets.ActiveGrantsMap(updatedRoles, now)
 	userRole := rbac.BestRoleFromGrants(claims.Email, claims.Roles, updatedActiveUsers, updatedActiveGroups)
@@ -385,8 +384,8 @@ func (h *Handler) GetOrganizationRaw(
 		return nil, mapK8sError(err)
 	}
 
-	shareUsers, _ := GetShareUsers(ns)
-	shareRoles, _ := GetShareRoles(ns)
+	shareUsers, _ := GetShareUsers(h.k8s.resolver, ns)
+	shareRoles, _ := GetShareRoles(h.k8s.resolver, ns)
 	now := time.Now()
 	activeUsers := secrets.ActiveGrantsMap(shareUsers, now)
 	activeRoles := secrets.ActiveGrantsMap(shareRoles, now)
@@ -458,7 +457,7 @@ func buildOrganization(k8s *K8sClient, ns interface{ GetName() string }, shareUs
 	if l, ok := ns.(labeled); ok {
 		labels := l.GetLabels()
 		if labels != nil {
-			org.Name = labels[resolver.OrganizationLabel]
+			org.Name = labels[k8s.resolver.OrganizationLabel()]
 		}
 	}
 	// Fallback: derive org name from namespace if label is missing (pre-label namespaces)
@@ -467,14 +466,14 @@ func buildOrganization(k8s *K8sClient, ns interface{ GetName() string }, shareUs
 		if err != nil {
 			slog.Warn("organization namespace missing label and prefix mismatch",
 				slog.String("namespace", ns.GetName()),
-				slog.String("label", resolver.OrganizationLabel),
+				slog.String("label", k8s.resolver.OrganizationLabel()),
 				slog.Any("error", err),
 			)
 		} else {
 			org.Name = name
 			slog.Warn("organization namespace missing label, falling back to namespace parsing",
 				slog.String("namespace", ns.GetName()),
-				slog.String("label", resolver.OrganizationLabel),
+				slog.String("label", k8s.resolver.OrganizationLabel()),
 			)
 		}
 	}
@@ -485,8 +484,8 @@ func buildOrganization(k8s *K8sClient, ns interface{ GetName() string }, shareUs
 	if a, ok := ns.(annotated); ok {
 		annotations := a.GetAnnotations()
 		if annotations != nil {
-			org.DisplayName = annotations[DisplayNameAnnotation]
-			org.Description = annotations[secrets.DescriptionAnnotation]
+			org.DisplayName = annotations[k8s.resolver.DisplayNameAnnotation()]
+			org.Description = annotations[k8s.resolver.DescriptionAnnotation()]
 		}
 	}
 

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	"github.com/holos-run/holos-console/console/secrets"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -129,14 +128,14 @@ func TestCheckProjectCreateAccess_OwnerOnExistingProjectAllows(t *testing.T) {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:   "existing-project",
-				Labels: map[string]string{secrets.ManagedByLabel: secrets.ManagedByValue},
+				Labels: map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 				Annotations: map[string]string{
-					secrets.ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"owner"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"owner"}]`,
 				},
 			},
 		},
 	}
-	err := CheckProjectCreateAccess("alice@example.com", nil, projects)
+	err := CheckProjectCreateAccess(testMetadataResolver, "alice@example.com", nil, projects)
 	if err != nil {
 		t.Errorf("expected access granted, got: %v", err)
 	}
@@ -147,21 +146,21 @@ func TestCheckProjectCreateAccess_EditorOnExistingProjectDenies(t *testing.T) {
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:   "existing-project",
-				Labels: map[string]string{secrets.ManagedByLabel: secrets.ManagedByValue},
+				Labels: map[string]string{testMetadataResolver.ManagedByLabel(): testMetadataResolver.ManagedByValue()},
 				Annotations: map[string]string{
-					secrets.ShareUsersAnnotation: `[{"principal":"alice@example.com","role":"editor"}]`,
+					testMetadataResolver.ShareUsersAnnotation(): `[{"principal":"alice@example.com","role":"editor"}]`,
 				},
 			},
 		},
 	}
-	err := CheckProjectCreateAccess("alice@example.com", nil, projects)
+	err := CheckProjectCreateAccess(testMetadataResolver, "alice@example.com", nil, projects)
 	if err == nil {
 		t.Fatal("expected PermissionDenied, got nil")
 	}
 }
 
 func TestCheckProjectCreateAccess_NoProjectsDenies(t *testing.T) {
-	err := CheckProjectCreateAccess("alice@example.com", nil, nil)
+	err := CheckProjectCreateAccess(testMetadataResolver, "alice@example.com", nil, nil)
 	if err == nil {
 		t.Fatal("expected PermissionDenied, got nil")
 	}

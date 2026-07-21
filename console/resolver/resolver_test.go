@@ -5,6 +5,56 @@ import (
 	"testing"
 )
 
+func TestMetadataKeys(t *testing.T) {
+	tests := []struct {
+		name   string
+		domain string
+		want   string
+	}{
+		{name: "default domain", want: "holos.run"},
+		{name: "custom domain", domain: "example.com", want: "example.com"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &Resolver{MetadataDomain: tt.domain}
+			wantKeys := map[string]string{
+				"resource type":       tt.want + "/resource-type",
+				"organization":        tt.want + "/organization",
+				"project":             tt.want + "/project",
+				"display name":        tt.want + "/display-name",
+				"description":         tt.want + "/description",
+				"url":                 tt.want + "/url",
+				"share users":         tt.want + "/share-users",
+				"share roles":         tt.want + "/share-roles",
+				"default share users": tt.want + "/default-share-users",
+				"default share roles": tt.want + "/default-share-roles",
+				"managed by label":    "app.kubernetes.io/managed-by",
+				"managed by value":    tt.want,
+			}
+			gotKeys := map[string]string{
+				"resource type":       r.ResourceTypeLabel(),
+				"organization":        r.OrganizationLabel(),
+				"project":             r.ProjectLabel(),
+				"display name":        r.DisplayNameAnnotation(),
+				"description":         r.DescriptionAnnotation(),
+				"url":                 r.URLAnnotation(),
+				"share users":         r.ShareUsersAnnotation(),
+				"share roles":         r.ShareRolesAnnotation(),
+				"default share users": r.DefaultShareUsersAnnotation(),
+				"default share roles": r.DefaultShareRolesAnnotation(),
+				"managed by label":    r.ManagedByLabel(),
+				"managed by value":    r.ManagedByValue(),
+			}
+			for key, want := range wantKeys {
+				if got := gotKeys[key]; got != want {
+					t.Errorf("%s = %q, want %q", key, got, want)
+				}
+			}
+		})
+	}
+}
+
 func TestOrgNamespace(t *testing.T) {
 	r := &Resolver{OrganizationPrefix: "org-", ProjectPrefix: "prj-"}
 	got := r.OrgNamespace("acme")
