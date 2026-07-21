@@ -4,7 +4,7 @@ holos-console uses a three-tier access control model combining **organization-le
 
 ## Organizations
 
-An **organization** is a Kubernetes Namespace with the name `{namespace-prefix}{organization-prefix}{name}` (defaults: empty namespace prefix, `org-` organization prefix) and the label `console.holos.run/resource-type=organization`. Permission grants are stored as annotations on the Namespace resource.
+An **organization** is a Kubernetes Namespace with the name `{namespace-prefix}{organization-prefix}{name}` (defaults: empty namespace prefix, `org-` organization prefix) and the label `holos.run/resource-type=organization`. Permission grants are stored as annotations on the Namespace resource.
 
 Organization grants authorize only organization-level operations (viewing the org, managing IAM bindings). They do **not** cascade to projects or secrets (see [ADR 007](adrs/007-org-grants-no-cascade.md)). Users see only organizations where they have at least viewer-level access.
 
@@ -20,7 +20,7 @@ The creator is automatically added as owner on the new organization.
 
 ## Projects
 
-A **project** is a Kubernetes Namespace with the name `{namespace-prefix}{project-prefix}{name}` (defaults: empty namespace prefix, `prj-` project prefix) and the label `console.holos.run/resource-type=project`. Projects are global resources — the `console.holos.run/organization` label is optional and represents an IAM association, not a containment relationship. The project name is stored in the `console.holos.run/project` label. Permission grants are stored as annotations on the Namespace resource.
+A **project** is a Kubernetes Namespace with the name `{namespace-prefix}{project-prefix}{name}` (defaults: empty namespace prefix, `prj-` project prefix) and the label `holos.run/resource-type=project`. Projects are global resources — the `holos.run/organization` label is optional and represents an IAM association, not a containment relationship. The project name is stored in the `holos.run/project` label. Permission grants are stored as annotations on the Namespace resource.
 
 Project grants cascade to all secrets within the project. Users see only projects where they have at least viewer-level access (directly or via an associated organization).
 
@@ -36,9 +36,15 @@ User-facing names are translated to Kubernetes namespace names using a three-par
 When `--namespace-prefix` is empty (the default), the naming scheme is unchanged from the two-part `{type-prefix}{name}` form (e.g., `org-acme`, `prj-api`).
 
 Namespaces are distinguished by labels:
-- `console.holos.run/resource-type`: `organization` or `project`
-- `console.holos.run/organization`: the organization name (optional, on project namespaces)
-- `console.holos.run/project`: the project name (on project namespaces)
+- `holos.run/resource-type`: `organization` or `project`
+- `holos.run/organization`: the organization name (optional, on project namespaces)
+- `holos.run/project`: the project name (on project namespaces)
+
+The `--metadata-domain` flag changes the domain portion of every managed label
+and annotation key, and the value of `app.kubernetes.io/managed-by`. It defaults
+to `holos.run`; for example, `--metadata-domain=example.com` produces
+`example.com/resource-type` and `example.com/share-users`. The path after the
+slash is fixed.
 
 ## Access Evaluation
 
@@ -83,8 +89,8 @@ Grants are stored as JSON annotations on Namespace and Secret resources:
 
 | Annotation | Format | Description |
 |---|---|---|
-| `console.holos.run/share-users` | `[{"principal":"email","role":"role","nbf":ts,"exp":ts}]` | Per-user grants |
-| `console.holos.run/share-roles` | `[{"principal":"role","role":"role","nbf":ts,"exp":ts}]` | Per-role grants |
+| `holos.run/share-users` | `[{"principal":"email","role":"role","nbf":ts,"exp":ts}]` | Per-user grants |
+| `holos.run/share-roles` | `[{"principal":"role","role":"role","nbf":ts,"exp":ts}]` | Per-role grants |
 
 Each grant is a JSON object with:
 
@@ -132,12 +138,12 @@ kind: Namespace
 metadata:
   name: org-my-org
   labels:
-    app.kubernetes.io/managed-by: console.holos.run
-    console.holos.run/resource-type: organization
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/resource-type: organization
   annotations:
-    console.holos.run/display-name: "My Organization"
-    console.holos.run/share-users: '[{"principal":"alice@example.com","role":"owner"}]'
-    console.holos.run/share-roles: '[{"principal":"dev-team","role":"editor"}]'
+    holos.run/display-name: "My Organization"
+    holos.run/share-users: '[{"principal":"alice@example.com","role":"owner"}]'
+    holos.run/share-roles: '[{"principal":"dev-team","role":"editor"}]'
 ---
 # Project namespace (optionally associated with the organization)
 apiVersion: v1
@@ -145,14 +151,14 @@ kind: Namespace
 metadata:
   name: prj-my-project
   labels:
-    app.kubernetes.io/managed-by: console.holos.run
-    console.holos.run/resource-type: project
-    console.holos.run/organization: my-org
-    console.holos.run/project: my-project
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/resource-type: project
+    holos.run/organization: my-org
+    holos.run/project: my-project
   annotations:
-    console.holos.run/display-name: "My Project"
-    console.holos.run/description: "Production secrets"
-    console.holos.run/share-users: '[{"principal":"bob@example.com","role":"viewer","exp":1735689600}]'
+    holos.run/display-name: "My Project"
+    holos.run/description: "Production secrets"
+    holos.run/share-users: '[{"principal":"bob@example.com","role":"viewer","exp":1735689600}]'
 ---
 # Secret within the project
 apiVersion: v1
@@ -161,9 +167,9 @@ metadata:
   name: my-app-credentials
   namespace: prj-my-project
   labels:
-    app.kubernetes.io/managed-by: console.holos.run
+    app.kubernetes.io/managed-by: holos.run
   annotations:
-    console.holos.run/share-users: '[{"principal":"carol@example.com","role":"viewer"}]'
+    holos.run/share-users: '[{"principal":"carol@example.com","role":"viewer"}]'
 ```
 
 In this example:
