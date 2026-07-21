@@ -75,8 +75,8 @@ func (h *Handler) ListSecrets(
 	var secrets []*consolev1.SecretMetadata
 	var accessibleCount int
 	for _, secret := range secretList.Items {
-		shareUsers, _ := GetShareUsers(&secret)
-		shareRoles, _ := GetShareRoles(&secret)
+		shareUsers, _ := GetShareUsers(h.k8s.Resolver, &secret)
+		shareRoles, _ := GetShareRoles(h.k8s.Resolver, &secret)
 		activeUsers := ActiveGrantsMap(shareUsers, now)
 		activeRoles := ActiveGrantsMap(shareRoles, now)
 		accessible := h.checkAccess(claims.Email, claims.Roles, activeUsers, activeRoles, projUsers, projRoles, rbac.PermissionSecretsList) == nil
@@ -160,8 +160,8 @@ func (h *Handler) DeleteSecret(
 	}
 
 	// Check RBAC for delete access (per-secret grants, then project grants)
-	shareUsers, _ := GetShareUsers(secret)
-	shareRoles, _ := GetShareRoles(secret)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, secret)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, secret)
 	now := time.Now()
 	activeUsers := ActiveGrantsMap(shareUsers, now)
 	activeRoles := ActiveGrantsMap(shareRoles, now)
@@ -327,8 +327,8 @@ func (h *Handler) UpdateSecret(
 	}
 
 	// Check RBAC for write access (per-secret grants, then project grants)
-	shareUsers, _ := GetShareUsers(secret)
-	shareRoles, _ := GetShareRoles(secret)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, secret)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, secret)
 	now := time.Now()
 	activeUsers := ActiveGrantsMap(shareUsers, now)
 	activeRoles := ActiveGrantsMap(shareRoles, now)
@@ -395,8 +395,8 @@ func (h *Handler) UpdateSharing(
 	}
 
 	// Check RBAC for admin access (per-secret grants, then project grants)
-	shareUsers, _ := GetShareUsers(secret)
-	shareRoles, _ := GetShareRoles(secret)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, secret)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, secret)
 	now := time.Now()
 	activeUsers := ActiveGrantsMap(shareUsers, now)
 	activeRoles := ActiveGrantsMap(shareRoles, now)
@@ -434,8 +434,8 @@ func (h *Handler) UpdateSharing(
 	)
 
 	// Build response metadata
-	updatedUsers, _ := GetShareUsers(updated)
-	updatedRoles, _ := GetShareRoles(updated)
+	updatedUsers, _ := GetShareUsers(h.k8s.Resolver, updated)
+	updatedRoles, _ := GetShareRoles(h.k8s.Resolver, updated)
 	updatedActiveUsers := ActiveGrantsMap(updatedUsers, now)
 	updatedActiveGroups := ActiveGrantsMap(updatedRoles, now)
 	metadata := h.buildSecretMetadata(updated, updatedUsers, updatedRoles, updatedActiveUsers, updatedActiveGroups, projUsers, projRoles, claims)
@@ -473,8 +473,8 @@ func (h *Handler) GetSecretRaw(
 	}
 
 	// Check RBAC (per-secret grants, then project grants)
-	shareUsers, _ := GetShareUsers(secret)
-	shareRoles, _ := GetShareRoles(secret)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, secret)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, secret)
 	now := time.Now()
 	activeUsers := ActiveGrantsMap(shareUsers, now)
 	activeRoles := ActiveGrantsMap(shareRoles, now)
@@ -567,10 +567,10 @@ func (h *Handler) buildSecretMetadata(secret *corev1.Secret, shareUsers, shareRo
 		UserGrants: userGrants,
 		RoleGrants: roleGrants,
 	}
-	if desc := GetDescription(secret); desc != "" {
+	if desc := GetDescription(h.k8s.Resolver, secret); desc != "" {
 		md.Description = &desc
 	}
-	if u := GetURL(secret); u != "" {
+	if u := GetURL(h.k8s.Resolver, secret); u != "" {
 		md.Url = &u
 	}
 	return md
@@ -614,8 +614,8 @@ func protoRoleFromString(s string) consolev1.Role {
 // returnSecret checks RBAC and returns the secret data.
 func (h *Handler) returnSecret(ctx context.Context, claims *rpc.Claims, secret *corev1.Secret, project string) (*connect.Response[consolev1.GetSecretResponse], error) {
 	// Check RBAC (per-secret grants, then project grants)
-	shareUsers, _ := GetShareUsers(secret)
-	shareRoles, _ := GetShareRoles(secret)
+	shareUsers, _ := GetShareUsers(h.k8s.Resolver, secret)
+	shareRoles, _ := GetShareRoles(h.k8s.Resolver, secret)
 	now := time.Now()
 	activeUsers := ActiveGrantsMap(shareUsers, now)
 	activeRoles := ActiveGrantsMap(shareRoles, now)
