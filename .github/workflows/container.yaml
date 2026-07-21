@@ -18,6 +18,11 @@ on:
         description: 'Git ref to build (e.g., refs/tags/v1.2.3, refs/heads/main)'
         required: true
         type: string
+      tag:
+        description: 'Image tag to publish; defaults to the short SHA of the resolved ref when blank'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   buildx:
@@ -28,7 +33,7 @@ jobs:
       attestations: write
       id-token: write
     steps:
-      - name: Set tag from trigger event
+      - name: Set ref from trigger event
         id: opts
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -57,10 +62,37 @@ jobs:
 
       - name: Set Tags
         id: tags
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          IN_TAG: ${{ inputs.tag }}
         run: |
-          echo "detail=$(/usr/bin/git describe --tags HEAD)" >> $GITHUB_OUTPUT
-          echo "suffix=$(test -n "$(git status --porcelain)" && echo '-dirty' || echo '')" >> $GITHUB_OUTPUT
-          echo "tag=$(/usr/bin/git describe --tags HEAD)$(test -n "$(git status --porcelain)" && echo '-dirty' || echo '')" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          detail="$(/usr/bin/git describe --tags HEAD)"
+          suffix="$(test -n "$(git status --porcelain)" && echo '-dirty' || echo '')"
+          tag="${detail}${suffix}"
+
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            case "${IN_TAG}" in
+              *[$'\n\r']*)
+                echo "::error::tag must not contain newline characters" >&2
+                exit 1
+                ;;
+            esac
+            if [ -n "${IN_TAG}" ] \
+              && ! printf '%s' "${IN_TAG}" \
+                | grep -Eq '^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$'; then
+              echo "::error::Invalid image tag: '${IN_TAG}'" >&2
+              exit 1
+            fi
+            tag="${IN_TAG:-$(git rev-parse --short HEAD)}"
+          fi
+
+          {
+            printf 'detail=%s\n' "${detail}"
+            printf 'suffix=%s\n' "${suffix}"
+            printf 'tag=%s\n' "${tag}"
+          } >> "${GITHUB_OUTPUT}"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
