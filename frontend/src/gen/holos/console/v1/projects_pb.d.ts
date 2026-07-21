@@ -475,7 +475,7 @@ export declare const UpdateProjectDefaultSharingResponseSchema: GenMessage<Updat
 
 /**
  * ProjectService provides CRUD operations for projects.
- * A project is a Kubernetes Namespace labeled app.kubernetes.io/managed-by=console.holos.run.
+ * A project is a Kubernetes Namespace labeled app.kubernetes.io/managed-by=holos.run.
  *
  * @generated from service holos.console.v1.ProjectService
  */
