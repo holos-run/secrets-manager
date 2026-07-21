@@ -13,6 +13,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -44,11 +45,15 @@ import (
 //go:embed all:dist
 var uiFS embed.FS
 
+// DefaultAppName is the product name shown when no operator override is configured.
+const DefaultAppName = "Holos Secrets Manager"
+
 // Config holds the server configuration.
 type Config struct {
 	ListenAddr string
 	CertFile   string
 	KeyFile    string
+	AppName    string
 
 	// PlainHTTP disables TLS, listening on plain HTTP instead.
 	// Use when running behind a TLS-terminating ingress or gateway.
@@ -130,6 +135,11 @@ type OIDCConfig struct {
 	PostLogoutRedirectURI string `json:"post_logout_redirect_uri"`
 }
 
+// AppConfig is the application configuration injected into the frontend.
+type AppConfig struct {
+	AppName string `json:"app_name"`
+}
+
 // deriveRedirectURI derives the OIDC redirect URI from the console origin.
 func deriveRedirectURI(origin string) string {
 	return strings.TrimSuffix(origin, "/") + "/pkce/verify"
@@ -153,6 +163,10 @@ func New(cfg Config) *Server {
 
 // Serve starts the HTTPS server and blocks until the context is cancelled.
 func (s *Server) Serve(ctx context.Context) error {
+	if s.cfg.AppName == "" {
+		s.cfg.AppName = DefaultAppName
+	}
+
 	// Apply defaults for namespace prefixes
 	if s.cfg.OrganizationPrefix == "" {
 		s.cfg.OrganizationPrefix = "org-"
@@ -292,6 +306,7 @@ func (s *Server) Serve(ctx context.Context) error {
 		oidcHandler, err := oidc.NewHandler(ctx, oidc.Config{
 			Issuer:          s.cfg.Issuer,
 			ClientID:        s.cfg.ClientID,
+			AppName:         s.cfg.AppName,
 			RedirectURIs:    redirectURIs,
 			Logger:          slog.Default(),
 			IDTokenTTL:      s.cfg.IDTokenTTL,
@@ -324,7 +339,7 @@ func (s *Server) Serve(ctx context.Context) error {
 		}
 	}
 
-	uiHandler := newUIHandler(uiContent, oidcConfig)
+	uiHandler := newUIHandler(uiContent, oidcConfig, AppConfig{AppName: s.cfg.AppName})
 
 	// Redirect /ui to / for backwards compatibility
 	mux.HandleFunc("/ui", func(w http.ResponseWriter, r *http.Request) {
@@ -512,10 +527,14 @@ func logRequests(next http.Handler, logHealthChecks bool) http.Handler {
 type uiHandler struct {
 	fs         fs.FS
 	oidcConfig *OIDCConfig
+	appConfig  AppConfig
 }
 
-func newUIHandler(uiContent fs.FS, oidcConfig *OIDCConfig) *uiHandler {
-	return &uiHandler{fs: uiContent, oidcConfig: oidcConfig}
+func newUIHandler(uiContent fs.FS, oidcConfig *OIDCConfig, appConfig AppConfig) *uiHandler {
+	if appConfig.AppName == "" {
+		appConfig.AppName = DefaultAppName
+	}
+	return &uiHandler{fs: uiContent, oidcConfig: oidcConfig, appConfig: appConfig}
 }
 
 func (h *uiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -543,6 +562,14 @@ func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data = replaceHTMLTitle(data, h.appConfig.AppName)
+
+	appConfigJSON, err := json.Marshal(h.appConfig)
+	if err == nil {
+		script := fmt.Sprintf(`<script>window.__APP_CONFIG__=%s;</script>`, appConfigJSON)
+		data = bytes.Replace(data, []byte("</head>"), []byte(script+"</head>"), 1)
+	}
+
 	// Inject OIDC config if available
 	if h.oidcConfig != nil {
 		configJSON, err := json.Marshal(h.oidcConfig)
@@ -555,6 +582,28 @@ func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Write(data)
+}
+
+func replaceHTMLTitle(data []byte, appName string) []byte {
+	const openTag = "<title>"
+	const closeTag = "</title>"
+
+	start := bytes.Index(data, []byte(openTag))
+	if start == -1 {
+		return data
+	}
+	endOffset := bytes.Index(data[start+len(openTag):], []byte(closeTag))
+	if endOffset == -1 {
+		return data
+	}
+	end := start + len(openTag) + endOffset + len(closeTag)
+	title := []byte(openTag + html.EscapeString(appName) + closeTag)
+
+	replaced := make([]byte, 0, len(data)-end+start+len(title))
+	replaced = append(replaced, data[:start]...)
+	replaced = append(replaced, title...)
+	replaced = append(replaced, data[end:]...)
+	return replaced
 }
 
 func (h *uiHandler) serveIfFile(w http.ResponseWriter, r *http.Request, name string) bool {
@@ -708,7 +757,7 @@ func generateSelfSignedCert() (tls.Certificate, error) {
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{"Holos Console"},
+			Organization: []string{DefaultAppName},
 		},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().Add(24 * time.Hour),
