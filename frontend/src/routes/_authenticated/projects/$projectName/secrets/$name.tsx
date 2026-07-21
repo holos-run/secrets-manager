@@ -1,7 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { createClient } from '@connectrpc/connect'
-import { useTransport } from '@connectrpc/connect-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,8 +19,7 @@ import { SecretDataGrid } from '@/components/secret-data-grid'
 import { RawView } from '@/components/raw-view'
 import { SharingPanel, type Grant } from '@/components/sharing-panel'
 import { isSafeUrl } from '@/lib/utils'
-import { useGetSecret, useGetSecretMetadata, useUpdateSecret, useUpdateSecretSharing, useDeleteSecret } from '@/queries/secrets'
-import { SecretsService } from '@/gen/holos/console/v1/secrets_pb.js'
+import { useGetSecret, useGetSecretMetadata, useGetSecretRaw, useUpdateSecret, useUpdateSecretSharing, useDeleteSecret } from '@/queries/secrets'
 import type { ShareGrant } from '@/gen/holos/console/v1/secrets_pb.js'
 import { isOwner as computeIsOwner } from '@/lib/isOwner'
 
@@ -44,16 +41,15 @@ export function SecretPage() {
   const { projectName, name } = Route.useParams()
   const navigate = useNavigate()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const transport = useTransport()
+  const [viewMode, setViewMode] = useState<'editor' | 'raw'>('editor')
 
   const { data: fetchedData, isLoading: dataLoading, error: dataError } = useGetSecret(projectName, name)
   const { data: metadata, isLoading: metaLoading } = useGetSecretMetadata(projectName, name)
+  const { data: rawJson, error: rawError } = useGetSecretRaw(projectName, name, viewMode === 'raw')
 
   const updateMutation = useUpdateSecret(projectName)
   const updateSharingMutation = useUpdateSecretSharing(projectName)
   const deleteMutation = useDeleteSecret(projectName)
-
-  const secretsClient = useMemo(() => createClient(SecretsService, transport), [transport])
 
   const [secretData, setSecretData] = useState<Record<string, Uint8Array> | null>(null)
   const [description, setDescription] = useState<string | null>(null)
@@ -70,9 +66,6 @@ export function SecretPage() {
 
   // View mode
   const [editMode, setEditMode] = useState(false)
-  const [viewMode, setViewMode] = useState<'editor' | 'raw'>('editor')
-  const [rawJson, setRawJson] = useState<string | null>(null)
-  const [rawError, setRawError] = useState<Error | null>(null)
   const [includeAllFields, setIncludeAllFields] = useState(false)
 
   // Delete
@@ -138,16 +131,8 @@ export function SecretPage() {
     }
   }
 
-  const handleViewModeChange = async (newMode: string) => {
+  const handleViewModeChange = (newMode: string) => {
     setViewMode(newMode as 'editor' | 'raw')
-    if (newMode === 'raw' && rawJson === null) {
-      try {
-        const response = await secretsClient.getSecretRaw({ name, project: projectName })
-        setRawJson(response.raw)
-      } catch (err) {
-        setRawError(err instanceof Error ? err : new Error(String(err)))
-      }
-    }
   }
 
   const handleSave = async () => {
@@ -163,7 +148,6 @@ export function SecretPage() {
       setOriginalDataSerialized(serializeData(effectiveData))
       setOriginalDescription(effectiveDescription)
       setOriginalUrl(effectiveUrl)
-      setRawJson(null)
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : String(err))
     }
