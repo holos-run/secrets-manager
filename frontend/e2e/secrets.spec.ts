@@ -79,7 +79,7 @@ test.describe('Secrets Page', () => {
 
     // Resource output must not render decoded plaintext until the user explicitly reveals it.
     await page.getByRole('button', { name: 'Resource' }).click()
-    const resource = page.locator('pre')
+    const resource = page.locator('pre').first()
     await expect(resource).toBeVisible()
     await expect(resource).toContainText('••••••••')
     await expect(resource).not.toContainText('TEST_KEY=test_value')

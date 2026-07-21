@@ -29,13 +29,17 @@ interface RawViewProps {
   onToggleIncludeAllFields: () => void
 }
 
+function hasSecretData(resource: Record<string, unknown>): boolean {
+  return resource.kind === 'Secret' && resource.data !== null && typeof resource.data === 'object'
+}
+
 export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: RawViewProps) {
   const { revealedKeys, reveal, hide } = useTimedSecretReveals()
   const showValues = revealedKeys.has('raw-values')
   const isSecret = useMemo(() => {
     try {
       const parsed = JSON.parse(raw) as Record<string, unknown>
-      return parsed.kind === 'Secret' && parsed.data !== null && typeof parsed.data === 'object'
+      return hasSecretData(parsed)
     } catch {
       return false
     }
@@ -49,7 +53,7 @@ export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: Raw
       return raw
     }
 
-    if (obj.kind === 'Secret' && obj.data && typeof obj.data === 'object') {
+    if (hasSecretData(obj)) {
       const stringData: Record<string, string> = {}
       for (const [key, value] of Object.entries(obj.data as Record<string, string>)) {
         try {

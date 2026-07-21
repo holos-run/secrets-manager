@@ -237,7 +237,7 @@ test.describe('Profile Page', () => {
     await page.getByRole('button', { name: /raw/i }).last().click()
 
     // Verify JSON is displayed
-    const pre = page.locator('pre')
+    const pre = page.locator('pre').first()
     await expect(pre).toBeVisible()
     await expect(pre).toContainText('"iss"')
     await expect(pre).toContainText('"aud"')
