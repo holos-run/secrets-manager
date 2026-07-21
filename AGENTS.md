@@ -150,7 +150,7 @@ This is a Go HTTPS server that serves a web console UI and exposes ConnectRPC se
 
 ### UI Architecture
 
-React 19 + TypeScript + Vite 7 app in the `frontend/` directory.
+React 19 + TypeScript + Vite 8 app in the `frontend/` directory.
 
 - **UI Library**: shadcn/ui with Tailwind CSS v4
 - **Routing**: TanStack Router with file-based routing (serves at `/`)

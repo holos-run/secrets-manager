@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Go 1.25.0 or later
-- Node.js 18+ and npm for frontend development
+- Node.js 22.13+ and npm for frontend development
 - [mkcert](https://github.com/FiloSottile/mkcert) for local TLS certificates
 - [grpcurl](https://github.com/fullstorydev/grpcurl) for testing RPC endpoints
 

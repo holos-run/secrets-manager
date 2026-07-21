@@ -221,14 +221,14 @@ export async function apiDeleteProject(page: Page, name: string): Promise<void> 
  */
 export async function selectOrg(page: Page, orgName: string): Promise<void> {
   await page.goto('/profile')
-  await page.waitForLoadState('networkidle')
+  await page.getByText('ID Token Status').waitFor({ state: 'visible', timeout: 10000 })
 
   const sidebarTrigger = page.getByRole('button', { name: /toggle sidebar/i })
   if (await sidebarTrigger.isVisible({ timeout: 2000 }).catch(() => false)) {
     await sidebarTrigger.click()
   }
 
-  await page.getByTestId('org-picker').waitFor({ timeout: 5000 })
+  await page.getByTestId('org-picker').waitFor({ state: 'visible', timeout: 10000 })
   await page.getByTestId('org-picker').click()
   await page.getByRole('menuitem', { name: orgName }).click()
 }
