@@ -28,7 +28,7 @@ vi.mock('@/queries/projects', () => ({
 
 vi.mock('@/lib/auth', () => ({ useAuth: vi.fn() }))
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 import { useListSecrets, useCreateSecret, useDeleteSecret } from '@/queries/secrets'
 import { useGetProject } from '@/queries/projects'
@@ -158,7 +158,9 @@ describe('SecretsListPage', () => {
 
     // Click Name sort button → descending (zebra first)
     const sortBtn = screen.getByRole('button', { name: /name/i })
+    expect(screen.getByRole('columnheader', { name: /name/i })).toHaveAttribute('aria-sort', 'ascending')
     fireEvent.click(sortBtn)
+    expect(screen.getByRole('columnheader', { name: /name/i })).toHaveAttribute('aria-sort', 'descending')
     const rowsAfter = screen.getAllByRole('row')
     expect(rowsAfter[1]).toHaveTextContent('zebra-secret')
     expect(rowsAfter[2]).toHaveTextContent('alpha-secret')
@@ -178,11 +180,11 @@ describe('SecretsListPage', () => {
     render(<SecretsListPage />)
     fireEvent.click(screen.getByRole('button', { name: /create secret/i }))
     // Creator OWNER grant is always present
-    expect(screen.getByText('test@example.com')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument()
     // Default user grant is pre-filled
-    expect(screen.getByText('team@example.com')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('team@example.com')).toBeInTheDocument()
     // Default role grant is pre-filled
-    expect(screen.getByText('engineering')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('engineering')).toBeInTheDocument()
   })
 
   it('creator-as-OWNER is always present even with defaults', () => {
@@ -192,8 +194,8 @@ describe('SecretsListPage', () => {
     })
     render(<SecretsListPage />)
     fireEvent.click(screen.getByRole('button', { name: /create secret/i }))
-    expect(screen.getByText('test@example.com')).toBeInTheDocument()
-    expect(screen.getByText('other@example.com')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('other@example.com')).toBeInTheDocument()
   })
 
   it('shows hint text when project has default grants', () => {
@@ -220,12 +222,12 @@ describe('SecretsListPage', () => {
     })
     render(<SecretsListPage />)
     fireEvent.click(screen.getByRole('button', { name: /create secret/i }))
-    expect(screen.getByText('team@example.com')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('team@example.com')).toBeInTheDocument()
     // Find the remove button closest to team@example.com's grant row
-    const teamText = screen.getByText('team@example.com')
-    const grantRow = teamText.closest('div')!
+    const teamInput = screen.getByDisplayValue('team@example.com')
+    const grantRow = teamInput.closest('div')!
     const removeBtn = grantRow.querySelector('button[aria-label="remove"]')!
     fireEvent.click(removeBtn)
-    expect(screen.queryByText('team@example.com')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('team@example.com')).not.toBeInTheDocument()
   })
 })

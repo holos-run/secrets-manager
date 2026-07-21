@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -28,6 +29,8 @@ export interface SharingPanelProps {
   isSaving: boolean
   title?: string
   description?: string
+  draft?: boolean
+  onDraftChange?: (userGrants: Grant[], roleGrants: Grant[]) => void
 }
 
 function roleName(role: Role): string {
@@ -81,7 +84,7 @@ function defaultExpirationUTC(): bigint {
   return BigInt(Math.floor(lastDayOfNextMonth.getTime() / 1000))
 }
 
-export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving, title = 'Sharing', description }: SharingPanelProps) {
+export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving, title = 'Sharing', description, draft = false, onDraftChange }: SharingPanelProps) {
   const [editing, setEditing] = useState(false)
   const [editUserGrants, setEditUserGrants] = useState<Grant[]>([])
   const [editRoleGrants, setEditRoleGrants] = useState<Grant[]>([])
@@ -123,6 +126,22 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
   }
 
   const hasGrants = userGrants.length > 0 || roleGrants.length > 0
+
+  if (draft) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div>
+          <h3 className="text-sm font-medium">{title}</h3>
+          {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+        </div>
+        <GrantEditor
+          userGrants={userGrants}
+          roleGrants={roleGrants}
+          onChange={(users, roles) => onDraftChange?.(users, roles)}
+        />
+      </div>
+    )
+  }
 
   if (!editing) {
     return (
@@ -198,9 +217,11 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={String(Role.VIEWER)}>Viewer</SelectItem>
-                  <SelectItem value={String(Role.EDITOR)}>Editor</SelectItem>
-                  <SelectItem value={String(Role.OWNER)}>Owner</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value={String(Role.VIEWER)}>Viewer</SelectItem>
+                    <SelectItem value={String(Role.EDITOR)}>Editor</SelectItem>
+                    <SelectItem value={String(Role.OWNER)}>Owner</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               <Button variant="ghost" size="icon" aria-label="remove" onClick={() => setEditUserGrants(editUserGrants.filter((_, j) => j !== i))}>
@@ -263,9 +284,11 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={String(Role.VIEWER)}>Viewer</SelectItem>
-                  <SelectItem value={String(Role.EDITOR)}>Editor</SelectItem>
-                  <SelectItem value={String(Role.OWNER)}>Owner</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value={String(Role.VIEWER)}>Viewer</SelectItem>
+                    <SelectItem value={String(Role.EDITOR)}>Editor</SelectItem>
+                    <SelectItem value={String(Role.OWNER)}>Owner</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               <Button variant="ghost" size="icon" aria-label="remove" onClick={() => setEditRoleGrants(editRoleGrants.filter((_, j) => j !== i))}>
@@ -320,6 +343,116 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
           {isSaving ? 'Saving...' : 'Save'}
         </Button>
         <Button variant="ghost" size="sm" onClick={handleCancel}>Cancel</Button>
+      </div>
+    </div>
+  )
+}
+
+function GrantEditor({
+  userGrants,
+  roleGrants,
+  onChange,
+}: {
+  userGrants: Grant[]
+  roleGrants: Grant[]
+  onChange: (userGrants: Grant[], roleGrants: Grant[]) => void
+}) {
+  const updateUser = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
+    const updated = userGrants.map((grant, grantIndex) =>
+      grantIndex === index ? { ...grant, [field]: value } : grant,
+    )
+    onChange(updated, roleGrants)
+  }
+  const updateRole = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
+    const updated = roleGrants.map((grant, grantIndex) =>
+      grantIndex === index ? { ...grant, [field]: value } : grant,
+    )
+    onChange(userGrants, updated)
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="mb-2 text-xs text-muted-foreground">Users</p>
+        <div className="flex flex-col gap-3">
+          {userGrants.map((grant, index) => (
+            <div key={`${grant.principal}-${index}`} className="flex items-center gap-2">
+              <Input
+                aria-label={`user ${index + 1}`}
+                placeholder="Email address"
+                value={grant.principal}
+                onChange={(event) => updateUser(index, 'principal', event.target.value)}
+                className="flex-1"
+              />
+              <Select value={String(grant.role)} onValueChange={(value) => updateUser(index, 'role', Number(value) as Role)}>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={String(Role.VIEWER)}>Viewer</SelectItem>
+                    <SelectItem value={String(Role.EDITOR)}>Editor</SelectItem>
+                    <SelectItem value={String(Role.OWNER)}>Owner</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="remove"
+                onClick={() => onChange(userGrants.filter((_, grantIndex) => grantIndex !== index), roleGrants)}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onChange([...userGrants, { principal: '', role: Role.VIEWER }], roleGrants)}
+        >
+          Add User
+        </Button>
+      </div>
+      <div>
+        <p className="mb-2 text-xs text-muted-foreground">Roles</p>
+        <div className="flex flex-col gap-3">
+          {roleGrants.map((grant, index) => (
+            <div key={`${grant.principal}-${index}`} className="flex items-center gap-2">
+              <Input
+                aria-label={`role ${index + 1}`}
+                placeholder="Role name"
+                value={grant.principal}
+                onChange={(event) => updateRole(index, 'principal', event.target.value)}
+                className="flex-1"
+              />
+              <Select value={String(grant.role)} onValueChange={(value) => updateRole(index, 'role', Number(value) as Role)}>
+                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={String(Role.VIEWER)}>Viewer</SelectItem>
+                    <SelectItem value={String(Role.EDITOR)}>Editor</SelectItem>
+                    <SelectItem value={String(Role.OWNER)}>Owner</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="remove"
+                onClick={() => onChange(userGrants, roleGrants.filter((_, grantIndex) => grantIndex !== index))}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onChange(userGrants, [...roleGrants, { principal: '', role: Role.VIEWER }])}
+        >
+          Add Role
+        </Button>
       </div>
     </div>
   )

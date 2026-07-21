@@ -1,19 +1,14 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  createColumnHelper,
-  type SortingState,
-} from '@tanstack/react-table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
+import { createColumnHelper } from '@tanstack/react-table'
+import { Lock, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { CreateSecretDialog } from '@/components/create-secret-dialog'
+import { ResourceTable, ResourceTableSortHeader, type ResourceColumnDef } from '@/components/resource-table'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -28,27 +23,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowUpDown, ArrowUp, ArrowDown, Lock, Trash2 } from 'lucide-react'
-import { useAuth } from '@/lib/auth'
-import { SecretDataGrid } from '@/components/secret-data-grid'
-import { useListSecrets, useCreateSecret, useDeleteSecret } from '@/queries/secrets'
-import { useGetProject } from '@/queries/projects'
-import { Role } from '@/gen/holos/console/v1/rbac_pb'
+import type { Grant } from '@/components/sharing-panel'
 import type { SecretMetadata } from '@/gen/holos/console/v1/secrets_pb.js'
-
-interface CreateGrant {
-  principal: string
-  role: Role
-}
+import { useAuth } from '@/lib/auth'
+import { useGetProject } from '@/queries/projects'
+import { useDeleteSecret, useListSecrets } from '@/queries/secrets'
 
 export const Route = createFileRoute('/_authenticated/projects/$projectName/secrets/')({
   component: SecretsListPage,
@@ -66,54 +45,19 @@ const columnHelper = createColumnHelper<SecretMetadata>()
 export function SecretsListPage() {
   const { projectName } = Route.useParams()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-
   const { data: secrets = [], isLoading, error } = useListSecrets(projectName)
   const { data: project } = useGetProject(projectName)
-  const createMutation = useCreateSecret(projectName)
   const deleteMutation = useDeleteSecret(projectName)
-
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }])
-
   const [createOpen, setCreateOpen] = useState(false)
-  const [createName, setCreateName] = useState('')
-  const [createDescription, setCreateDescription] = useState('')
-  const [createUrl, setCreateUrl] = useState('')
-  const [createData, setCreateData] = useState<Record<string, Uint8Array>>({})
-  const [createError, setCreateError] = useState<string | null>(null)
-  const [createUserGrants, setCreateUserGrants] = useState<CreateGrant[]>([])
-  const [createRoleGrants, setCreateRoleGrants] = useState<CreateGrant[]>([])
-  const [hasDefaults, setHasDefaults] = useState(false)
-
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
-  const columns = useMemo(() => [
+  const columns = useMemo<ResourceColumnDef<SecretMetadata>[]>(() => [
     columnHelper.accessor('name', {
-      header: ({ column }) => {
-        const sorted = column.getIsSorted()
-        return (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-3 h-8 font-medium"
-            onClick={() => column.toggleSorting(sorted === 'asc')}
-          >
-            Name
-            {sorted === 'asc' ? (
-              <ArrowUp className="ml-1 h-3.5 w-3.5" />
-            ) : sorted === 'desc' ? (
-              <ArrowDown className="ml-1 h-3.5 w-3.5" />
-            ) : (
-              <ArrowUpDown className="ml-1 h-3.5 w-3.5 opacity-50" />
-            )}
-          </Button>
-        )
-      },
+      header: ({ column }) => <ResourceTableSortHeader column={column}>Name</ResourceTableSortHeader>,
       cell: ({ row }) => {
         const secret = row.original
-        if (!secret.accessible) {
-          return <span className="font-medium opacity-50">{secret.name}</span>
-        }
+        if (!secret.accessible) return <span className="font-medium opacity-50">{secret.name}</span>
         return (
           <Link
             to="/projects/$projectName/secrets/$name"
@@ -127,14 +71,14 @@ export function SecretsListPage() {
     }),
     columnHelper.accessor('description', {
       header: 'Description',
+      enableSorting: false,
       cell: ({ getValue }) => {
-        const desc = getValue()
-        if (!desc) return <span className="text-muted-foreground">—</span>
-        return (
-          <span className="text-muted-foreground truncate max-w-[60ch] block">
-            {desc.length > 60 ? `${desc.slice(0, 60)}…` : desc}
+        const description = getValue()
+        return description ? (
+          <span className="block max-w-[60ch] truncate text-muted-foreground">
+            {description.length > 60 ? `${description.slice(0, 60)}…` : description}
           </span>
-        )
+        ) : <span className="text-muted-foreground">—</span>
       },
     }),
     columnHelper.display({
@@ -147,10 +91,7 @@ export function SecretsListPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="outline">
-                    <Lock className="h-3 w-3 mr-1" />
-                    No access
-                  </Badge>
+                  <Badge variant="outline"><Lock />No access</Badge>
                 </TooltipTrigger>
                 <TooltipContent><p>You do not have access to this secret</p></TooltipContent>
               </Tooltip>
@@ -158,254 +99,77 @@ export function SecretsListPage() {
           )
         }
         const summary = sharingSummary(secret.userGrants.length, secret.roleGrants.length)
-        return summary ? (
-          <Badge variant="outline">{summary}</Badge>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        )
+        return summary ? <Badge variant="outline">{summary}</Badge> : <span className="text-muted-foreground">—</span>
       },
     }),
     columnHelper.display({
       id: 'actions',
       header: '',
-      cell: ({ row }) => {
-        const secret = row.original
-        if (!secret.accessible) return null
-        return (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={`delete ${secret.name}`}
-            onClick={() => { setDeleteTarget(secret.name); deleteMutation.reset(); setDeleteOpen(true) }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        )
-      },
+      cell: ({ row }) => row.original.accessible ? (
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`delete ${row.original.name}`}
+          onClick={(event) => {
+            event.stopPropagation()
+            setDeleteTarget(row.original.name)
+            deleteMutation.reset()
+            setDeleteOpen(true)
+          }}
+        >
+          <Trash2 />
+        </Button>
+      ) : null,
     }),
-  ], [projectName, deleteMutation])
-
-  const table = useReactTable({
-    data: secrets,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  })
-
-  const handleCreateOpen = () => {
-    setCreateName('')
-    setCreateDescription('')
-    setCreateUrl('')
-    setCreateData({})
-    setCreateError(null)
-
-    const creatorEmail = (user?.profile?.email as string) || ''
-    const creatorGrant: CreateGrant = { principal: creatorEmail, role: Role.OWNER }
-
-    const defaultUserGrants = (project?.defaultUserGrants ?? []) as CreateGrant[]
-    const defaultRoleGrants = (project?.defaultRoleGrants ?? []) as CreateGrant[]
-
-    // Deduplicate: creator-as-OWNER + default user grants
-    const seenPrincipals = new Set([creatorEmail])
-    const userGrants = [creatorGrant]
-    for (const g of defaultUserGrants) {
-      if (!seenPrincipals.has(g.principal)) {
-        seenPrincipals.add(g.principal)
-        userGrants.push({ principal: g.principal, role: g.role })
-      }
-    }
-
-    setCreateUserGrants(userGrants)
-    setCreateRoleGrants(defaultRoleGrants.map(g => ({ principal: g.principal, role: g.role })))
-    setHasDefaults(defaultUserGrants.length > 0 || defaultRoleGrants.length > 0)
-    setCreateOpen(true)
-  }
-
-  const handleCreate = async () => {
-    if (!createName.trim()) {
-      setCreateError('Secret name is required')
-      return
-    }
-    setCreateError(null)
-    try {
-      await createMutation.mutateAsync({
-        name: createName.trim(),
-        data: createData,
-        userGrants: createUserGrants.filter(g => g.principal.trim() !== ''),
-        roleGrants: createRoleGrants.filter(g => g.principal.trim() !== ''),
-        description: createDescription.trim() || undefined,
-        url: createUrl.trim() || undefined,
-      })
-      setCreateOpen(false)
-    } catch (err) {
-      setCreateError(err instanceof Error ? err.message : String(err))
-    }
-  }
+  ], [deleteMutation, projectName])
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return
     try {
       await deleteMutation.mutateAsync(deleteTarget)
+      toast.success('Secret deleted')
       setDeleteOpen(false)
       setDeleteTarget(null)
-    } catch { /* error via mutation */ }
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : String(caught))
+    }
   }
 
-  if (authLoading || (isAuthenticated && isLoading)) {
-    return (
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <CardTitle>{projectName ? `${projectName} / Secrets` : 'Secrets'}</CardTitle>
-          <Button size="sm" disabled>Create Secret</Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <Alert variant="destructive"><AlertDescription>{error.message}</AlertDescription></Alert>
-        </CardContent>
-      </Card>
-    )
-  }
+  const showLoading = authLoading || (isAuthenticated && isLoading)
+  const creatorEmail = (user?.profile?.email as string | undefined) ?? ''
 
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <CardHeader className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
           <CardTitle>{projectName ? `${projectName} / Secrets` : 'Secrets'}</CardTitle>
-          <Button size="sm" onClick={handleCreateOpen}>Create Secret</Button>
+          <Button size="sm" onClick={() => setCreateOpen(true)} disabled={showLoading}>Create Secret</Button>
         </CardHeader>
         <CardContent>
-          {secrets.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <p className="text-muted-foreground">No secrets yet.</p>
-              <Button size="sm" onClick={handleCreateOpen}>Create Secret</Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <ResourceTable
+            columns={columns}
+            data={secrets}
+            initialSorting={[{ id: 'name', desc: false }]}
+            isLoading={showLoading}
+            error={error}
+            loadingLabel="Loading secrets"
+            searchPlaceholder="Search secrets…"
+            emptyMessage="No secrets yet."
+            emptyAction={<Button size="sm" onClick={() => setCreateOpen(true)}>Create Secret</Button>}
+          />
         </CardContent>
       </Card>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create Secret</DialogTitle>
-            <DialogDescription>Create a new secret. You will be added as the Owner.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label>Name</Label>
-              <Input
-                autoFocus
-                value={createName}
-                onChange={(e) => setCreateName(e.target.value)}
-                placeholder="my-secret"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Lowercase alphanumeric and hyphens only</p>
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Input
-                value={createDescription}
-                onChange={(e) => setCreateDescription(e.target.value)}
-                placeholder="What is this secret used for?"
-              />
-            </div>
-            <div>
-              <Label>URL</Label>
-              <Input
-                value={createUrl}
-                onChange={(e) => setCreateUrl(e.target.value)}
-                placeholder="https://example.com/service"
-              />
-            </div>
-            <div>
-              <Label>Data</Label>
-              <SecretDataGrid data={createData} onChange={setCreateData} />
-            </div>
-            <div>
-              <Label>Sharing</Label>
-              {hasDefaults && (
-                <p className="text-xs text-muted-foreground mt-1">Pre-filled from project default sharing settings</p>
-              )}
-              <div className="mt-2 space-y-2">
-                <p className="text-xs text-muted-foreground">Users</p>
-                {createUserGrants.map((g, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-sm flex-1">{g.principal}</span>
-                    <Badge variant="outline">{g.role === Role.OWNER ? 'Owner' : g.role === Role.EDITOR ? 'Editor' : 'Viewer'}</Badge>
-                    <Button variant="ghost" size="icon" aria-label="remove" onClick={() => setCreateUserGrants(createUserGrants.filter((_, j) => j !== i))}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-                {createRoleGrants.length > 0 && (
-                  <>
-                    <p className="text-xs text-muted-foreground">Roles</p>
-                    {createRoleGrants.map((g, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <span className="text-sm flex-1">{g.principal}</span>
-                        <Badge variant="outline">{g.role === Role.OWNER ? 'Owner' : g.role === Role.EDITOR ? 'Editor' : 'Viewer'}</Badge>
-                        <Button variant="ghost" size="icon" aria-label="remove" onClick={() => setCreateRoleGrants(createRoleGrants.filter((_, j) => j !== i))}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
-            {createError && (
-              <Alert variant="destructive"><AlertDescription>{createError}</AlertDescription></Alert>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Creating...' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {createOpen && (
+        <CreateSecretDialog
+          open
+          onOpenChange={setCreateOpen}
+          projectName={projectName}
+          creatorEmail={creatorEmail}
+          defaultUserGrants={(project?.defaultUserGrants ?? []) as Grant[]}
+          defaultRoleGrants={(project?.defaultRoleGrants ?? []) as Grant[]}
+        />
+      )}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
@@ -420,7 +184,7 @@ export function SecretsListPage() {
           )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteMutation.isPending}>
+            <Button variant="destructive" onClick={() => void handleDeleteConfirm()} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useCreateOrganization } from '@/queries/organizations'
 import { toSlug } from '@/lib/slug'
+import { toast } from 'sonner'
 
 export interface CreateOrgDialogProps {
   open: boolean
@@ -57,9 +58,12 @@ export function CreateOrgDialog({ open, onOpenChange, onCreated }: CreateOrgDial
       setDescription('')
       setNameEdited(false)
       onCreated?.(response.name)
+      toast.success('Organization created')
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create organization')
+      const message = err instanceof Error ? err.message : 'Failed to create organization'
+      setError(message)
+      toast.error(message)
     }
   }
 
