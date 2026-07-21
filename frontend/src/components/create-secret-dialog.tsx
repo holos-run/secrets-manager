@@ -100,7 +100,7 @@ export function CreateSecretDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create Secret</DialogTitle>
           <DialogDescription>Create a new secret. You will be added as the Owner.</DialogDescription>
