@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/holos-run/holos-console/console/secrets"
+	"github.com/holos-run/secrets-manager/console/secrets"
 )
 
 // ProjectGrantResolver implements secrets.ProjectResolver by looking up

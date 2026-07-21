@@ -33,13 +33,13 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"github.com/holos-run/holos-console/console/oidc"
-	"github.com/holos-run/holos-console/console/organizations"
-	"github.com/holos-run/holos-console/console/projects"
-	"github.com/holos-run/holos-console/console/resolver"
-	"github.com/holos-run/holos-console/console/rpc"
-	"github.com/holos-run/holos-console/console/secrets"
-	"github.com/holos-run/holos-console/gen/holos/console/v1/consolev1connect"
+	"github.com/holos-run/secrets-manager/console/oidc"
+	"github.com/holos-run/secrets-manager/console/organizations"
+	"github.com/holos-run/secrets-manager/console/projects"
+	"github.com/holos-run/secrets-manager/console/resolver"
+	"github.com/holos-run/secrets-manager/console/rpc"
+	"github.com/holos-run/secrets-manager/console/secrets"
+	"github.com/holos-run/secrets-manager/gen/holos/console/v1/consolev1connect"
 )
 
 //go:embed all:dist
@@ -62,7 +62,7 @@ type Config struct {
 	// Origin is the public-facing base URL of the console.
 	// Used to construct OIDC redirect URIs (e.g., redirect_uri, post_logout_redirect_uri).
 	// When empty, redirect URIs are derived from Issuer for backward compatibility.
-	// Example: "https://holos-console.home.jeffmccune.com"
+	// Example: "https://secrets-manager.home.jeffmccune.com"
 	Origin string
 
 	// Issuer is the OIDC issuer URL for token validation.
@@ -71,7 +71,7 @@ type Config struct {
 	Issuer string
 
 	// ClientID is the expected audience for tokens.
-	// Default: "holos-console"
+	// Default: "secrets-manager"
 	ClientID string
 
 	// IDTokenTTL is the lifetime of ID tokens.
@@ -693,7 +693,6 @@ func handleDebugOIDC(w http.ResponseWriter, r *http.Request, issuer string, clie
 		"configured_issuer": issuer,
 		"notes": map[string]string{
 			"scopes_supported": "Check if 'groups' is in scopes_supported. If not, Dex may not include groups in ID tokens.",
-			"investigation":    "See holos-garage/Holos Garage/Holos/plans/holos-console-groups-claim-investigation.md",
 		},
 	}
 

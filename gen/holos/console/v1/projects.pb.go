@@ -1029,7 +1029,7 @@ const file_holos_console_v1_projects_proto_rawDesc = "" +
 	"\rDeleteProject\x12&.holos.console.v1.DeleteProjectRequest\x1a'.holos.console.v1.DeleteProjectResponse\x12u\n" +
 	"\x14UpdateProjectSharing\x12-.holos.console.v1.UpdateProjectSharingRequest\x1a..holos.console.v1.UpdateProjectSharingResponse\x12`\n" +
 	"\rGetProjectRaw\x12&.holos.console.v1.GetProjectRawRequest\x1a'.holos.console.v1.GetProjectRawResponse\x12\x8a\x01\n" +
-	"\x1bUpdateProjectDefaultSharing\x124.holos.console.v1.UpdateProjectDefaultSharingRequest\x1a5.holos.console.v1.UpdateProjectDefaultSharingResponseBCZAgithub.com/holos-run/holos-console/gen/holos/console/v1;consolev1b\x06proto3"
+	"\x1bUpdateProjectDefaultSharing\x124.holos.console.v1.UpdateProjectDefaultSharingRequest\x1a5.holos.console.v1.UpdateProjectDefaultSharingResponseBEZCgithub.com/holos-run/secrets-manager/gen/holos/console/v1;consolev1b\x06proto3"
 
 var (
 	file_holos_console_v1_projects_proto_rawDescOnce sync.Once

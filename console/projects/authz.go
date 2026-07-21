@@ -3,9 +3,9 @@ package projects
 import (
 	"time"
 
-	"github.com/holos-run/holos-console/console/rbac"
-	"github.com/holos-run/holos-console/console/resolver"
-	"github.com/holos-run/holos-console/console/secrets"
+	"github.com/holos-run/secrets-manager/console/rbac"
+	"github.com/holos-run/secrets-manager/console/resolver"
+	"github.com/holos-run/secrets-manager/console/secrets"
 	corev1 "k8s.io/api/core/v1"
 )
 

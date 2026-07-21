@@ -222,7 +222,7 @@ const file_holos_console_v1_rbac_proto_rawDesc = "" +
 	"\x1ePERMISSION_ORGANIZATIONS_WRITE\x10\x0e\x12#\n" +
 	"\x1fPERMISSION_ORGANIZATIONS_DELETE\x10\x0f\x12\"\n" +
 	"\x1ePERMISSION_ORGANIZATIONS_ADMIN\x10\x10\x12#\n" +
-	"\x1fPERMISSION_ORGANIZATIONS_CREATE\x10\x11BCZAgithub.com/holos-run/holos-console/gen/holos/console/v1;consolev1b\x06proto3"
+	"\x1fPERMISSION_ORGANIZATIONS_CREATE\x10\x11BEZCgithub.com/holos-run/secrets-manager/gen/holos/console/v1;consolev1b\x06proto3"
 
 var (
 	file_holos_console_v1_rbac_proto_rawDescOnce sync.Once

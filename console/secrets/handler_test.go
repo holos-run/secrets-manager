@@ -12,9 +12,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"github.com/holos-run/holos-console/console/resolver"
-	"github.com/holos-run/holos-console/console/rpc"
-	consolev1 "github.com/holos-run/holos-console/gen/holos/console/v1"
+	"github.com/holos-run/secrets-manager/console/resolver"
+	"github.com/holos-run/secrets-manager/console/rpc"
+	consolev1 "github.com/holos-run/secrets-manager/gen/holos/console/v1"
 )
 
 // testLogHandler captures log records for testing.

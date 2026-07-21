@@ -16,8 +16,8 @@ func TestDeriveOrigin(t *testing.T) {
 		{
 			name:       "explicit origin takes precedence",
 			listenAddr: ":8443",
-			origin:     "https://holos-console.home.jeffmccune.com",
-			want:       "https://holos-console.home.jeffmccune.com",
+			origin:     "https://secrets-manager.home.jeffmccune.com",
+			want:       "https://secrets-manager.home.jeffmccune.com",
 		},
 		{
 			name:       "derive from port-only listen",
@@ -47,9 +47,9 @@ func TestDeriveOrigin(t *testing.T) {
 		{
 			name:       "plain http explicit origin unchanged",
 			listenAddr: ":8080",
-			origin:     "https://holos-console.example.com",
+			origin:     "https://secrets-manager.example.com",
 			plainHTTP:  true,
-			want:       "https://holos-console.example.com",
+			want:       "https://secrets-manager.example.com",
 		},
 	}
 	for _, tt := range tests {
@@ -160,6 +160,27 @@ func TestDefaultAppName(t *testing.T) {
 	}
 	if got := f.DefValue; got != "Holos Secrets Manager" {
 		t.Errorf("default app-name = %q, want %q", got, "Holos Secrets Manager")
+	}
+}
+
+func TestCommandIdentity(t *testing.T) {
+	cmd := Command()
+	if got := cmd.Use; got != "secrets-manager" {
+		t.Errorf("command use = %q, want %q", got, "secrets-manager")
+	}
+	if got := cmd.Short; got != "Holos Secrets Manager serves the secrets management web interface" {
+		t.Errorf("command short description = %q, want Holos Secrets Manager description", got)
+	}
+}
+
+func TestDefaultClientID(t *testing.T) {
+	cmd := Command()
+	f := cmd.Flags().Lookup("client-id")
+	if f == nil {
+		t.Fatal("--client-id flag not found")
+	}
+	if got := f.DefValue; got != "secrets-manager" {
+		t.Errorf("default client-id = %q, want %q", got, "secrets-manager")
 	}
 }
 

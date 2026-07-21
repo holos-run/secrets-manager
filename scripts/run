@@ -12,7 +12,7 @@ cd "$PROJECT_ROOT"
 
 make build
 
-exec ./bin/holos-console \
+exec ./bin/secrets-manager \
     --enable-insecure-dex \
     --cert certs/tls.crt \
     --key certs/tls.key \

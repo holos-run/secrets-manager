@@ -1,10 +1,10 @@
 # Security: ID Token Validation
 
-This document describes how holos-console validates OIDC ID tokens and how each validation step conforms to the OpenID Connect specification.
+This document describes how secrets-manager validates OIDC ID tokens and how each validation step conforms to the OpenID Connect specification.
 
 ## Overview
 
-holos-console validates ID tokens using the [go-oidc](https://github.com/coreos/go-oidc) library (v3). Token validation occurs in the `LazyAuthInterceptor` ConnectRPC interceptor, which protects RPC endpoints that require authentication.
+secrets-manager validates ID tokens using the [go-oidc](https://github.com/coreos/go-oidc) library (v3). Token validation occurs in the `LazyAuthInterceptor` ConnectRPC interceptor, which protects RPC endpoints that require authentication.
 
 ## Validation Flow
 
@@ -84,7 +84,7 @@ The go-oidc library verifies that the token's `iss` claim exactly matches the co
 
 **Location:** Handled by `verifier.Verify()` at [console/rpc/auth.go:111](console/rpc/auth.go#L111)
 
-**Configuration:** The expected client ID is configured via the `--client-id` CLI flag (default: `holos-console`) and passed to the verifier at [console/rpc/auth.go:43-45](console/rpc/auth.go#L43-L45):
+**Configuration:** The expected client ID is configured via the `--client-id` CLI flag (default: `secrets-manager`) and passed to the verifier at [console/rpc/auth.go:43-45](console/rpc/auth.go#L43-L45):
 
 ```go
 verifier = provider.Verifier(&oidc.Config{
@@ -185,7 +185,7 @@ The `oidc.NewProvider()` function fetches the OIDC discovery document from `{iss
 
 ## Validation NOT Performed
 
-The following validations are NOT performed by holos-console:
+The following validations are NOT performed by secrets-manager:
 
 ### Nonce Validation
 
@@ -197,11 +197,11 @@ The go-oidc library does not enforce `iat` validation by default. Per the OIDC s
 
 ### Access Token Hash (at_hash) Validation
 
-The `at_hash` claim is not validated. This is only required when an access token is returned alongside the ID token in the authorization response (implicit flow). holos-console uses the authorization code flow with PKCE.
+The `at_hash` claim is not validated. This is only required when an access token is returned alongside the ID token in the authorization response (implicit flow). secrets-manager uses the authorization code flow with PKCE.
 
 ## Interceptor Types
 
-holos-console provides three authentication interceptors:
+secrets-manager provides three authentication interceptors:
 
 | Interceptor | Location | Behavior |
 |------------|----------|----------|
