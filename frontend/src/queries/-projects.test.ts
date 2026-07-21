@@ -1,260 +1,125 @@
-import { renderHook, waitFor, act } from '@testing-library/react'
-import { vi } from 'vitest'
-import type { Mock } from 'vitest'
+import { act, renderHook } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
+import { vi } from 'vitest'
+import type { Mock } from 'vitest'
 
-vi.mock('@connectrpc/connect', () => ({
-  createClient: vi.fn(),
-}))
-
-vi.mock('@connectrpc/connect-query', () => ({
-  useQuery: vi.fn(),
-  useTransport: vi.fn(),
+vi.mock('@connectrpc/connect-query', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@connectrpc/connect-query')>(),
+  useMutation: vi.fn(() => ({})),
+  useQuery: vi.fn(() => ({})),
 }))
 
 vi.mock('@/lib/auth', () => ({
   useAuth: vi.fn(),
 }))
 
-import { createClient } from '@connectrpc/connect'
-import { useTransport } from '@connectrpc/connect-query'
+import { useMutation, useQuery } from '@connectrpc/connect-query'
+import { ProjectService } from '@/gen/holos/console/v1/projects_pb.js'
 import { useAuth } from '@/lib/auth'
+import { keys } from './keys'
 import {
-  useGetProject,
-  useUpdateProject,
-  useUpdateProjectSharing,
-  useUpdateProjectDefaultSharing,
+  useCreateProject,
   useDeleteProject,
+  useGetProject,
+  useListProjects,
+  useUpdateProject,
+  useUpdateProjectDefaultSharing,
+  useUpdateProjectSharing,
 } from './projects'
-
-const mockProject = {
-  name: 'my-project',
-  displayName: 'My Project',
-  description: 'Test project',
-  organization: 'my-org',
-  userGrants: [],
-  roleGrants: [],
-}
 
 function makeWrapper(queryClient: QueryClient) {
   return ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children)
 }
 
-describe('useGetProject', () => {
-  let queryClient: QueryClient
-  let mockClient: Record<string, Mock>
-
+describe('project queries', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-    mockClient = {
-      getProject: vi.fn().mockResolvedValue({ project: mockProject }),
-    }
-    ;(createClient as Mock).mockReturnValue(mockClient)
-    ;(useTransport as Mock).mockReturnValue({})
     ;(useAuth as Mock).mockReturnValue({ isAuthenticated: true })
   })
 
-  it('calls getProject RPC with the given name', async () => {
-    const { result } = renderHook(() => useGetProject('my-project'), {
-      wrapper: makeWrapper(queryClient),
-    })
+  it('uses connect-query for list and detail reads', () => {
+    renderHook(() => useListProjects('my-org'))
+    renderHook(() => useGetProject('my-project'))
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    expect(mockClient.getProject).toHaveBeenCalledWith({ name: 'my-project' })
+    expect(useQuery).toHaveBeenNthCalledWith(
+      1,
+      ProjectService.method.listProjects,
+      expect.objectContaining({ organization: 'my-org' }),
+      { enabled: true },
+    )
+    expect(useQuery).toHaveBeenNthCalledWith(
+      2,
+      ProjectService.method.getProject,
+      { name: 'my-project' },
+      expect.objectContaining({ enabled: true, select: expect.any(Function) }),
+    )
   })
 
-  it('returns project data from the response', async () => {
-    const { result } = renderHook(() => useGetProject('my-project'), {
-      wrapper: makeWrapper(queryClient),
-    })
+  it('gates reads on authentication and required identifiers', () => {
+    ;(useAuth as Mock).mockReturnValue({ isAuthenticated: false })
+    renderHook(() => useListProjects(''))
+    renderHook(() => useGetProject(''))
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-
-    expect(result.current.data).toEqual(mockProject)
-  })
-
-  it('is disabled when name is empty', () => {
-    const { result } = renderHook(() => useGetProject(''), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    expect(result.current.fetchStatus).toBe('idle')
-    expect(mockClient.getProject).not.toHaveBeenCalled()
+    expect((useQuery as Mock).mock.calls[0][2].enabled).toBe(false)
+    expect((useQuery as Mock).mock.calls[1][2].enabled).toBe(false)
   })
 })
 
-describe('useUpdateProject', () => {
+describe('project mutations', () => {
   let queryClient: QueryClient
-  let mockClient: Record<string, Mock>
 
   beforeEach(() => {
     vi.clearAllMocks()
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-    mockClient = {
-      updateProject: vi.fn().mockResolvedValue({}),
-    }
-    ;(createClient as Mock).mockReturnValue(mockClient)
-    ;(useTransport as Mock).mockReturnValue({})
+    queryClient = new QueryClient()
   })
 
-  it('calls updateProject RPC with correct params', async () => {
-    const { result } = renderHook(() => useUpdateProject(), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    await act(async () => {
-      await result.current.mutateAsync({ name: 'my-project', displayName: 'Updated', description: 'New desc' })
-    })
-
-    expect(mockClient.updateProject).toHaveBeenCalledWith({
-      name: 'my-project',
-      displayName: 'Updated',
-      description: 'New desc',
-    })
-  })
-
-  it('invalidates connect-query cache on success', async () => {
+  it.each([
+    {
+      name: 'create',
+      hook: useCreateProject,
+      method: ProjectService.method.createProject,
+      variables: { name: 'my-project', organization: 'my-org' },
+      invalidates: [keys.projects.list('my-org').key],
+    },
+    {
+      name: 'update',
+      hook: useUpdateProject,
+      method: ProjectService.method.updateProject,
+      variables: { name: 'my-project', displayName: 'My Project' },
+      invalidates: [keys.projects.lists().key, keys.projects.detail('my-project').key],
+    },
+    {
+      name: 'sharing update',
+      hook: useUpdateProjectSharing,
+      method: ProjectService.method.updateProjectSharing,
+      variables: { name: 'my-project', userGrants: [], roleGrants: [] },
+      invalidates: [keys.projects.lists().key, keys.projects.detail('my-project').key],
+    },
+    {
+      name: 'default sharing update',
+      hook: useUpdateProjectDefaultSharing,
+      method: ProjectService.method.updateProjectDefaultSharing,
+      variables: { name: 'my-project', defaultUserGrants: [], defaultRoleGrants: [] },
+      invalidates: [keys.projects.lists().key, keys.projects.detail('my-project').key],
+    },
+    {
+      name: 'delete',
+      hook: useDeleteProject,
+      method: ProjectService.method.deleteProject,
+      variables: { name: 'my-project' },
+      invalidates: [keys.projects.lists().key, keys.projects.detail('my-project').key],
+    },
+  ])('uses connect-query and scoped keys for $name', async ({ hook, method, variables, invalidates }) => {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    renderHook(() => hook(), { wrapper: makeWrapper(queryClient) })
 
-    const { result } = renderHook(() => useUpdateProject(), {
-      wrapper: makeWrapper(queryClient),
-    })
+    expect(useMutation).toHaveBeenCalledWith(method, expect.objectContaining({ onSuccess: expect.any(Function) }))
+    const onSuccess = (useMutation as Mock).mock.calls[0][1].onSuccess
+    await act(async () => onSuccess({}, variables))
 
-    await act(async () => {
-      await result.current.mutateAsync({ name: 'my-project' })
-    })
-
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['connect-query'] })
-  })
-})
-
-describe('useUpdateProjectSharing', () => {
-  let queryClient: QueryClient
-  let mockClient: Record<string, Mock>
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-    mockClient = {
-      updateProjectSharing: vi.fn().mockResolvedValue({}),
-    }
-    ;(createClient as Mock).mockReturnValue(mockClient)
-    ;(useTransport as Mock).mockReturnValue({})
-  })
-
-  it('calls updateProjectSharing RPC with correct params', async () => {
-    const { result } = renderHook(() => useUpdateProjectSharing(), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    const grants = { name: 'my-project', userGrants: [{ principal: 'a@b.com', role: 2 }], roleGrants: [] }
-
-    await act(async () => {
-      await result.current.mutateAsync(grants)
-    })
-
-    expect(mockClient.updateProjectSharing).toHaveBeenCalledWith(grants)
-  })
-
-  it('invalidates connect-query cache on success', async () => {
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-
-    const { result } = renderHook(() => useUpdateProjectSharing(), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    await act(async () => {
-      await result.current.mutateAsync({ name: 'my-project', userGrants: [], roleGrants: [] })
-    })
-
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['connect-query'] })
-  })
-})
-
-describe('useUpdateProjectDefaultSharing', () => {
-  let queryClient: QueryClient
-  let mockClient: Record<string, Mock>
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-    mockClient = {
-      updateProjectDefaultSharing: vi.fn().mockResolvedValue({}),
-    }
-    ;(createClient as Mock).mockReturnValue(mockClient)
-    ;(useTransport as Mock).mockReturnValue({})
-  })
-
-  it('calls updateProjectDefaultSharing RPC with correct params', async () => {
-    const { result } = renderHook(() => useUpdateProjectDefaultSharing(), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    const params = { name: 'my-project', defaultUserGrants: [{ principal: 'a@b.com', role: 1 }], defaultRoleGrants: [] }
-
-    await act(async () => {
-      await result.current.mutateAsync(params)
-    })
-
-    expect(mockClient.updateProjectDefaultSharing).toHaveBeenCalledWith(params)
-  })
-
-  it('invalidates connect-query cache on success', async () => {
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-
-    const { result } = renderHook(() => useUpdateProjectDefaultSharing(), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    await act(async () => {
-      await result.current.mutateAsync({ name: 'my-project', defaultUserGrants: [], defaultRoleGrants: [] })
-    })
-
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['connect-query'] })
-  })
-})
-
-describe('useDeleteProject', () => {
-  let queryClient: QueryClient
-  let mockClient: Record<string, Mock>
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-    mockClient = {
-      deleteProject: vi.fn().mockResolvedValue({}),
-    }
-    ;(createClient as Mock).mockReturnValue(mockClient)
-    ;(useTransport as Mock).mockReturnValue({})
-  })
-
-  it('calls deleteProject RPC with correct name', async () => {
-    const { result } = renderHook(() => useDeleteProject(), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    await act(async () => {
-      await result.current.mutateAsync({ name: 'my-project' })
-    })
-
-    expect(mockClient.deleteProject).toHaveBeenCalledWith({ name: 'my-project' })
-  })
-
-  it('invalidates connect-query cache on success', async () => {
-    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
-
-    const { result } = renderHook(() => useDeleteProject(), {
-      wrapper: makeWrapper(queryClient),
-    })
-
-    await act(async () => {
-      await result.current.mutateAsync({ name: 'my-project' })
-    })
-
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['connect-query'] })
+    expect(invalidateSpy.mock.calls.map(([filters]) => filters.queryKey)).toEqual(invalidates)
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ['connect-query'] })
   })
 })
