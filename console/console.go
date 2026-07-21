@@ -46,7 +46,7 @@ import (
 var uiFS embed.FS
 
 // DefaultAppName is the product name shown when no operator override is configured.
-const DefaultAppName = "Holos Secrets Manager"
+const DefaultAppName = oidc.DefaultAppName
 
 // Config holds the server configuration.
 type Config struct {

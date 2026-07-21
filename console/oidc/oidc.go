@@ -13,6 +13,9 @@ import (
 	"github.com/dexidp/dex/storage/memory"
 )
 
+// DefaultAppName is the product name shown when no operator override is configured.
+const DefaultAppName = "Holos Secrets Manager"
+
 // Config holds configuration for the embedded OIDC identity provider.
 type Config struct {
 	// Issuer is the full OIDC issuer URL including mount path.
@@ -156,7 +159,7 @@ func NewHandler(ctx context.Context, cfg Config) (http.Handler, error) {
 
 func clientDisplayName(appName string) string {
 	if appName == "" {
-		return "Holos Secrets Manager"
+		return DefaultAppName
 	}
 	return appName
 }
