@@ -15,7 +15,9 @@ export interface AppConfig {
 }
 
 export function getAppConfig(): AppConfig {
+  const appName = window.__APP_CONFIG__?.app_name?.trim()
+
   return {
-    appName: window.__APP_CONFIG__?.app_name || DEFAULT_APP_NAME,
+    appName: appName || DEFAULT_APP_NAME,
   }
 }
