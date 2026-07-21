@@ -201,16 +201,16 @@ func (s *Server) Serve(ctx context.Context) error {
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusOK)
-		io.WriteString(w, "ok")
+		_, _ = io.WriteString(w, "ok")
 	})
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		if s.ready.Load() {
 			w.WriteHeader(http.StatusOK)
-			io.WriteString(w, "ok")
+			_, _ = io.WriteString(w, "ok")
 		} else {
 			w.WriteHeader(http.StatusServiceUnavailable)
-			io.WriteString(w, "not ready")
+			_, _ = io.WriteString(w, "not ready")
 		}
 	})
 
@@ -596,7 +596,7 @@ func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 func replaceHTMLTitle(data []byte, appName string) []byte {
@@ -626,7 +626,7 @@ func (h *uiHandler) serveIfFile(w http.ResponseWriter, r *http.Request, name str
 	if err != nil {
 		return false
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	info, err := file.Stat()
 	if err != nil || info.IsDir() {
@@ -635,23 +635,6 @@ func (h *uiHandler) serveIfFile(w http.ResponseWriter, r *http.Request, name str
 
 	h.serveFileWithInfo(w, r, name, file, info)
 	return true
-}
-
-func (h *uiHandler) serveFile(w http.ResponseWriter, r *http.Request, name string) {
-	file, err := h.fs.Open(name)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	defer file.Close()
-
-	info, err := file.Stat()
-	if err != nil || info.IsDir() {
-		http.NotFound(w, r)
-		return
-	}
-
-	h.serveFileWithInfo(w, r, name, file, info)
 }
 
 func (h *uiHandler) serveFileWithInfo(w http.ResponseWriter, r *http.Request, name string, file fs.File, info fs.FileInfo) {
@@ -679,7 +662,7 @@ func handleDebugOIDC(w http.ResponseWriter, r *http.Request, issuer string, clie
 		http.Error(w, fmt.Sprintf("Failed to fetch discovery document: %v", err), http.StatusInternalServerError)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var discovery map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&discovery); err != nil {
@@ -699,7 +682,9 @@ func handleDebugOIDC(w http.ResponseWriter, r *http.Request, issuer string, clie
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
-	enc.Encode(debugInfo)
+	if err := enc.Encode(debugInfo); err != nil {
+		slog.Error("failed to encode OIDC debug response", "error", err)
+	}
 }
 
 // tlsConfig returns the TLS configuration for the server.

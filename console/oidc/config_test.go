@@ -1,7 +1,6 @@
 package oidc_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/holos-run/secrets-manager/console/oidc"
@@ -9,14 +8,13 @@ import (
 
 func TestGetPassword(t *testing.T) {
 	// Test default password
-	os.Unsetenv("HOLOS_DEX_INITIAL_ADMIN_PASSWORD")
+	t.Setenv("HOLOS_DEX_INITIAL_ADMIN_PASSWORD", "")
 	if got := oidc.GetPassword(); got != oidc.DefaultPassword {
 		t.Errorf("GetPassword() = %q, want %q", got, oidc.DefaultPassword)
 	}
 
 	// Test environment variable override
-	os.Setenv("HOLOS_DEX_INITIAL_ADMIN_PASSWORD", "custom-password")
-	defer os.Unsetenv("HOLOS_DEX_INITIAL_ADMIN_PASSWORD")
+	t.Setenv("HOLOS_DEX_INITIAL_ADMIN_PASSWORD", "custom-password")
 	if got := oidc.GetPassword(); got != "custom-password" {
 		t.Errorf("GetPassword() = %q, want %q", got, "custom-password")
 	}
@@ -24,14 +22,13 @@ func TestGetPassword(t *testing.T) {
 
 func TestGetUsername(t *testing.T) {
 	// Test default username
-	os.Unsetenv("HOLOS_DEX_INITIAL_ADMIN_USERNAME")
+	t.Setenv("HOLOS_DEX_INITIAL_ADMIN_USERNAME", "")
 	if got := oidc.GetUsername(); got != oidc.DefaultUsername {
 		t.Errorf("GetUsername() = %q, want %q", got, oidc.DefaultUsername)
 	}
 
 	// Test environment variable override
-	os.Setenv("HOLOS_DEX_INITIAL_ADMIN_USERNAME", "custom-user")
-	defer os.Unsetenv("HOLOS_DEX_INITIAL_ADMIN_USERNAME")
+	t.Setenv("HOLOS_DEX_INITIAL_ADMIN_USERNAME", "custom-user")
 	if got := oidc.GetUsername(); got != "custom-user" {
 		t.Errorf("GetUsername() = %q, want %q", got, "custom-user")
 	}

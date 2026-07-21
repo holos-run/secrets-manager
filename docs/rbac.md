@@ -1,6 +1,6 @@
 # Role-Based Access Control (RBAC)
 
-holos-console uses a three-tier access control model combining **organization-level grants**, **project-level grants**, and **per-secret sharing grants**.
+Holos Secrets Manager uses a three-tier access control model combining **organization-level grants**, **project-level grants**, and **per-secret sharing grants**.
 
 ## Organizations
 
