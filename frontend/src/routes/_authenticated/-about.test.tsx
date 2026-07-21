@@ -21,6 +21,7 @@ import { AboutPage } from './about'
 describe('AboutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    delete (window as Window & { __APP_CONFIG__?: { app_name?: string } }).__APP_CONFIG__
   })
 
   it('renders Server Version card heading', () => {
@@ -81,13 +82,30 @@ describe('AboutPage', () => {
     expect(screen.getByText(/Apache/)).toBeInTheDocument()
   })
 
-  it('renders About Holos Console card', () => {
+  it('renders the default application name and Holos trademark copy', () => {
     ;(useVersion as Mock).mockReturnValue({
       data: { version: 'v1.0.0', gitCommit: '', gitTreeState: '', buildDate: '' },
       isLoading: false,
       error: null,
     })
     render(<AboutPage />)
-    expect(screen.getByText('About Holos Console')).toBeInTheDocument()
+    expect(screen.getByText('About Holos Secrets Manager')).toBeInTheDocument()
+    expect(screen.getByText(/Holos is a trademark/)).toBeInTheDocument()
+  })
+
+  it('renders the server-provided name while preserving Holos trademark copy', () => {
+    ;(window as Window & { __APP_CONFIG__?: { app_name?: string } }).__APP_CONFIG__ = {
+      app_name: 'Acme Secrets Manager',
+    }
+    ;(useVersion as Mock).mockReturnValue({
+      data: { version: 'v1.0.0', gitCommit: '', gitTreeState: '', buildDate: '' },
+      isLoading: false,
+      error: null,
+    })
+
+    render(<AboutPage />)
+
+    expect(screen.getByText('About Acme Secrets Manager')).toBeInTheDocument()
+    expect(screen.getByText(/Holos is a trademark/)).toBeInTheDocument()
   })
 })
