@@ -165,4 +165,7 @@ Test files in `src/components/` and `src/lib/` can use any name.
 | `src/queries/-projects.test.ts` | useListProjects and useCreateProject hooks |
 | `src/components/create-org-dialog.test.tsx` | Create organization dialog: validation, submission |
 | `src/components/create-project-dialog.test.tsx` | Create project dialog: validation, submission |
+| `src/components/create-secret-dialog.test.tsx` | Create secret dialog: validation, inherited grant editing, mutation feedback |
+| `src/components/inline-edit-field.test.tsx` | Shared inline editor: save, cancel, and keyboard behavior |
+| `src/components/resource-table.test.tsx` | Shared resource table: sorting semantics, filtering, pagination, empty and loading states |
 | `src/index.test.ts` | App entry point smoke test |

@@ -7,6 +7,7 @@ vi.mock('@/queries/organizations', () => ({
   useListOrganizations: vi.fn(),
   useCreateOrganization: vi.fn(),
 }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 vi.mock('@/components/ui/dialog', () => ({
   Dialog: ({ children, open }: { children: React.ReactNode; open?: boolean }) =>
@@ -51,6 +52,7 @@ vi.mock('@/components/ui/alert', () => ({
 
 import { useCreateOrganization } from '@/queries/organizations'
 import { CreateOrgDialog } from './create-org-dialog'
+import { toast } from 'sonner'
 
 describe('CreateOrgDialog', () => {
   const mockMutateAsync = vi.fn()
@@ -134,6 +136,7 @@ describe('CreateOrgDialog', () => {
     await waitFor(() => {
       expect(onOpenChange).toHaveBeenCalledWith(false)
     })
+    expect(toast.success).toHaveBeenCalledWith('Organization created')
   })
 
   it('renders error alert on server error', async () => {
@@ -147,6 +150,7 @@ describe('CreateOrgDialog', () => {
       expect(screen.getByRole('alert')).toBeDefined()
       expect(screen.getByText(/name already taken/i)).toBeDefined()
     })
+    expect(toast.error).toHaveBeenCalledWith('name already taken')
   })
 
   it('does not close dialog on error', async () => {

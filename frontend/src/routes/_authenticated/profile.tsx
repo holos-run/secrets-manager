@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Braces, List } from 'lucide-react'
 import { toast } from 'sonner'
 import { ViewModeToggle } from '@/components/view-mode-toggle'
@@ -53,8 +54,10 @@ export function ProfilePage() {
     setIsRefreshing(true)
     try {
       await refreshTokens()
+      toast.success('Tokens refreshed')
     } catch (err) {
       console.error('Manual refresh failed:', err)
+      toast.error(err instanceof Error ? err.message : String(err))
     } finally {
       setIsRefreshing(false)
     }
@@ -63,8 +66,10 @@ export function ProfilePage() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="pt-6">
-          <span className="text-sm">Loading...</span>
+        <CardContent className="flex flex-col gap-4 pt-6" aria-label="Loading profile">
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-3/4" />
         </CardContent>
       </Card>
     )

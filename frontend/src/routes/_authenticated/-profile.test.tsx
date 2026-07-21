@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import type { Mock } from 'vitest'
 import React from 'react'
@@ -13,10 +13,11 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 
 vi.mock('@/lib/auth', () => ({ useAuth: vi.fn() }))
 
-vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 import { useAuth } from '@/lib/auth'
 import { ProfilePage } from './profile'
+import { toast } from 'sonner'
 
 function makeUser(profileOverrides = {}) {
   return {
@@ -101,6 +102,17 @@ describe('ProfilePage token claims — Claims view (default)', () => {
     expect(screen.getByText('Expires (exp)')).toBeInTheDocument()
     expect(screen.getByText('Scopes')).toBeInTheDocument()
     expect(screen.getByText('Token Type')).toBeInTheDocument()
+  })
+
+  it('shows feedback after refreshing tokens', async () => {
+    const refreshTokens = vi.fn().mockResolvedValue(undefined)
+    setAuthState({ refreshTokens })
+    render(<ProfilePage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /refresh now/i }))
+
+    await waitFor(() => expect(refreshTokens).toHaveBeenCalled())
+    expect(toast.success).toHaveBeenCalledWith('Tokens refreshed')
   })
 })
 

@@ -54,6 +54,17 @@ toast.error('Something went wrong')
 
 Do not import from `@/components/ui/sonner` — that file exports the `Toaster` component only (used once in the root layout). The `toast` function always comes from `'sonner'` directly.
 
+Every mutation should provide both forms of feedback:
+
+- Show `toast.success(...)` after the mutation resolves.
+- Show `toast.error(...)` when it rejects. Keep an inline destructive `Alert` as well when the user needs the error beside an open editor or dialog.
+
+## Loading and Error States
+
+Use the shadcn `Skeleton` component for content-area loading states. Give the skeleton container an accessible loading label, and avoid bare loading text or custom CSS spinners.
+
+Use a destructive `Alert` and `AlertDescription` for query errors. Dense list pages should delegate loading, errors, filtering, pagination, and empty states to `ResourceTable` so those states stay consistent.
+
 ## Resource Display Name and Name Fields
 
 When a resource has both a human-readable **Display Name** and a machine-safe **Name** (slug):

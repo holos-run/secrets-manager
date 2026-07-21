@@ -24,9 +24,11 @@ vi.mock('@/queries/secrets', () => ({
 }))
 
 vi.mock('@/lib/auth', () => ({ useAuth: vi.fn() }))
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 import { useGetSecret, useGetSecretMetadata, useGetSecretRaw, useUpdateSecret, useUpdateSecretSharing, useDeleteSecret } from '@/queries/secrets'
 import { useAuth } from '@/lib/auth'
+import { toast } from 'sonner'
 import { SecretPage } from './$name'
 
 const mockMetadata = {
@@ -106,6 +108,7 @@ describe('SecretPage sharing panel', () => {
         }),
       )
     })
+    expect(toast.success).toHaveBeenCalledWith('Sharing saved')
   })
 
   it('renders no sharing grants when metadata has empty grants', () => {

@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useVersion } from '@/queries/version'
 import { getAppConfig } from '@/lib/app-config'
 
@@ -23,11 +25,16 @@ export function AboutPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-sm">Loading version info...</p>
+            <div className="flex flex-col gap-3" aria-label="Loading version information">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-5 w-56" />
+            </div>
           ) : error ? (
-            <p className="text-sm text-destructive">
-              Failed to load version info: {error.message}
-            </p>
+            <Alert variant="destructive">
+              <AlertDescription>Failed to load version info: {error.message}</AlertDescription>
+            </Alert>
           ) : (
             <div className="space-y-3">
               <div>

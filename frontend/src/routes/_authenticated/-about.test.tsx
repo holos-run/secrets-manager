@@ -48,7 +48,8 @@ describe('AboutPage', () => {
   it('renders loading state', () => {
     ;(useVersion as Mock).mockReturnValue({ data: undefined, isLoading: true, error: null })
     render(<AboutPage />)
-    expect(screen.getByText(/loading version/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/loading version/i)).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(4)
   })
 
   it('renders error state when version fetch fails', () => {
