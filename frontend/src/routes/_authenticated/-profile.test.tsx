@@ -67,8 +67,8 @@ describe('ProfilePage token claims — Claims view (default)', () => {
   it('shows Claims and Raw segmented control buttons', () => {
     setAuthState()
     render(<ProfilePage />)
-    expect(screen.getByRole('button', { name: /claims/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /raw/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /claims/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /raw/i })).toBeInTheDocument()
   })
 
   it('displays iss claim label and value', () => {
@@ -136,7 +136,7 @@ describe('ProfilePage token claims — Raw view', () => {
     setAuthState()
     render(<ProfilePage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /raw/i }))
+    fireEvent.click(screen.getByRole('tab', { name: /raw/i }))
 
     const pre = document.querySelector('pre')
     expect(pre).toBeInTheDocument()
@@ -150,7 +150,7 @@ describe('ProfilePage token claims — Raw view', () => {
     setAuthState()
     render(<ProfilePage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /raw/i }))
+    fireEvent.click(screen.getByRole('tab', { name: /raw/i }))
 
     expect(screen.getByRole('button', { name: /copy to clipboard/i })).toBeInTheDocument()
   })

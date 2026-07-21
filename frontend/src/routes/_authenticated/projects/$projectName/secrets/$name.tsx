@@ -17,6 +17,7 @@ import { useGetSecret, useGetSecretMetadata, useGetSecretRaw, useUpdateSecret, u
 import type { ShareGrant } from '@/gen/holos/console/v1/secrets_pb.js'
 import { isOwner as computeIsOwner } from '@/lib/isOwner'
 import { serializeSecretData } from '@/lib/serialize-secret-data'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/projects/$projectName/secrets/$name')({
   component: SecretPage,
@@ -169,10 +170,14 @@ export function SecretPage() {
   }
 
   return (
-    <Card>
-      <CardContent className="pt-6 space-y-4">
-        <p className="text-sm text-muted-foreground">{projectName} / Secrets</p>
-        <h2 className="text-xl font-semibold">{name}</h2>
+    <PageLayout>
+      <PageHeader
+        eyebrow={`${projectName} / Secrets`}
+        title={name}
+        description={effectiveDescription || 'Inspect secret data, metadata, and access grants.'}
+      />
+      <Card>
+      <CardContent className="flex flex-col gap-4 pt-6">
 
         {/* Metadata edits are staged locally; the page-level Save button persists both fields. */}
         <InlineEditField
@@ -244,6 +249,7 @@ export function SecretPage() {
         isPending={deleteMutation.isPending}
         onConfirm={() => void handleDelete()}
       />
-    </Card>
+      </Card>
+    </PageLayout>
   )
 }
