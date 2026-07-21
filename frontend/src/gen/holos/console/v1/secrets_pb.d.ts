@@ -522,7 +522,8 @@ export declare const GetSecretRawResponseSchema: GenMessage<GetSecretRawResponse
 export declare const SecretsService: GenService<{
   /**
    * ListSecrets returns all secrets in the current namespace with console label.
-   * Only returns secrets with the app.kubernetes.io/managed-by=holos.run label.
+   * Only returns secrets whose app.kubernetes.io/managed-by label matches the
+   * configured metadata domain (holos.run by default).
    * Each secret includes sharing grants for the UI.
    * Requires authentication via Authorization: Bearer <id_token> header.
    *

@@ -59,7 +59,8 @@ const (
 // SecretsServiceClient is a client for the holos.console.v1.SecretsService service.
 type SecretsServiceClient interface {
 	// ListSecrets returns all secrets in the current namespace with console label.
-	// Only returns secrets with the app.kubernetes.io/managed-by=holos.run label.
+	// Only returns secrets whose app.kubernetes.io/managed-by label matches the
+	// configured metadata domain (holos.run by default).
 	// Each secret includes sharing grants for the UI.
 	// Requires authentication via Authorization: Bearer <id_token> header.
 	ListSecrets(context.Context, *connect.Request[v1.ListSecretsRequest]) (*connect.Response[v1.ListSecretsResponse], error)
@@ -192,7 +193,8 @@ func (c *secretsServiceClient) GetSecretRaw(ctx context.Context, req *connect.Re
 // SecretsServiceHandler is an implementation of the holos.console.v1.SecretsService service.
 type SecretsServiceHandler interface {
 	// ListSecrets returns all secrets in the current namespace with console label.
-	// Only returns secrets with the app.kubernetes.io/managed-by=holos.run label.
+	// Only returns secrets whose app.kubernetes.io/managed-by label matches the
+	// configured metadata domain (holos.run by default).
 	// Each secret includes sharing grants for the UI.
 	// Requires authentication via Authorization: Bearer <id_token> header.
 	ListSecrets(context.Context, *connect.Request[v1.ListSecretsRequest]) (*connect.Response[v1.ListSecretsResponse], error)

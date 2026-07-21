@@ -6,6 +6,8 @@ package resolver
 import (
 	"fmt"
 	"strings"
+
+	k8svalidation "k8s.io/apimachinery/pkg/util/validation"
 )
 
 const (
@@ -80,6 +82,19 @@ func (r *Resolver) ManagedByLabel() string { return managedByLabel }
 
 // ManagedByValue identifies resources managed for this metadata domain.
 func (r *Resolver) ManagedByValue() string { return r.MetadataDomainValue() }
+
+// ValidateMetadataDomain verifies that the domain is valid both as the DNS
+// prefix of Kubernetes metadata keys and as the managed-by label value.
+func (r *Resolver) ValidateMetadataDomain() error {
+	domain := r.MetadataDomainValue()
+	var problems []string
+	problems = append(problems, k8svalidation.IsDNS1123Subdomain(domain)...)
+	problems = append(problems, k8svalidation.IsValidLabelValue(domain)...)
+	if len(problems) > 0 {
+		return fmt.Errorf("%q is not valid Kubernetes metadata: %s", domain, strings.Join(problems, "; "))
+	}
+	return nil
+}
 
 // OrgNamespace returns the Kubernetes namespace name for an organization.
 func (r *Resolver) OrgNamespace(org string) string {

@@ -181,6 +181,9 @@ func (s *Server) Serve(ctx context.Context) error {
 	if s.cfg.MetadataDomain == "" {
 		s.cfg.MetadataDomain = resolver.DefaultMetadataDomain
 	}
+	if err := (&resolver.Resolver{MetadataDomain: s.cfg.MetadataDomain}).ValidateMetadataDomain(); err != nil {
+		return fmt.Errorf("invalid metadata domain: %w", err)
+	}
 
 	// Load custom CA certificate pool for internal HTTP client (OIDC discovery, etc.)
 	caPool, err := loadCACertPool(s.cfg.CACertFile)

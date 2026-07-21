@@ -4,7 +4,7 @@ holos-console uses a three-tier access control model combining **organization-le
 
 ## Organizations
 
-An **organization** is a Kubernetes Namespace with the name `{namespace-prefix}{organization-prefix}{name}` (defaults: empty namespace prefix, `org-` organization prefix) and the label `holos.run/resource-type=organization`. Permission grants are stored as annotations on the Namespace resource.
+An **organization** is a Kubernetes Namespace with the name `{namespace-prefix}{organization-prefix}{name}` (defaults: `holos-` namespace prefix, `org-` organization prefix) and the label `holos.run/resource-type=organization`. Permission grants are stored as annotations on the Namespace resource.
 
 Organization grants authorize only organization-level operations (viewing the org, managing IAM bindings). They do **not** cascade to projects or secrets (see [ADR 007](adrs/007-org-grants-no-cascade.md)). Users see only organizations where they have at least viewer-level access.
 
@@ -20,7 +20,7 @@ The creator is automatically added as owner on the new organization.
 
 ## Projects
 
-A **project** is a Kubernetes Namespace with the name `{namespace-prefix}{project-prefix}{name}` (defaults: empty namespace prefix, `prj-` project prefix) and the label `holos.run/resource-type=project`. Projects are global resources — the `holos.run/organization` label is optional and represents an IAM association, not a containment relationship. The project name is stored in the `holos.run/project` label. Permission grants are stored as annotations on the Namespace resource.
+A **project** is a Kubernetes Namespace with the name `{namespace-prefix}{project-prefix}{name}` (defaults: `holos-` namespace prefix, `prj-` project prefix) and the label `holos.run/resource-type=project`. Projects are global resources — the `holos.run/organization` label is optional and represents an IAM association, not a containment relationship. The project name is stored in the `holos.run/project` label. Permission grants are stored as annotations on the Namespace resource.
 
 Project grants cascade to all secrets within the project. Users see only projects where they have at least viewer-level access (directly or via an associated organization).
 
@@ -30,10 +30,10 @@ User-facing names are translated to Kubernetes namespace names using a three-par
 
 | Resource | Pattern | CLI Flags | Default | Example (`--namespace-prefix=prod-`) |
 |---|---|---|---|---|
-| Organization | `{namespace-prefix}{org-prefix}{name}` | `--namespace-prefix`, `--organization-prefix` | `""`, `org-` | `acme` → `prod-org-acme` |
-| Project | `{namespace-prefix}{prj-prefix}{name}` | `--namespace-prefix`, `--project-prefix` | `""`, `prj-` | `api` → `prod-prj-api` |
+| Organization | `{namespace-prefix}{org-prefix}{name}` | `--namespace-prefix`, `--organization-prefix` | `holos-`, `org-` | `acme` → `prod-org-acme` |
+| Project | `{namespace-prefix}{prj-prefix}{name}` | `--namespace-prefix`, `--project-prefix` | `holos-`, `prj-` | `api` → `prod-prj-api` |
 
-When `--namespace-prefix` is empty (the default), the naming scheme is unchanged from the two-part `{type-prefix}{name}` form (e.g., `org-acme`, `prj-api`).
+With the default `--namespace-prefix=holos-`, namespace names include all three parts (for example, `holos-org-acme` and `holos-prj-api`). Set the flag to an empty string to use the two-part `{type-prefix}{name}` form.
 
 Namespaces are distinguished by labels:
 - `holos.run/resource-type`: `organization` or `project`
