@@ -6,7 +6,7 @@ import { SecretsService } from '@/gen/holos/console/v1/secrets_pb.js'
 
 function queryScope<I extends DescMessage, O extends DescMessage>(
   schema: DescMethodUnary<I, O>,
-  input: MessageInitShape<I>,
+  input: MessageInitShape<I> | undefined,
 ) {
   return {
     schema,
@@ -25,12 +25,7 @@ export const keys = {
     detail: (name: string) => queryScope(OrganizationService.method.getOrganization, { name }),
   },
   projects: {
-    lists: () => ({
-      key: createConnectQueryKey({
-        schema: ProjectService.method.listProjects,
-        cardinality: undefined,
-      }),
-    }),
+    lists: () => queryScope(ProjectService.method.listProjects, undefined),
     list: (organization: string) => queryScope(ProjectService.method.listProjects, { organization }),
     detail: (name: string) => queryScope(ProjectService.method.getProject, { name }),
   },
