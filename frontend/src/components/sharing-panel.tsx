@@ -376,7 +376,7 @@ function GrantEditor({
         <p className="mb-2 text-xs text-muted-foreground">Users</p>
         <div className="flex flex-col gap-3">
           {userGrants.map((grant, index) => (
-            <div key={`${grant.principal}-${index}`} className="flex items-center gap-2">
+            <div key={index} className="flex items-center gap-2">
               <Input
                 aria-label={`user ${index + 1}`}
                 placeholder="Email address"
@@ -417,7 +417,7 @@ function GrantEditor({
         <p className="mb-2 text-xs text-muted-foreground">Roles</p>
         <div className="flex flex-col gap-3">
           {roleGrants.map((grant, index) => (
-            <div key={`${grant.principal}-${index}`} className="flex items-center gap-2">
+            <div key={index} className="flex items-center gap-2">
               <Input
                 aria-label={`role ${index + 1}`}
                 placeholder="Role name"

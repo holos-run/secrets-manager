@@ -81,4 +81,25 @@ describe('InlineEditField', () => {
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith('New description'))
   })
+
+  it('keeps the editor open with its draft when saving fails', async () => {
+    const onSave = vi.fn().mockRejectedValue(new Error('save failed'))
+    render(
+      <InlineEditField
+        label="Display Name"
+        value="Old name"
+        emptyText="No display name"
+        onSave={onSave}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'edit display name' }))
+    const input = screen.getByRole('textbox', { name: 'display name' })
+    fireEvent.change(input, { target: { value: 'Unsaved name' } })
+    fireEvent.click(screen.getByRole('button', { name: 'save display name' }))
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith('Unsaved name'))
+    expect(screen.getByRole('textbox', { name: 'display name' })).toHaveValue('Unsaved name')
+    expect(screen.getByRole('button', { name: 'save display name' })).toBeInTheDocument()
+  })
 })

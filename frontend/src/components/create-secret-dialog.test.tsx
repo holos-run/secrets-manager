@@ -46,6 +46,19 @@ describe('CreateSecretDialog', () => {
     expect(screen.getByDisplayValue('engineering')).toBeInTheDocument()
   })
 
+  it('keeps a new grant input focused while typing its principal', async () => {
+    const { userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderDialog()
+
+    await user.click(screen.getByRole('button', { name: 'Add User' }))
+    const principalInput = screen.getByRole('textbox', { name: 'user 3' })
+    await user.type(principalInput, 'new@example.com')
+
+    expect(principalInput).toHaveFocus()
+    expect(principalInput).toHaveValue('new@example.com')
+  })
+
   it('submits edited grants and shows success feedback', async () => {
     renderDialog()
     fireEvent.change(screen.getByPlaceholderText('my-secret'), { target: { value: 'new-secret' } })
