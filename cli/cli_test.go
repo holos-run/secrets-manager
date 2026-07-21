@@ -141,6 +141,17 @@ func TestDefaultNamespacePrefix(t *testing.T) {
 	}
 }
 
+func TestDefaultAppName(t *testing.T) {
+	cmd := Command()
+	f := cmd.Flags().Lookup("app-name")
+	if f == nil {
+		t.Fatal("--app-name flag not found")
+	}
+	if got := f.DefValue; got != "Holos Secrets Manager" {
+		t.Errorf("default app-name = %q, want %q", got, "Holos Secrets Manager")
+	}
+}
+
 func TestDefaultOrgCreatorRoles(t *testing.T) {
 	cmd := Command()
 	f := cmd.Flags().Lookup("org-creator-roles")

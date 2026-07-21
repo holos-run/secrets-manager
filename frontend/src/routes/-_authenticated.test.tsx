@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import type { Mock } from 'vitest'
 import React from 'react'
@@ -57,6 +57,7 @@ function setAuthState({
 describe('AuthenticatedLayout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    delete (window as Window & { __APP_CONFIG__?: { app_name?: string } }).__APP_CONFIG__
   })
 
   it('calls login() immediately without refreshTokens() when not authenticated', async () => {
@@ -89,5 +90,16 @@ describe('AuthenticatedLayout', () => {
     await new Promise((r) => setTimeout(r, 10))
     expect(mockRefreshTokens).not.toHaveBeenCalled()
     expect(mockLogin).not.toHaveBeenCalled()
+  })
+
+  it('renders the server-provided application name in the mobile header', () => {
+    ;(window as Window & { __APP_CONFIG__?: { app_name?: string } }).__APP_CONFIG__ = {
+      app_name: 'Acme Secrets Manager',
+    }
+    setAuthState({ isAuthenticated: true, isLoading: false })
+
+    render(<AuthenticatedLayout />)
+
+    expect(screen.getByText('Acme Secrets Manager')).toBeInTheDocument()
   })
 })

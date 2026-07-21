@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { OrgProvider } from '@/lib/org-context'
 import { ProjectProvider } from '@/lib/project-context'
 import { Separator } from '@/components/ui/separator'
+import { getAppConfig } from '@/lib/app-config'
 
 export const Route = createFileRoute('/_authenticated')({
   component: AuthenticatedLayout,
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/_authenticated')({
 
 export function AuthenticatedLayout() {
   const { isAuthenticated, isLoading, login } = useAuth()
+  const { appName } = getAppConfig()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -37,7 +39,7 @@ export function AuthenticatedLayout() {
           <header className="flex h-12 items-center gap-2 border-b px-4 md:hidden">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-4" />
-            <span className="font-semibold">Holos Console</span>
+            <span className="font-semibold">{appName}</span>
           </header>
           <main className="flex-1 p-4 md:p-6">
             <Outlet />
