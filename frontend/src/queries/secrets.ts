@@ -36,19 +36,11 @@ type UpdateSecretSharingParams = {
   roleGrants: GrantInput[]
 }
 
-function createSecretRequest(params: CreateSecretParams, project: string) {
-  return { ...params, project }
-}
-
 function deleteSecretRequest(name: string, project: string) {
   return { name, project }
 }
 
-function updateSecretRequest(params: UpdateSecretParams, project: string) {
-  return { ...params, project }
-}
-
-function updateSecretSharingRequest(params: UpdateSecretSharingParams, project: string) {
+function addProject<TParams>(params: TParams, project: string) {
   return { ...params, project }
 }
 
@@ -138,7 +130,7 @@ export function useCreateSecret(project: string) {
     project,
     rpcMutate,
     rpcMutateAsync,
-    createSecretRequest,
+    addProject<CreateSecretParams>,
   )
 
   return {
@@ -182,7 +174,7 @@ export function useUpdateSecret(project: string) {
     project,
     rpcMutate,
     rpcMutateAsync,
-    updateSecretRequest,
+    addProject<UpdateSecretParams>,
   )
 
   return {
@@ -204,7 +196,7 @@ export function useUpdateSecretSharing(project: string) {
     project,
     rpcMutate,
     rpcMutateAsync,
-    updateSecretSharingRequest,
+    addProject<UpdateSecretSharingParams>,
   )
 
   return {
