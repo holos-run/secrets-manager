@@ -4,6 +4,13 @@ import { OrganizationService } from '@/gen/holos/console/v1/organizations_pb.js'
 import { ProjectService } from '@/gen/holos/console/v1/projects_pb.js'
 import { SecretsService } from '@/gen/holos/console/v1/secrets_pb.js'
 
+function createPartialQueryKey<I extends DescMessage, O extends DescMessage>(
+  schema: DescMethodUnary<I, O>,
+  input: MessageInitShape<I> | undefined,
+) {
+  return createConnectQueryKey({ schema, input, cardinality: undefined })
+}
+
 function queryScope<I extends DescMessage, O extends DescMessage>(
   schema: DescMethodUnary<I, O>,
   input: MessageInitShape<I> | undefined,
@@ -11,7 +18,7 @@ function queryScope<I extends DescMessage, O extends DescMessage>(
   return {
     schema,
     input,
-    key: createConnectQueryKey({ schema, input, cardinality: undefined }),
+    key: createPartialQueryKey(schema, input),
   }
 }
 

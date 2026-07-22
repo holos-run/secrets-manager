@@ -55,6 +55,9 @@ describe('project queries', () => {
       { name: 'my-project' },
       expect.objectContaining({ enabled: true, select: expect.any(Function) }),
     )
+
+    const select = (useQuery as Mock).mock.calls[1][2].select
+    expect(select({ project: { name: 'my-project' } })).toEqual({ name: 'my-project' })
   })
 
   it('gates reads on authentication and required identifiers', () => {
