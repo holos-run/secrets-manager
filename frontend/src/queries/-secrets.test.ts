@@ -182,6 +182,37 @@ describe('secret mutations', () => {
     expect(mutateAsync).toHaveBeenCalledWith(rpcVariables, undefined)
   })
 
+  it.each([
+    { name: 'create', useHook: useCreateSecret },
+    { name: 'update', useHook: useUpdateSecret },
+    { name: 'sharing update', useHook: useUpdateSecretSharing },
+    { name: 'delete', useHook: useDeleteSecret },
+  ])('keeps project-injecting callbacks stable for $name', ({ useHook }) => {
+    const mutate = vi.fn()
+    const mutateAsync = vi.fn().mockResolvedValue({})
+    ;(useMutation as Mock).mockReturnValue({ mutate, mutateAsync })
+
+    const { result, rerender } = renderHook(
+      ({ project }) => useHook(project),
+      {
+        initialProps: { project: 'my-project' },
+        wrapper: makeWrapper(queryClient),
+      },
+    )
+    const firstMutate = result.current.mutate
+    const firstMutateAsync = result.current.mutateAsync
+
+    rerender({ project: 'my-project' })
+
+    expect(result.current.mutate).toBe(firstMutate)
+    expect(result.current.mutateAsync).toBe(firstMutateAsync)
+
+    rerender({ project: 'other-project' })
+
+    expect(result.current.mutate).not.toBe(firstMutate)
+    expect(result.current.mutateAsync).not.toBe(firstMutateAsync)
+  })
+
   it('does not refetch deleted detail queries before route navigation', async () => {
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     renderHook(() => useDeleteSecret('my-project'), { wrapper: makeWrapper(queryClient) })
