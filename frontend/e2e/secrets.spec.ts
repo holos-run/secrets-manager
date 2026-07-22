@@ -83,9 +83,13 @@ test.describe('Secrets Page', () => {
     await expect(resource).toBeVisible()
     await expect(resource).toContainText('••••••••')
     await expect(resource).not.toContainText('TEST_KEY=test_value')
-    await page.getByRole('button', { name: 'Show values' }).click()
+    const showValuesButton = page.getByRole('button', { name: 'Show values' })
+    await expect(showValuesButton).toHaveAttribute('aria-label', 'Show values')
+    await showValuesButton.click()
     await expect(resource).toContainText('TEST_KEY=test_value')
-    await expect(page.getByRole('button', { name: 'Hide values' })).toBeVisible()
+    const hideValuesButton = page.getByRole('button', { name: 'Hide values' })
+    await expect(hideValuesButton).toBeVisible()
+    await expect(hideValuesButton).toHaveAttribute('aria-label', 'Hide values')
 
     // Clean up: delete the secret
     await page.getByRole('button', { name: /^delete$/i }).click()

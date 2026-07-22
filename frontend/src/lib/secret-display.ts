@@ -8,12 +8,7 @@ export function useTimedSecretReveals() {
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
-  const hide = useCallback((key: string) => {
-    const timer = timers.current.get(key)
-    if (timer !== undefined) {
-      clearTimeout(timer)
-      timers.current.delete(key)
-    }
+  const removeRevealedKey = useCallback((key: string) => {
     setRevealedKeys((previous) => {
       if (!previous.has(key)) return previous
       const next = new Set(previous)
@@ -21,6 +16,15 @@ export function useTimedSecretReveals() {
       return next
     })
   }, [])
+
+  const hide = useCallback((key: string) => {
+    const timer = timers.current.get(key)
+    if (timer !== undefined) {
+      clearTimeout(timer)
+      timers.current.delete(key)
+    }
+    removeRevealedKey(key)
+  }, [removeRevealedKey])
 
   const reveal = useCallback((key: string) => {
     const previousTimer = timers.current.get(key)
@@ -31,14 +35,10 @@ export function useTimedSecretReveals() {
       key,
       setTimeout(() => {
         timers.current.delete(key)
-        setRevealedKeys((previous) => {
-          const next = new Set(previous)
-          next.delete(key)
-          return next
-        })
+        removeRevealedKey(key)
       }, SECRET_REVEAL_TIMEOUT_MS),
     )
-  }, [])
+  }, [removeRevealedKey])
 
   useEffect(() => {
     const activeTimers = timers.current
