@@ -55,7 +55,7 @@ function WorkspacePickerSection({ label, children }: { label: string; children: 
   )
 }
 
-function renderWorkspacePickerTrigger({
+function WorkspacePickerTrigger({
   testId,
   icon: Icon,
   label,
@@ -288,11 +288,11 @@ function OrgPicker() {
     <WorkspacePickerSection label="Organization">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          {renderWorkspacePickerTrigger({
-            testId: 'org-picker',
-            icon: Building2,
-            label: displayLabel,
-          })}
+          <WorkspacePickerTrigger
+            testId="org-picker"
+            icon={Building2}
+            label={displayLabel}
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem onClick={() => setSelectedOrg(null)}>
@@ -368,11 +368,11 @@ function ProjectPicker() {
     <WorkspacePickerSection label="Project">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          {renderWorkspacePickerTrigger({
-            testId: 'project-picker',
-            icon: FolderKanban,
-            label: displayLabel,
-          })}
+          <WorkspacePickerTrigger
+            testId="project-picker"
+            icon={FolderKanban}
+            label={displayLabel}
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem

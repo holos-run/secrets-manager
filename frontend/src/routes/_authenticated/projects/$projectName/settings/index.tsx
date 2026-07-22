@@ -115,12 +115,12 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
       <PageLayout>
         <PageHeader eyebrow={`${projectName} / Settings`} title="Project settings" />
         <Card>
-        <CardContent className="flex flex-col gap-4 pt-6">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </CardContent>
+          <CardContent className="flex flex-col gap-4 pt-6">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </CardContent>
         </Card>
       </PageLayout>
     )
@@ -131,11 +131,11 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
       <PageLayout>
         <PageHeader eyebrow={`${projectName} / Settings`} title="Project settings" />
         <Card>
-        <CardContent className="pt-6">
-          <Alert variant="destructive">
-            <AlertDescription>{error.message}</AlertDescription>
-          </Alert>
-        </CardContent>
+          <CardContent className="pt-6">
+            <Alert variant="destructive">
+              <AlertDescription>{error.message}</AlertDescription>
+            </Alert>
+          </CardContent>
         </Card>
       </PageLayout>
     )
@@ -156,93 +156,93 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
         description="Manage project metadata, inheritance, access grants, and lifecycle controls."
       />
       <Card>
-      <CardContent className="flex flex-col gap-6 pt-6">
+        <CardContent className="flex flex-col gap-6 pt-6">
 
-        {/* General section */}
-        <div className="flex flex-col gap-4">
-          <h3 className="text-sm font-medium">General</h3>
-          <Separator />
-
-          <InlineEditField
-            label="Display Name"
-            value={displayName}
-            emptyText="No display name"
-            onSave={handleSaveDisplayName}
-            isSaving={isSavingDisplayName}
-          />
-
-          {/* Name (slug) - read-only */}
-          <div className="flex items-center gap-2">
-            <span className="w-32 text-sm text-muted-foreground shrink-0">Name (slug)</span>
-            <span className="flex-1 text-sm font-mono">{projectName}</span>
-          </div>
-
-          <InlineEditField
-            label="Description"
-            value={description}
-            emptyText="No description"
-            multiline
-            onSave={handleSaveDescription}
-            isSaving={isSavingDescription}
-          />
-        </div>
-
-        {/* Sharing section */}
-        <SharingPanel
-          userGrants={userGrants}
-          roleGrants={roleGrants}
-          isOwner={isOwner}
-          onSave={handleSaveSharing}
-          isSaving={updateProjectSharing.isPending}
-        />
-
-        {/* Default Secret Sharing section */}
-        <SharingPanel
-          title="Default Secret Sharing"
-          description="These grants are automatically applied to every new secret created in this project."
-          userGrants={defaultUserGrants}
-          roleGrants={defaultRoleGrants}
-          isOwner={isOwner}
-          onSave={handleSaveDefaultSharing}
-          isSaving={updateProjectDefaultSharing.isPending}
-        />
-
-        {/* Danger Zone */}
-        {isOwner && (
+          {/* General section */}
           <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
+            <h3 className="text-sm font-medium">General</h3>
             <Separator />
-            <Button
-              variant="destructive"
-              onClick={() => setDeleteOpen(true)}
-            >
-              Delete Project
-            </Button>
-          </div>
-        )}
-      </CardContent>
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Project</DialogTitle>
-            <DialogDescription>
-              This will permanently delete {projectName}. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          {deleteProject.error && (
-            <Alert variant="destructive">
-              <AlertDescription>{deleteProject.error.message}</AlertDescription>
-            </Alert>
+            <InlineEditField
+              label="Display Name"
+              value={displayName}
+              emptyText="No display name"
+              onSave={handleSaveDisplayName}
+              isSaving={isSavingDisplayName}
+            />
+
+            {/* Name (slug) - read-only */}
+            <div className="flex items-center gap-2">
+              <span className="w-32 text-sm text-muted-foreground shrink-0">Name (slug)</span>
+              <span className="flex-1 text-sm font-mono">{projectName}</span>
+            </div>
+
+            <InlineEditField
+              label="Description"
+              value={description}
+              emptyText="No description"
+              multiline
+              onSave={handleSaveDescription}
+              isSaving={isSavingDescription}
+            />
+          </div>
+
+          {/* Sharing section */}
+          <SharingPanel
+            userGrants={userGrants}
+            roleGrants={roleGrants}
+            isOwner={isOwner}
+            onSave={handleSaveSharing}
+            isSaving={updateProjectSharing.isPending}
+          />
+
+          {/* Default Secret Sharing section */}
+          <SharingPanel
+            title="Default Secret Sharing"
+            description="These grants are automatically applied to every new secret created in this project."
+            userGrants={defaultUserGrants}
+            roleGrants={defaultRoleGrants}
+            isOwner={isOwner}
+            onSave={handleSaveDefaultSharing}
+            isSaving={updateProjectDefaultSharing.isPending}
+          />
+
+          {/* Danger Zone */}
+          {isOwner && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
+              <Separator />
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                Delete Project
+              </Button>
+            </div>
           )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleteProject.isPending}>
-              {deleteProject.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Project</DialogTitle>
+              <DialogDescription>
+                This will permanently delete {projectName}. This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            {deleteProject.error && (
+              <Alert variant="destructive">
+                <AlertDescription>{deleteProject.error.message}</AlertDescription>
+              </Alert>
+            )}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={deleteProject.isPending}>
+                {deleteProject.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Card>
     </PageLayout>
   )
