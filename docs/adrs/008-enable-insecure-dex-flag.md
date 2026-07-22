@@ -37,6 +37,17 @@ OIDC provider.
 The `make run` target and Playwright E2E server command pass
 `--enable-insecure-dex` so development workflows are unaffected.
 
+The embedded provider is prohibited and unsupported in production. Production
+deployments must configure an external OIDC provider and must not pass
+`--enable-insecure-dex`.
+
+Code-review findings that exclusively affect the embedded Dex handler, its
+auto-login or password-login flow, or development/E2E use of the flag are an
+accepted risk and are non-blocking (style severity). This exception is narrow:
+findings that affect external OIDC providers, production console behavior, JWT
+validation, token or session handling, authorization, or any other production
+security path remain blocking at their ordinary severity.
+
 ## Consequences
 
 - **Production safety**: The binary is safe by default. Operators must
@@ -49,7 +60,13 @@ The `make run` target and Playwright E2E server command pass
   the binary directly must add `--enable-insecure-dex`.
 
 - **Flag naming**: The `insecure` prefix in the flag name serves as a
-  deliberate warning that this mode is not suitable for production.
+  deliberate warning that this mode is prohibited and unsupported in
+  production.
+
+- **Review boundary**: Development-only embedded Dex behavior can retain known
+  limitations without blocking production work. The accepted-risk
+  classification cannot be used to waive a finding on an external identity
+  provider or another production security path.
 
 ## References
 
