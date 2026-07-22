@@ -11,6 +11,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"embed"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -388,7 +389,7 @@ func (s *Server) Serve(ctx context.Context) error {
 
 	// Wrap with h2c for HTTP/2 cleartext support (needed for gRPC over HTTP/2)
 	h2cHandler := h2c.NewHandler(mux, &http2.Server{})
-	loggedHandler := logRequests(h2cHandler, s.cfg.LogHealthChecks)
+	loggedHandler := logRequests(securityHeaders(h2cHandler), s.cfg.LogHealthChecks)
 
 	server := &http.Server{
 		Addr:    s.cfg.ListenAddr,
@@ -545,6 +546,47 @@ type uiHandler struct {
 	appConfig  AppConfig
 }
 
+type scriptNonceContextKey struct{}
+
+func securityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Referrer-Policy", "no-referrer")
+		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+		if r.TLS != nil {
+			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
+
+		nonceBytes := make([]byte, 16)
+		if _, err := rand.Read(nonceBytes); err != nil {
+			http.Error(w, "failed to generate response nonce", http.StatusInternalServerError)
+			return
+		}
+		nonce := base64.RawStdEncoding.EncodeToString(nonceBytes)
+		w.Header().Set("Content-Security-Policy", strings.Join([]string{
+			"default-src 'self'",
+			"base-uri 'self'",
+			"object-src 'none'",
+			"frame-ancestors 'none'",
+			"script-src 'self' 'nonce-" + nonce + "'",
+			"connect-src 'self'",
+			"font-src 'self'",
+			"img-src 'self' data:",
+			"style-src 'self' 'unsafe-inline'",
+			"form-action 'self'",
+		}, "; "))
+
+		ctx := context.WithValue(r.Context(), scriptNonceContextKey{}, nonce)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func scriptNonceFromContext(ctx context.Context) string {
+	nonce, _ := ctx.Value(scriptNonceContextKey{}).(string)
+	return nonce
+}
+
 func newUIHandler(uiContent fs.FS, oidcConfig *OIDCConfig, appConfig AppConfig) *uiHandler {
 	if appConfig.AppName == "" {
 		appConfig.AppName = DefaultAppName
@@ -579,9 +621,14 @@ func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
 
 	data = replaceHTMLTitle(data, h.appConfig.AppName)
 
+	nonceAttribute := ""
+	if nonce := scriptNonceFromContext(r.Context()); nonce != "" {
+		nonceAttribute = ` nonce="` + html.EscapeString(nonce) + `"`
+	}
+
 	appConfigJSON, err := json.Marshal(h.appConfig)
 	if err == nil {
-		script := fmt.Sprintf(`<script>window.__APP_CONFIG__=%s;</script>`, appConfigJSON)
+		script := fmt.Sprintf(`<script%s>window.__APP_CONFIG__=%s;</script>`, nonceAttribute, appConfigJSON)
 		data = bytes.Replace(data, []byte("</head>"), []byte(script+"</head>"), 1)
 	}
 
@@ -589,7 +636,7 @@ func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	if h.oidcConfig != nil {
 		configJSON, err := json.Marshal(h.oidcConfig)
 		if err == nil {
-			script := fmt.Sprintf(`<script>window.__OIDC_CONFIG__=%s;</script>`, configJSON)
+			script := fmt.Sprintf(`<script%s>window.__OIDC_CONFIG__=%s;</script>`, nonceAttribute, configJSON)
 			// Insert before </head>
 			data = bytes.Replace(data, []byte("</head>"), []byte(script+"</head>"), 1)
 		}
