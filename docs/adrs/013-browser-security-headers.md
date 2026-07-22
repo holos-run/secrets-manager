@@ -25,8 +25,7 @@ Every response is wrapped by security-header middleware. It sets:
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: no-referrer`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
-- `Strict-Transport-Security: max-age=31536000; includeSubDomains` when the console receives the
-  request over TLS
+- `Strict-Transport-Security: max-age=31536000` when the console receives the request over TLS
 - an enforcing Content Security Policy with same-origin defaults, `frame-ancestors 'none'`,
   `object-src 'none'`, and `base-uri 'self'`
 
@@ -34,7 +33,10 @@ For an HTML application-shell response, the middleware supplies a lazy nonce gen
 handler generates a fresh 128-bit random nonce. The UI handler adds that nonce to both runtime
 configuration scripts, and `script-src` allows same-origin scripts plus only the matching nonce. It
 does not allow `'unsafe-inline'` scripts. Non-HTML responses retain the same policy without an
-unused nonce and do not consume randomness.
+unused nonce and do not consume randomness. Application-shell responses also set
+`Cache-Control: no-store`, preventing shared or browser caches from replaying nonce-bearing HTML.
+The UI handler fails closed if it is used without the security middleware that provides this
+request context.
 
 The policy allows `'unsafe-inline'` only in `style-src`. This deliberate allowance supports the
 existing dynamic React style attributes and shadcn CSS custom properties without weakening script
@@ -42,10 +44,13 @@ execution. Images may use same-origin or `data:` URLs, while fonts and form acti
 same-origin. Connections are same-origin by default. When the configured OIDC issuer has a
 different origin from the console's public origin, only that parsed issuer origin is added to
 `connect-src` so discovery, PKCE token exchange, user-info requests, and refreshes can complete.
-The optional embedded Dex login is same-origin and needs no additional allowance.
+Default HTTP and HTTPS ports are normalized when comparing origins. The optional embedded Dex login
+is same-origin and needs no additional allowance.
 
 HSTS is omitted on plain HTTP because browsers ignore it on insecure responses. Deployments that
-terminate TLS before forwarding plain HTTP to the console must set HSTS at that TLS terminator.
+terminate TLS before forwarding plain HTTP to the console must set HSTS at that TLS terminator. The
+console does not assert `includeSubDomains` because it cannot determine whether sibling or child
+hosts are HTTPS-only.
 
 ## Consequences
 
