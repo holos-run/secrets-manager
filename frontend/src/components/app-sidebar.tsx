@@ -44,6 +44,39 @@ const bottomItems = [
   { label: 'Profile', to: '/profile' as const, icon: User },
 ]
 
+function WorkspacePickerSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="px-2 text-[0.6875rem] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      {children}
+    </div>
+  )
+}
+
+function renderWorkspacePickerTrigger({
+  testId,
+  icon: Icon,
+  label,
+}: {
+  testId: string
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+}) {
+  return (
+    <SidebarMenuButton
+      data-testid={testId}
+      size="lg"
+      className="border border-sidebar-border bg-sidebar-accent/35"
+    >
+      <Icon />
+      <span className="truncate">{label}</span>
+      <ChevronsUpDown className="ml-auto opacity-50" />
+    </SidebarMenuButton>
+  )
+}
+
 export function AppSidebar() {
   const { appName } = getAppConfig()
   const { data: versionData } = useVersion()
@@ -228,10 +261,7 @@ function OrgPicker() {
 
   if (organizations.length === 0) {
     return (
-      <div className="flex flex-col gap-1.5">
-        <p className="px-2 text-[0.6875rem] font-medium uppercase tracking-wider text-muted-foreground">
-          Organization
-        </p>
+      <WorkspacePickerSection label="Organization">
         <Button
           variant="outline"
           size="sm"
@@ -245,7 +275,7 @@ function OrgPicker() {
           onOpenChange={setCreateOpen}
           onCreated={(name) => setSelectedOrg(name)}
         />
-      </div>
+      </WorkspacePickerSection>
     )
   }
 
@@ -255,17 +285,14 @@ function OrgPicker() {
     : 'All Organizations'
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <p className="px-2 text-[0.6875rem] font-medium uppercase tracking-wider text-muted-foreground">
-        Organization
-      </p>
+    <WorkspacePickerSection label="Organization">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton data-testid="org-picker" size="lg" className="border border-sidebar-border bg-sidebar-accent/35">
-            <Building2 />
-            <span className="truncate">{displayLabel}</span>
-            <ChevronsUpDown className="ml-auto opacity-50" />
-          </SidebarMenuButton>
+          {renderWorkspacePickerTrigger({
+            testId: 'org-picker',
+            icon: Building2,
+            label: displayLabel,
+          })}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem onClick={() => setSelectedOrg(null)}>
@@ -296,7 +323,7 @@ function OrgPicker() {
         onOpenChange={setCreateOpen}
         onCreated={(name) => setSelectedOrg(name)}
       />
-    </div>
+    </WorkspacePickerSection>
   )
 }
 
@@ -312,10 +339,7 @@ function ProjectPicker() {
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col gap-1.5">
-        <p className="px-2 text-[0.6875rem] font-medium uppercase tracking-wider text-muted-foreground">
-          Project
-        </p>
+      <WorkspacePickerSection label="Project">
         <p className="px-2 text-xs text-muted-foreground">No projects yet.</p>
         <Button
           variant="outline"
@@ -331,7 +355,7 @@ function ProjectPicker() {
           defaultOrganization={selectedOrg}
           onCreated={(name) => setSelectedProject(name)}
         />
-      </div>
+      </WorkspacePickerSection>
     )
   }
 
@@ -341,17 +365,14 @@ function ProjectPicker() {
     : 'All Projects'
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <p className="px-2 text-[0.6875rem] font-medium uppercase tracking-wider text-muted-foreground">
-        Project
-      </p>
+    <WorkspacePickerSection label="Project">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton data-testid="project-picker" size="lg" className="border border-sidebar-border bg-sidebar-accent/35">
-            <FolderKanban />
-            <span className="truncate">{displayLabel}</span>
-            <ChevronsUpDown className="ml-auto opacity-50" />
-          </SidebarMenuButton>
+          {renderWorkspacePickerTrigger({
+            testId: 'project-picker',
+            icon: FolderKanban,
+            label: displayLabel,
+          })}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem
@@ -391,6 +412,6 @@ function ProjectPicker() {
         defaultOrganization={selectedOrg}
         onCreated={(name) => setSelectedProject(name)}
       />
-    </div>
+    </WorkspacePickerSection>
   )
 }

@@ -154,20 +154,20 @@ export function SecretsListPage() {
           actions={<Button size="sm" onClick={openCreateDialog} disabled={showLoading}>Create Secret</Button>}
         />
         <Card>
-        <CardContent className="pt-6">
-          <ResourceTable
-            columns={columns}
-            data={secrets}
-            initialSorting={[{ id: 'name', desc: false }]}
-            isLoading={showLoading}
-            error={error}
-            loadingLabel="Loading secrets"
-            searchPlaceholder="Search secrets…"
-            emptyMessage="No secrets yet."
-            emptyAction={<Button size="sm" onClick={openCreateDialog}>Create Secret</Button>}
-          />
-        </CardContent>
-      </Card>
+          <CardContent className="pt-6">
+            <ResourceTable
+              columns={columns}
+              data={secrets}
+              initialSorting={[{ id: 'name', desc: false }]}
+              isLoading={showLoading}
+              error={error}
+              loadingLabel="Loading secrets"
+              searchPlaceholder="Search secrets…"
+              emptyMessage="No secrets yet."
+              emptyAction={<Button size="sm" onClick={openCreateDialog}>Create Secret</Button>}
+            />
+          </CardContent>
+        </Card>
       </PageLayout>
 
       <CreateSecretDialog

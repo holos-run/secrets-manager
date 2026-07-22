@@ -16,16 +16,15 @@ interface ViewModeToggleProps {
 /** Shared tab treatment for alternate representations of the same resource. */
 export function ViewModeToggle({ value, onValueChange, options }: ViewModeToggleProps) {
   return (
-    <Tabs value={value}>
+    <Tabs
+      value={value}
+      onValueChange={(nextValue) => {
+        if (nextValue !== value) onValueChange(nextValue)
+      }}
+    >
       <TabsList>
         {options.map((option) => (
-          <TabsTrigger
-            key={option.value}
-            value={option.value}
-            onClick={() => {
-              if (option.value !== value) onValueChange(option.value)
-            }}
-          >
+          <TabsTrigger key={option.value} value={option.value}>
             {option.icon}
             {option.label}
           </TabsTrigger>
