@@ -31,6 +31,8 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
       return <a href={href} {...props}>{children}</a>
     },
     useRouter: () => ({ state: { location: { pathname: mockPathname } }, navigate: mockNavigate }),
+    useRouterState: ({ select }: { select: (state: { location: { pathname: string } }) => unknown }) =>
+      select({ location: { pathname: mockPathname } }),
     useNavigate: () => vi.fn(),
   }
 })

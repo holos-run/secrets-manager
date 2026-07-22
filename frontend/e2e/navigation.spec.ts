@@ -77,10 +77,12 @@ test.describe('Sidebar project navigation active state', () => {
     const projectName = `e2e-active-nav-prj-${Date.now()}`
 
     await apiCreateOrg(page, orgName)
-    await selectOrg(page, orgName)
-    await apiCreateProject(page, projectName, orgName)
+    let projectCreated = false
 
     try {
+      await selectOrg(page, orgName)
+      await apiCreateProject(page, projectName, orgName)
+      projectCreated = true
       await selectOrg(page, orgName)
       const projectPicker = page.getByRole('button', {
         name: /select project|no projects|all projects/i,
@@ -93,11 +95,12 @@ test.describe('Sidebar project navigation active state', () => {
       await expect(secretsLink).toHaveAttribute('aria-current', 'page')
       await expect(settingsLink).not.toHaveAttribute('aria-current', 'page')
 
-      await page.goto(`/projects/${projectName}/settings`)
+      await settingsLink.click()
+      await expect(page).toHaveURL(new RegExp(`/projects/${projectName}/settings`))
       await expect(settingsLink).toHaveAttribute('aria-current', 'page')
       await expect(secretsLink).not.toHaveAttribute('aria-current', 'page')
     } finally {
-      await apiDeleteProject(page, projectName)
+      if (projectCreated) await apiDeleteProject(page, projectName)
       await apiDeleteOrg(page, orgName)
     }
   })

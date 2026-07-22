@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type React from 'react'
-import { Link, useRouter } from '@tanstack/react-router'
+import { Link, useRouter, useRouterState } from '@tanstack/react-router'
 import {
   Building2,
   Info,
@@ -65,23 +65,25 @@ function WorkspacePickerTrigger({
   label: string
 }) {
   return (
-    <SidebarMenuButton
-      data-testid={testId}
-      size="lg"
-      className="border border-sidebar-border bg-sidebar-accent/35"
-    >
-      <Icon />
-      <span className="truncate">{label}</span>
-      <ChevronsUpDown className="ml-auto opacity-50" />
-    </SidebarMenuButton>
+    <DropdownMenuTrigger asChild>
+      <SidebarMenuButton
+        data-testid={testId}
+        size="lg"
+        className="border border-sidebar-border bg-sidebar-accent/35"
+      >
+        <Icon />
+        <span className="truncate">{label}</span>
+        <ChevronsUpDown className="ml-auto opacity-50" />
+      </SidebarMenuButton>
+    </DropdownMenuTrigger>
   )
 }
 
 export function AppSidebar() {
   const { appName } = getAppConfig()
   const { data: versionData } = useVersion()
-  const router = useRouter()
-  const pathname = router.state.location.pathname.replace(/\/$/, '') || '/'
+  const routePathname = useRouterState({ select: (state) => state.location.pathname })
+  const pathname = routePathname.replace(/\/$/, '') || '/'
   const { projects, selectedProject } = useProject()
   const { selectedOrg, organizations } = useOrg()
 
@@ -287,13 +289,11 @@ function OrgPicker() {
   return (
     <WorkspacePickerSection label="Organization">
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <WorkspacePickerTrigger
-            testId="org-picker"
-            icon={Building2}
-            label={displayLabel}
-          />
-        </DropdownMenuTrigger>
+        <WorkspacePickerTrigger
+          testId="org-picker"
+          icon={Building2}
+          label={displayLabel}
+        />
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem onClick={() => setSelectedOrg(null)}>
             All Organizations
@@ -367,13 +367,11 @@ function ProjectPicker() {
   return (
     <WorkspacePickerSection label="Project">
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <WorkspacePickerTrigger
-            testId="project-picker"
-            icon={FolderKanban}
-            label={displayLabel}
-          />
-        </DropdownMenuTrigger>
+        <WorkspacePickerTrigger
+          testId="project-picker"
+          icon={FolderKanban}
+          label={displayLabel}
+        />
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem
             onClick={() => {
