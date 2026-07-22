@@ -32,6 +32,42 @@ async function createSecret(page: import('@playwright/test').Page, projectName: 
   await expect(page.getByRole('link', { name: secretName })).toBeVisible({ timeout: 10000 })
 }
 
+test.describe('Sidebar scrolling', () => {
+  test('clips horizontal overflow while preserving vertical scrolling', async ({ page }) => {
+    await loginViaProfilePage(page)
+
+    const sidebarTrigger = page.getByRole('button', { name: /toggle sidebar/i })
+    if (await sidebarTrigger.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sidebarTrigger.click()
+    }
+
+    const content = page.locator('[data-sidebar="content"]')
+    await expect(content).toBeVisible()
+
+    await expect
+      .poll(() => content.evaluate((element) => getComputedStyle(element).overflowX))
+      .toBe('hidden')
+    await expect
+      .poll(() => content.evaluate((element) => getComputedStyle(element).overflowY))
+      .toBe('auto')
+    expect(
+      await content.evaluate((element) => element.scrollWidth <= element.clientWidth),
+    ).toBe(true)
+
+    const canScrollVertically = await content.evaluate((element) => {
+      const spacer = document.createElement('div')
+      spacer.style.height = '200vh'
+      spacer.style.flexShrink = '0'
+      element.append(spacer)
+      element.scrollTop = 100
+      const result = element.scrollHeight > element.clientHeight && element.scrollTop > 0
+      spacer.remove()
+      return result
+    })
+    expect(canScrollVertically).toBe(true)
+  })
+})
+
 test.describe('Sidebar Project Picker navigation', () => {
   test('selecting a project from the picker navigates directly to secrets page', async ({
     page,
