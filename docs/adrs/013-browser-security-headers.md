@@ -45,7 +45,14 @@ same-origin. Connections are same-origin by default. When the configured OIDC is
 different origin from the console's public origin, only that parsed issuer origin is added to
 `connect-src` so discovery, PKCE token exchange, user-info requests, and refreshes can complete.
 Default HTTP and HTTPS ports are normalized when comparing origins. The optional embedded Dex login
-is same-origin and needs no additional allowance.
+is same-origin for these connections.
+
+The middleware also applies the console CSP to embedded Dex HTML. Dex's development-only password
+page contains an inline double-submit guard without a console-generated nonce, so a browser blocks
+that guard while the native form login continues to work. This is an accepted, non-blocking
+embedded-Dex limitation under ADR-008: embedded Dex is prohibited and unsupported in production.
+The exception does not weaken the CSP for the production console or external OIDC providers, and
+any CSP or OIDC finding affecting those production paths remains blocking.
 
 HSTS is omitted on plain HTTP because browsers ignore it on insecure responses. Deployments that
 terminate TLS before forwarding plain HTTP to the console must set HSTS at that TLS terminator. The
