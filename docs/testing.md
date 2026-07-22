@@ -167,6 +167,7 @@ The paths in this section are relative to `frontend/`.
 | `src/queries/-keys.test.ts` | Transport-compatible query keys and scope separation |
 | `src/queries/-organizations.test.ts` | Organization query hooks, mutations, and invalidation |
 | `src/queries/-projects.test.ts` | Project query hooks, mutations, and invalidation |
+| `src/queries/-secrets.integration.test.tsx` | Secret mutation callback stability with real connect-query and TanStack Query providers |
 | `src/queries/-secrets.test.ts` | Secret query hooks, mutation inputs, and targeted invalidation |
 | `src/routes/-_authenticated.test.tsx` | Auth layout silent renewal and OIDC redirect |
 | `src/routes/_authenticated/-about.test.tsx` | About page server version and license cards |
