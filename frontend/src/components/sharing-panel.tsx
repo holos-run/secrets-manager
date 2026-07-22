@@ -34,6 +34,9 @@ export interface SharingPanelProps {
 }
 
 function createGrantRowId(kind: 'user' | 'role'): string {
+  // The console is served over HTTPS (or localhost during development), so the
+  // browser secure-context requirement for randomUUID is part of its runtime
+  // contract. These identifiers are local React keys, not persisted IDs.
   return `${kind}-${crypto.randomUUID()}`
 }
 
@@ -47,6 +50,10 @@ function createGrantRow(kind: 'user' | 'role', grant: Grant): GrantRow {
 }
 
 function reconcileGrantRows(kind: 'user' | 'role', rows: GrantRow[], grants: Grant[]): GrantRow[] {
+  // publish() round-trips the same grant object references through onChange,
+  // allowing local row IDs to survive controlled parent rerenders. A parent
+  // supplied replacement object is intentionally treated as a new row so its
+  // input remounts with the replacement value.
   if (rows.length === grants.length && rows.every((row, index) => row.grant === grants[index])) {
     return rows
   }
