@@ -174,81 +174,90 @@ export function SecretPage() {
       <PageHeader
         eyebrow={`${projectName} / Secrets`}
         title={name}
-        description={effectiveDescription || 'Inspect secret data, metadata, and access grants.'}
+        description="Inspect secret data, metadata, and access grants."
       />
       <Card>
-      <CardContent className="flex flex-col gap-4 pt-6">
+        <CardContent className="flex flex-col gap-4 pt-6">
+          {/* Metadata edits are staged locally; the page-level Save button persists both fields. */}
+          <InlineEditField
+            label="Description"
+            value={effectiveDescription}
+            emptyText="No description"
+            placeholder="What is this secret used for?"
+            onSave={(nextDescription) => setDescription(nextDescription)}
+          />
 
-        {/* Metadata edits are staged locally; the page-level Save button persists both fields. */}
-        <InlineEditField
-          label="Description"
-          value={effectiveDescription}
-          emptyText="No description"
-          placeholder="What is this secret used for?"
-          onSave={(nextDescription) => setDescription(nextDescription)}
+          <InlineEditField
+            label="URL"
+            value={effectiveUrl}
+            emptyText="No URL"
+            placeholder="https://example.com/service"
+            onSave={(nextUrl) => setUrl(nextUrl)}
+            renderValue={(currentUrl) => isSafeUrl(currentUrl) ? (
+              <a
+                href={currentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline"
+              >
+                <ExternalLink />
+                {currentUrl}
+              </a>
+            ) : currentUrl}
+          />
+
+          <SecretPageActions
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            editMode={editMode}
+            onEdit={() => setEditMode(true)}
+            onSave={() => void handleSave()}
+            onCancel={handleCancel}
+            onDelete={() => setDeleteOpen(true)}
+            isDirty={isDirty}
+            isSaving={updateMutation.isPending}
+          />
+
+          {viewMode === 'editor' && (
+            <>
+              {saveError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{saveError}</AlertDescription>
+                </Alert>
+              )}
+              <SecretDataGrid
+                data={effectiveData}
+                onChange={(newData) => setSecretData(newData)}
+                readOnly={!editMode}
+              />
+            </>
+          )}
+
+          {viewMode === 'raw' && rawJson && (
+            <RawView
+              raw={rawJson}
+              includeAllFields={includeAllFields}
+              onToggleIncludeAllFields={() => setIncludeAllFields((current) => !current)}
+            />
+          )}
+
+          <SharingPanel
+            userGrants={effectiveUserGrants}
+            roleGrants={effectiveRoleGrants}
+            isOwner={isOwner}
+            onSave={handleSaveSharing}
+            isSaving={updateSharingMutation.isPending}
+          />
+        </CardContent>
+
+        <DeleteSecretDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          name={name}
+          error={deleteMutation.error}
+          isPending={deleteMutation.isPending}
+          onConfirm={() => void handleDelete()}
         />
-
-        <InlineEditField
-          label="URL"
-          value={effectiveUrl}
-          emptyText="No URL"
-          placeholder="https://example.com/service"
-          onSave={(nextUrl) => setUrl(nextUrl)}
-          renderValue={(currentUrl) => isSafeUrl(currentUrl) ? (
-            <a
-              href={currentUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-primary hover:underline"
-            >
-              <ExternalLink />
-              {currentUrl}
-            </a>
-          ) : currentUrl}
-        />
-
-        <SecretPageActions
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          editMode={editMode}
-          onEdit={() => setEditMode(true)}
-          onSave={() => void handleSave()}
-          onCancel={handleCancel}
-          onDelete={() => setDeleteOpen(true)}
-          isDirty={isDirty}
-          isSaving={updateMutation.isPending}
-        />
-
-        {viewMode === 'editor' && (
-          <>
-            {saveError && (
-              <Alert variant="destructive"><AlertDescription>{saveError}</AlertDescription></Alert>
-            )}
-            <SecretDataGrid data={effectiveData} onChange={(newData) => setSecretData(newData)} readOnly={!editMode} />
-          </>
-        )}
-
-        {viewMode === 'raw' && rawJson && (
-          <RawView raw={rawJson} includeAllFields={includeAllFields} onToggleIncludeAllFields={() => setIncludeAllFields((p) => !p)} />
-        )}
-
-        <SharingPanel
-          userGrants={effectiveUserGrants}
-          roleGrants={effectiveRoleGrants}
-          isOwner={isOwner}
-          onSave={handleSaveSharing}
-          isSaving={updateSharingMutation.isPending}
-        />
-      </CardContent>
-
-      <DeleteSecretDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        name={name}
-        error={deleteMutation.error}
-        isPending={deleteMutation.isPending}
-        onConfirm={() => void handleDelete()}
-      />
       </Card>
     </PageLayout>
   )

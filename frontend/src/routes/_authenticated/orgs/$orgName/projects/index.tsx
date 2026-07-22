@@ -102,25 +102,25 @@ export function ProjectsIndexPage() {
             </Button>
           )}
         />
-      <Card>
-        <CardContent className="pt-6">
-          <ResourceTable
-            columns={columns}
-            data={projects}
-            isLoading={isLoading}
-            error={error}
-            loadingLabel="Loading projects"
-            searchPlaceholder="Search projects…"
-            emptyMessage="No projects yet. Create one."
-            emptyAction={
-              <Button size="sm" onClick={() => setCreateOpen(true)}>
-                Create Project
-              </Button>
-            }
-            onRowClick={handleRowClick}
-          />
-        </CardContent>
-      </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <ResourceTable
+              columns={columns}
+              data={projects}
+              isLoading={isLoading}
+              error={error}
+              loadingLabel="Loading projects"
+              searchPlaceholder="Search projects…"
+              emptyMessage="No projects yet. Create one."
+              emptyAction={
+                <Button size="sm" onClick={() => setCreateOpen(true)}>
+                  Create Project
+                </Button>
+              }
+              onRowClick={handleRowClick}
+            />
+          </CardContent>
+        </Card>
       </PageLayout>
 
       <CreateProjectDialog
