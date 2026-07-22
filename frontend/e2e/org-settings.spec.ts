@@ -58,4 +58,26 @@ test.describe('Org Settings page', () => {
       await apiDeleteOrg(page, orgName)
     }
   })
+
+  test('display name and description editors have independent save controls', async ({ page }) => {
+    await loginViaProfilePage(page)
+
+    const orgName = `e2e-org-settings-editors-${Date.now()}`
+    await apiCreateOrg(page, orgName)
+
+    try {
+      await page.goto(`/orgs/${orgName}/settings`)
+      await expect(page.getByRole('heading', { name: 'Organization settings' })).toBeVisible({ timeout: 10000 })
+
+      await page.getByRole('button', { name: /edit display name/i }).click()
+      await page.getByRole('button', { name: /edit description/i }).click()
+
+      await expect(page.getByRole('button', { name: /save display name/i })).toBeVisible()
+      await expect(page.getByRole('button', { name: /save display name/i })).toBeEnabled()
+      await expect(page.getByRole('button', { name: /save description/i })).toBeVisible()
+      await expect(page.getByRole('button', { name: /save description/i })).toBeEnabled()
+    } finally {
+      await apiDeleteOrg(page, orgName)
+    }
+  })
 })

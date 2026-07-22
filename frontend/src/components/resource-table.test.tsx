@@ -83,6 +83,32 @@ describe('ResourceTable', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
+  it('supports a caller-defined number of loading rows', () => {
+    render(
+      <ResourceTable
+        columns={columns}
+        data={[]}
+        isLoading
+        loadingRows={5}
+        emptyMessage="No items"
+      />,
+    )
+
+    expect(document.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(5)
+  })
+
+  it('does not render unused icon-position attributes', () => {
+    render(
+      <ResourceTable
+        columns={columns}
+        data={data}
+        emptyMessage="No items"
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /name/i }).querySelector('svg')).not.toHaveAttribute('data-icon')
+  })
+
   it('renders errors in the shared alert surface', () => {
     render(
       <ResourceTable
