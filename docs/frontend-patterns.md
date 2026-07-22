@@ -19,6 +19,38 @@ actions belong in the page header; the table card should focus on filtering and
 resource rows. Prefer `flex` or `grid` with `gap-*` over `space-x-*` and
 `space-y-*` so the rhythm remains predictable when children are conditional.
 
+## Resource Tables
+
+Use `ResourceTable` and `ResourceTableSortHeader` from
+`frontend/src/components/resource-table.tsx` for operator-facing resource
+lists. Define typed `ResourceColumnDef<T>` columns in the route and let the
+shared component own TanStack Table setup, rendering, filtering, sorting,
+pagination, loading skeletons, errors, and empty states. Do not repeat
+`useReactTable`, `flexRender`, or shadcn table boilerplate in route files.
+
+Pass `searchPlaceholder` only when text filtering is useful, use
+`initialSorting` for the default operator view, and provide `emptyAction` for a
+creation affordance when the current user can create resources. Keep action
+buttons inside their own column and stop event propagation when the table row
+also has `onRowClick` navigation.
+
+## Inline Editing
+
+Use `InlineEditField` from `frontend/src/components/inline-edit-field.tsx` for
+short metadata fields that switch between display and edit states. It provides
+the standard Pencil/Check/X controls and keyboard behavior:
+
+- `Escape` cancels and restores the current value.
+- `Enter` saves a single-line field.
+- `Ctrl+Enter` or `Command+Enter` saves a multiline field.
+- A rejected save keeps the editor open; the caller owns inline and toast error
+  feedback.
+
+Supply a stable `label` whenever the field has one so the generated edit, save,
+and cancel controls receive useful accessible names. Use `renderValue` for safe
+linked or formatted display values, while keeping the editable value as plain
+text.
+
 ## Typography and Color
 
 Typography is token-driven in `frontend/src/app.css`. The UI stack prefers
@@ -31,6 +63,20 @@ Use semantic color utilities (`bg-background`, `text-muted-foreground`,
 `border-border`, `text-primary`, and component variants). Do not use raw
 Tailwind palette utilities such as `bg-yellow-500`. The console remains
 dark-only per ADR-011.
+
+## Secret Values
+
+Use `SECRET_MASK` and `useTimedSecretReveals` from
+`frontend/src/lib/secret-display.ts` rather than duplicating masking strings or
+timer state. `SECRET_MASK` is the canonical masked display, and each reveal is
+automatically hidden after `SECRET_REVEAL_TIMEOUT_MS` (30 seconds). The hook
+also clears pending timers when its consumer unmounts.
+
+Use `SecretDataGrid` for both read-only and editable key/value data. Its
+`readOnly` mode owns masking, per-key reveal/hide, copy actions, and sorted
+display; edit mode owns duplicate-key validation, byte encoding, row changes,
+and per-value trailing-newline controls. Do not reintroduce separate secret
+viewer/editor components.
 
 ## Copy to Clipboard
 
