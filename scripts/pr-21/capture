@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# PR #21 — capture masked and explicitly revealed Raw View secret values.
+#
+# Called by scripts/browser-capture-pr 21. Expects:
+#   HOLOS_BACKEND_URL, PR_SCREENSHOT_DIR
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+kubectl apply \
+  -f "$REPO_ROOT/frontend/e2e/fixtures/project-namespace.yaml" \
+  -f "$REPO_ROOT/frontend/e2e/fixtures/secret-no-time-bounds.yaml"
+
+AB="agent-browser --session-name holos-dev"
+SECRET_URL="$HOLOS_BACKEND_URL/projects/time-test/secrets/no-time-bounds"
+
+echo "==> Capturing masked Resource output"
+$AB open "$SECRET_URL"
+$AB wait --load networkidle
+$AB wait --text "Secret with grants" 2>/dev/null || $AB wait 3000
+$AB find role tab click --name "Resource"
+$AB wait --text "Show values"
+$AB screenshot --full "$PR_SCREENSHOT_DIR/01-resource-values-masked.png"
+
+echo "==> Capturing explicitly revealed Resource output"
+$AB find role button click --name "Show values"
+$AB wait --text "Hide values"
+$AB wait --text "test-key"
+$AB screenshot --full "$PR_SCREENSHOT_DIR/02-resource-values-revealed.png"
+
+echo "Screenshots saved to $PR_SCREENSHOT_DIR"
