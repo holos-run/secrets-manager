@@ -4,7 +4,7 @@ import { OrganizationService } from '@/gen/holos/console/v1/organizations_pb.js'
 import { ProjectService } from '@/gen/holos/console/v1/projects_pb.js'
 import { SecretsService } from '@/gen/holos/console/v1/secrets_pb.js'
 
-function queryScope<I extends DescMessage, O extends DescMessage>(
+function partialQueryScope<I extends DescMessage, O extends DescMessage>(
   schema: DescMethodUnary<I, O>,
   input: MessageInitShape<I> | undefined,
 ) {
@@ -21,17 +21,17 @@ function queryScope<I extends DescMessage, O extends DescMessage>(
 // finite query keys without duplicating their internal shape.
 export const keys = {
   organizations: {
-    list: () => queryScope(OrganizationService.method.listOrganizations, {}),
-    detail: (name: string) => queryScope(OrganizationService.method.getOrganization, { name }),
+    list: () => partialQueryScope(OrganizationService.method.listOrganizations, {}),
+    detail: (name: string) => partialQueryScope(OrganizationService.method.getOrganization, { name }),
   },
   projects: {
-    lists: () => queryScope(ProjectService.method.listProjects, undefined),
-    list: (organization: string) => queryScope(ProjectService.method.listProjects, { organization }),
-    detail: (name: string) => queryScope(ProjectService.method.getProject, { name }),
+    lists: () => partialQueryScope(ProjectService.method.listProjects, undefined),
+    list: (organization: string) => partialQueryScope(ProjectService.method.listProjects, { organization }),
+    detail: (name: string) => partialQueryScope(ProjectService.method.getProject, { name }),
   },
   secrets: {
-    list: (project: string) => queryScope(SecretsService.method.listSecrets, { project }),
-    detail: (project: string, name: string) => queryScope(SecretsService.method.getSecret, { name, project }),
-    raw: (project: string, name: string) => queryScope(SecretsService.method.getSecretRaw, { name, project }),
+    list: (project: string) => partialQueryScope(SecretsService.method.listSecrets, { project }),
+    detail: (project: string, name: string) => partialQueryScope(SecretsService.method.getSecret, { name, project }),
+    raw: (project: string, name: string) => partialQueryScope(SecretsService.method.getSecretRaw, { name, project }),
   },
 } as const
