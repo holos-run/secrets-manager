@@ -60,9 +60,14 @@ Duplicate keys are detected and flagged in the editor before submission.
 
 ### Viewing and Editing a Secret
 
-Navigate to `/secrets/<name>` to view a secret's data. The detail page shows editable **Description** and **URL** fields at the top, followed by two view modes toggled via a button group:
+Navigate to `/projects/<projectName>/secrets/<name>` to view a secret's data.
+The detail page shows inline-editable **Description** and **URL** fields at the
+top, followed by two view modes presented as tabs:
 
-- **Editor** (default) — Individual key-value entries in the file-based editor. Each entry shows the key (filename) and value (file content) as separate fields. Modify fields directly; the **Save** button enables when changes are detected (dirty checking). Saving replaces the entire secret data map.
+- **Data** (default) — Read-only key-value rows mask values by default. Each
+  value can be revealed for 30 seconds or copied without revealing it. Enter
+  edit mode to modify keys and values directly; the **Save** button enables
+  when changes are detected. Saving replaces the entire secret data map.
 - **Raw** — The full Kubernetes Secret manifest as pretty-printed JSON. The raw view converts `data` (base64) to `stringData` (plaintext) for readability. An "Include all fields" toggle controls whether server-managed metadata fields (uid, resourceVersion, creationTimestamp, etc.) are shown. A "Copy to Clipboard" button copies the rendered JSON. The raw view is read-only; Save is disabled while it is active.
 
 ### Deleting a Secret

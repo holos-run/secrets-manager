@@ -9,7 +9,10 @@ make certs   # Generate TLS certificates (one-time)
 make run     # Build and start the server
 ```
 
-Open <https://localhost:8443/ui> in your browser. `make run` enables the embedded Dex OIDC provider (`--enable-insecure-dex`) which auto-logs in for local development.
+Open <https://localhost:8443/> in your browser. `make run` enables the embedded
+Dex OIDC provider (`--enable-insecure-dex`) for local development and tests.
+Embedded Dex is unsupported in production; production deployments must
+configure an external OIDC provider.
 
 ## Reference Documentation
 

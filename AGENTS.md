@@ -245,7 +245,9 @@ See `docs/testing.md` for the complete decision rule, the ConnectRPC mock patter
 
 **E2E tests**: Playwright in `frontend/e2e/`. `make test-e2e` orchestrates the full stack (builds Go binary, starts Go backend on :8443 and Vite on :5173). For tight iteration, start servers once and run targeted tests — see `docs/e2e-testing.md` for the full workflow including K8s-backed tests.
 
-See `docs/frontend-patterns.md` for common UI patterns (copy-to-clipboard, toast notifications).
+See `docs/frontend-patterns.md` for shared page layout, resource tables, inline
+editing, secret display safety, copy-to-clipboard, toast, typography, and
+spacing patterns.
 
 ### Version Management
 
