@@ -30,15 +30,19 @@ Every response is wrapped by security-header middleware. It sets:
 - an enforcing Content Security Policy with same-origin defaults, `frame-ancestors 'none'`,
   `object-src 'none'`, and `base-uri 'self'`
 
-The middleware generates a fresh 128-bit random nonce for each response. The UI handler adds that
-nonce to both runtime configuration scripts, and `script-src` allows same-origin scripts plus only
-the matching nonce. It does not allow `'unsafe-inline'` scripts.
+For an HTML application-shell response, the middleware supplies a lazy nonce generator and the UI
+handler generates a fresh 128-bit random nonce. The UI handler adds that nonce to both runtime
+configuration scripts, and `script-src` allows same-origin scripts plus only the matching nonce. It
+does not allow `'unsafe-inline'` scripts. Non-HTML responses retain the same policy without an
+unused nonce and do not consume randomness.
 
 The policy allows `'unsafe-inline'` only in `style-src`. This deliberate allowance supports the
 existing dynamic React style attributes and shadcn CSS custom properties without weakening script
-execution. Images may use same-origin or `data:` URLs, while fonts, connections, and form actions
-remain same-origin. The optional embedded Dex login therefore uses the same policy and does not
-require a separate origin allowance.
+execution. Images may use same-origin or `data:` URLs, while fonts and form actions remain
+same-origin. Connections are same-origin by default. When the configured OIDC issuer has a
+different origin from the console's public origin, only that parsed issuer origin is added to
+`connect-src` so discovery, PKCE token exchange, user-info requests, and refreshes can complete.
+The optional embedded Dex login is same-origin and needs no additional allowance.
 
 HSTS is omitted on plain HTTP because browsers ignore it on insecure responses. Deployments that
 terminate TLS before forwarding plain HTTP to the console must set HSTS at that TLS terminator.

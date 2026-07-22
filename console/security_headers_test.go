@@ -20,7 +20,7 @@ func TestSecurityHeaders(t *testing.T) {
 		ClientID:              "secrets-manager",
 		RedirectURI:           "https://console.example.com/pkce/verify",
 		PostLogoutRedirectURI: "https://console.example.com/",
-	}, AppConfig{AppName: "Secrets"}))
+	}, AppConfig{AppName: "Secrets"}), "https://console.example.com", "https://console.example.com/dex")
 
 	for _, test := range []struct {
 		name        string
@@ -74,16 +74,18 @@ func TestSecurityHeaders(t *testing.T) {
 				t.Errorf("Content-Security-Policy permits unsafe inline scripts: %q", csp)
 			}
 
-			matches := regexp.MustCompile(`script-src 'self' 'nonce-([^']+)'`).FindStringSubmatch(csp)
-			if len(matches) != 2 || matches[1] == "" {
-				t.Fatalf("Content-Security-Policy has no script nonce: %q", csp)
-			}
-			nonce := matches[1]
 			if test.path == "/" {
+				matches := regexp.MustCompile(`script-src 'self' 'nonce-([^']+)'`).FindStringSubmatch(csp)
+				if len(matches) != 2 || matches[1] == "" {
+					t.Fatalf("Content-Security-Policy has no script nonce: %q", csp)
+				}
+				nonce := matches[1]
 				body := rec.Body.String()
 				if count := strings.Count(body, `nonce="`+nonce+`"`); count != 2 {
 					t.Errorf("HTML has %d config script nonce attributes, want 2: %s", count, body)
 				}
+			} else if strings.Contains(csp, "'nonce-") {
+				t.Errorf("asset CSP contains an unused script nonce: %q", csp)
 			}
 		})
 	}
@@ -92,7 +94,7 @@ func TestSecurityHeaders(t *testing.T) {
 func TestSecurityHeadersOmitsHSTSForPlainHTTP(t *testing.T) {
 	handler := securityHeaders(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
-	}))
+	}), "http://console.example.com", "")
 	req := httptest.NewRequest(http.MethodGet, "http://console.example.com/healthz", nil)
 	rec := httptest.NewRecorder()
 
@@ -104,9 +106,10 @@ func TestSecurityHeadersOmitsHSTSForPlainHTTP(t *testing.T) {
 }
 
 func TestSecurityHeadersUsesUniqueNonces(t *testing.T) {
-	handler := securityHeaders(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusNoContent)
-	}))
+	uiContent := fstest.MapFS{
+		"index.html": {Data: []byte("<html><head><title>Secrets</title></head><body></body></html>")},
+	}
+	handler := securityHeaders(newUIHandler(uiContent, nil, AppConfig{}), "https://console.example.com", "")
 
 	nonces := make(map[string]struct{})
 	for range 2 {
@@ -122,5 +125,70 @@ func TestSecurityHeadersUsesUniqueNonces(t *testing.T) {
 	}
 	if len(nonces) != 2 {
 		t.Fatal("security header middleware reused a script nonce across requests")
+	}
+}
+
+func TestSecurityHeadersAllowsExternalOIDCIssuerConnections(t *testing.T) {
+	uiContent := fstest.MapFS{
+		"index.html": {Data: []byte("<html><head><title>Secrets</title></head><body></body></html>")},
+	}
+	handler := securityHeaders(
+		newUIHandler(uiContent, nil, AppConfig{}),
+		"https://console.example.com",
+		"https://identity.example.net/realms/holos",
+	)
+	req := httptest.NewRequest(http.MethodGet, "https://console.example.com/", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	csp := rec.Header().Get("Content-Security-Policy")
+	if !strings.Contains(csp, "connect-src 'self' https://identity.example.net") {
+		t.Errorf("Content-Security-Policy does not allow the external OIDC origin: %q", csp)
+	}
+	if strings.Contains(csp, "/realms/holos") {
+		t.Errorf("Content-Security-Policy must allow only the OIDC origin, not its path: %q", csp)
+	}
+}
+
+func TestExternalOrigin(t *testing.T) {
+	for _, test := range []struct {
+		name          string
+		consoleOrigin string
+		issuer        string
+		want          string
+	}{
+		{
+			name:          "external issuer",
+			consoleOrigin: "https://console.example.com",
+			issuer:        "https://identity.example.net/realms/holos",
+			want:          "https://identity.example.net",
+		},
+		{
+			name:          "same origin",
+			consoleOrigin: "https://console.example.com",
+			issuer:        "https://console.example.com/dex",
+		},
+		{
+			name:          "origin comparison is case insensitive",
+			consoleOrigin: "https://console.example.com",
+			issuer:        "HTTPS://CONSOLE.EXAMPLE.COM/dex",
+		},
+		{
+			name:          "credential-bearing issuer is rejected",
+			consoleOrigin: "https://console.example.com",
+			issuer:        "https://user:password@identity.example.net/realms/holos",
+		},
+		{
+			name:          "non-http issuer is rejected",
+			consoleOrigin: "https://console.example.com",
+			issuer:        "javascript:alert(1)",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := externalOrigin(test.consoleOrigin, test.issuer); got != test.want {
+				t.Errorf("externalOrigin(%q, %q) = %q, want %q", test.consoleOrigin, test.issuer, got, test.want)
+			}
+		})
 	}
 }

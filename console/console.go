@@ -22,9 +22,11 @@ import (
 	"mime"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -389,7 +391,7 @@ func (s *Server) Serve(ctx context.Context) error {
 
 	// Wrap with h2c for HTTP/2 cleartext support (needed for gRPC over HTTP/2)
 	h2cHandler := h2c.NewHandler(mux, &http2.Server{})
-	loggedHandler := logRequests(securityHeaders(h2cHandler), s.cfg.LogHealthChecks)
+	loggedHandler := logRequests(securityHeaders(h2cHandler, s.cfg.Origin, s.cfg.Issuer), s.cfg.LogHealthChecks)
 
 	server := &http.Server{
 		Addr:    s.cfg.ListenAddr,
@@ -546,9 +548,15 @@ type uiHandler struct {
 	appConfig  AppConfig
 }
 
-type scriptNonceContextKey struct{}
+type requestSecurityContextKey struct{}
 
-func securityHeaders(next http.Handler) http.Handler {
+type requestSecurityContext struct {
+	issuerOrigin string
+	nonce        func() (string, error)
+}
+
+func securityHeaders(next http.Handler, consoleOrigin, issuer string) http.Handler {
+	issuerOrigin := externalOrigin(consoleOrigin, issuer)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
@@ -558,33 +566,77 @@ func securityHeaders(next http.Handler) http.Handler {
 			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		}
 
-		nonceBytes := make([]byte, 16)
-		if _, err := rand.Read(nonceBytes); err != nil {
-			http.Error(w, "failed to generate response nonce", http.StatusInternalServerError)
-			return
-		}
-		nonce := base64.RawStdEncoding.EncodeToString(nonceBytes)
-		w.Header().Set("Content-Security-Policy", strings.Join([]string{
-			"default-src 'self'",
-			"base-uri 'self'",
-			"object-src 'none'",
-			"frame-ancestors 'none'",
-			"script-src 'self' 'nonce-" + nonce + "'",
-			"connect-src 'self'",
-			"font-src 'self'",
-			"img-src 'self' data:",
-			"style-src 'self' 'unsafe-inline'",
-			"form-action 'self'",
-		}, "; "))
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy("", issuerOrigin))
 
-		ctx := context.WithValue(r.Context(), scriptNonceContextKey{}, nonce)
+		securityContext := &requestSecurityContext{issuerOrigin: issuerOrigin}
+		securityContext.nonce = sync.OnceValues(func() (string, error) {
+			nonceBytes := make([]byte, 16)
+			if _, err := rand.Read(nonceBytes); err != nil {
+				return "", err
+			}
+			return base64.RawStdEncoding.EncodeToString(nonceBytes), nil
+		})
+		ctx := context.WithValue(r.Context(), requestSecurityContextKey{}, securityContext)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func scriptNonceFromContext(ctx context.Context) string {
-	nonce, _ := ctx.Value(scriptNonceContextKey{}).(string)
-	return nonce
+func contentSecurityPolicy(nonce, issuerOrigin string) string {
+	scriptSource := "script-src 'self'"
+	if nonce != "" {
+		scriptSource += " 'nonce-" + nonce + "'"
+	}
+	connectSource := "connect-src 'self'"
+	if issuerOrigin != "" {
+		connectSource += " " + issuerOrigin
+	}
+
+	return strings.Join([]string{
+		"default-src 'self'",
+		"base-uri 'self'",
+		"object-src 'none'",
+		"frame-ancestors 'none'",
+		scriptSource,
+		connectSource,
+		"font-src 'self'",
+		"img-src 'self' data:",
+		"style-src 'self' 'unsafe-inline'",
+		"form-action 'self'",
+	}, "; ")
+}
+
+func externalOrigin(consoleURL, externalURL string) string {
+	consoleOrigin := parsedOrigin(consoleURL)
+	externalOrigin := parsedOrigin(externalURL)
+	if externalOrigin == "" || externalOrigin == consoleOrigin {
+		return ""
+	}
+	return externalOrigin
+}
+
+func parsedOrigin(rawURL string) string {
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed == nil {
+		return ""
+	}
+	scheme := strings.ToLower(parsed.Scheme)
+	if parsed.User != nil || (scheme != "https" && scheme != "http") || parsed.Host == "" {
+		return ""
+	}
+	origin := scheme + "://" + strings.ToLower(parsed.Host)
+	if strings.ContainsAny(origin, " \t\r\n;'\"") {
+		return ""
+	}
+	return origin
+}
+
+func scriptNonceFromContext(ctx context.Context) (string, string, error) {
+	securityContext, _ := ctx.Value(requestSecurityContextKey{}).(*requestSecurityContext)
+	if securityContext == nil {
+		return "", "", nil
+	}
+	nonce, err := securityContext.nonce()
+	return nonce, securityContext.issuerOrigin, err
 }
 
 func newUIHandler(uiContent fs.FS, oidcConfig *OIDCConfig, appConfig AppConfig) *uiHandler {
@@ -622,8 +674,14 @@ func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
 	data = replaceHTMLTitle(data, h.appConfig.AppName)
 
 	nonceAttribute := ""
-	if nonce := scriptNonceFromContext(r.Context()); nonce != "" {
+	nonce, issuerOrigin, err := scriptNonceFromContext(r.Context())
+	if err != nil {
+		http.Error(w, "failed to generate response nonce", http.StatusInternalServerError)
+		return
+	}
+	if nonce != "" {
 		nonceAttribute = ` nonce="` + html.EscapeString(nonce) + `"`
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy(nonce, issuerOrigin))
 	}
 
 	appConfigJSON, err := json.Marshal(h.appConfig)
