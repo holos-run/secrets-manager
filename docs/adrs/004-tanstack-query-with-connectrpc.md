@@ -73,7 +73,7 @@ service definitions during `buf generate`. This means:
    type-safe. Developers never manually construct or manage query keys.
 
 2. **End-to-end type safety.** The chain from `.proto` schema → generated
-   TypeScript types → query hook → component props is fully typed. Changing a
+   TypeScript types and method descriptors → application query hook → component props is fully typed. Changing a
    field name in a `.proto` file produces a compile-time error in every component
    that references it.
 
@@ -123,13 +123,13 @@ Specifically:
 
 - Protobuf schemas are the single source of truth for the API contract across
   Go and TypeScript, eliminating client/server type drift.
-- Generated query keys and hooks eliminate manual boilerplate and reduce the
-  surface area for bugs.
+- Generated method descriptors plus the shared query-key factory reduce manual
+  boilerplate and keep query reads and invalidation filters aligned.
 - TanStack Query's caching, deduplication, and background refetching provide
   a responsive UI without manual cache management code.
-- Adding a new RPC to the UI requires only `buf generate` and a hook call in
-  the component—no manual type definitions, fetch wrappers, or state management
-  code.
+- Adding a new RPC to the UI requires `buf generate`, a small application hook
+  in `frontend/src/queries/`, and a hook call in the component—no manual type
+  definitions, fetch wrappers, or server-state lifecycle code.
 - The architecture is well-documented by both projects and widely adopted,
   making onboarding straightforward.
 

@@ -137,35 +137,55 @@ Test files in `src/components/` and `src/lib/` can use any name.
 
 ## Existing Test Files
 
+The paths in this section are relative to `frontend/`.
+
+### Unit tests
+
 | File | What it covers |
 |---|---|
+| `src/index.test.ts` | App entry point smoke test |
 | `src/components/app-sidebar.test.tsx` | Sidebar rendering: footer links, version, project/org pickers, nav items |
-| `src/components/view-mode-toggle.test.tsx` | Data/Resource and Claims/Raw toggle buttons |
-| `src/components/secret-data-grid.test.tsx` | Key-value grid: add/remove rows, trailing newline, copy toast |
-| `src/components/sharing-panel.test.tsx` | Grant display, edit mode, save, cancel, nbf/exp |
-| `src/components/raw-view.test.tsx` | JSON pretty-print, field filtering, copy |
-| `src/components/secret-data-editor.test.tsx` | Editor add/remove key |
-| `src/components/secret-data-viewer.test.tsx` | Viewer reveal/hide/copy |
-| `src/routes/_authenticated/-about.test.tsx` | About page: Server Version card, license card |
-| `src/routes/_authenticated/-profile.test.tsx` | Profile page: token claims, raw JSON view |
-| `src/routes/_authenticated/projects/$projectName/secrets/-index.test.tsx` | Secrets list page: table, sorting, error/loading |
-| `src/routes/_authenticated/projects/$projectName/secrets/-$name.test.tsx` | Secret detail page: display, edit, delete |
-| `src/routes/_authenticated/projects/$projectName/settings/-settings.test.tsx` | Project settings page: display name, description, sharing, default secret sharing, delete |
-| `src/routes/_authenticated/orgs/$orgName/settings/-settings.test.tsx` | Org settings page: display name, description, sharing, delete |
-| `src/routes/_authenticated/projects/-$projectName.test.tsx` | ProjectLayout: sets selected project from URL param |
-| `src/routes/_authenticated/orgs/$orgName/projects/-index.test.tsx` | Org projects page: list, navigate to project |
-| `src/routes/-_authenticated.test.tsx` | Auth layout: silent renewal, OIDC redirect |
+| `src/components/create-org-dialog.test.tsx` | Create organization dialog: validation and submission |
+| `src/components/create-project-dialog.test.tsx` | Create project dialog: validation and submission |
+| `src/components/create-secret-dialog.test.tsx` | Create secret dialog: validation, inherited grants, and mutation feedback |
+| `src/components/delete-secret-dialog.test.tsx` | Delete confirmation, pending state, and server errors |
+| `src/components/inline-edit-field.test.tsx` | Shared inline editor: save, cancel, and keyboard behavior |
+| `src/components/page-layout.test.tsx` | Shared page header hierarchy and action placement |
+| `src/components/raw-view.test.tsx` | JSON pretty-printing, field filtering, and copy feedback |
+| `src/components/resource-table.test.tsx` | Shared table sorting, filtering, pagination, empty, loading, and error states |
+| `src/components/secret-data-grid.test.tsx` | Secret key-value editing, masking, timed reveals, trailing newlines, and copy feedback |
+| `src/components/secret-page-actions.test.tsx` | Secret view/edit action availability and accessible labels |
+| `src/components/secret-page-state.test.tsx` | Secret detail loading and error states |
+| `src/components/sharing-panel.test.tsx` | Grant display, edit mode, save, cancel, and time bounds |
+| `src/components/view-mode-toggle.test.tsx` | Data/Resource and Claims/Raw tab behavior |
 | `src/lib/app-config.test.ts` | Runtime application-name configuration and default branding |
 | `src/lib/isOwner.test.ts` | RBAC owner check logic |
-| `src/lib/org-context.test.tsx` | Org context: persistence, reset, filtering |
-| `src/lib/project-context.test.tsx` | Project context: persistence, reset, filtering |
+| `src/lib/org-context.test.tsx` | Organization context persistence, reset, and filtering |
+| `src/lib/project-context.test.tsx` | Project context persistence, reset, and filtering |
 | `src/lib/slug.test.ts` | Slug generation from display names |
-| `src/lib/transport.test.ts` | Token storage and transport setup |
-| `src/queries/-organizations.test.ts` | useListOrganizations and useCreateOrganization hooks |
-| `src/queries/-projects.test.ts` | useListProjects and useCreateProject hooks |
-| `src/components/create-org-dialog.test.tsx` | Create organization dialog: validation, submission |
-| `src/components/create-project-dialog.test.tsx` | Create project dialog: validation, submission |
-| `src/components/create-secret-dialog.test.tsx` | Create secret dialog: validation, inherited grant editing, mutation feedback |
-| `src/components/inline-edit-field.test.tsx` | Shared inline editor: save, cancel, and keyboard behavior |
-| `src/components/resource-table.test.tsx` | Shared resource table: sorting semantics, filtering, pagination, empty and loading states |
-| `src/index.test.ts` | App entry point smoke test |
+| `src/lib/transport.test.ts` | Token storage and ConnectRPC transport setup |
+| `src/queries/-keys.test.ts` | Transport-compatible query keys and scope separation |
+| `src/queries/-organizations.test.ts` | Organization query hooks, mutations, and invalidation |
+| `src/queries/-projects.test.ts` | Project query hooks, mutations, and invalidation |
+| `src/queries/-secrets.test.ts` | Secret query hooks, mutation inputs, and targeted invalidation |
+| `src/routes/-_authenticated.test.tsx` | Auth layout silent renewal and OIDC redirect |
+| `src/routes/_authenticated/-about.test.tsx` | About page server version and license cards |
+| `src/routes/_authenticated/-profile.test.tsx` | Profile token claims and raw JSON view |
+| `src/routes/_authenticated/orgs/$orgName/projects/-index.test.tsx` | Organization project list and project navigation |
+| `src/routes/_authenticated/orgs/$orgName/settings/-settings.test.tsx` | Organization metadata, sharing, and deletion |
+| `src/routes/_authenticated/projects/-$projectName.test.tsx` | Project layout selection from the URL parameter |
+| `src/routes/_authenticated/projects/$projectName/secrets/-$name.test.tsx` | Secret detail display, edit, sharing, and deletion |
+| `src/routes/_authenticated/projects/$projectName/secrets/-index.test.tsx` | Secret list table, sorting, loading, and errors |
+| `src/routes/_authenticated/projects/$projectName/settings/-settings.test.tsx` | Project metadata, sharing, default secret grants, and deletion |
+
+### End-to-end tests
+
+| File | What it covers |
+|---|---|
+| `e2e/auth.spec.ts` | Full embedded-Dex OIDC login and redirect flow |
+| `e2e/branding.spec.ts` | Runtime product-name branding |
+| `e2e/create-dialogs.spec.ts` | Organization, project, and secret creation dialogs |
+| `e2e/navigation.spec.ts` | Authenticated sidebar and resource navigation |
+| `e2e/org-settings.spec.ts` | Kubernetes-backed organization settings workflow |
+| `e2e/secrets.spec.ts` | Kubernetes-backed secret CRUD, masking, reveal, and copy behavior |
+| `e2e/visual-refresh.spec.ts` | Post-refresh page hierarchy, tabs, table controls, and responsive layout |
