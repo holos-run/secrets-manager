@@ -48,24 +48,32 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
   const deleteProject = useDeleteProject()
 
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [isSavingDisplayName, setIsSavingDisplayName] = useState(false)
+  const [isSavingDescription, setIsSavingDescription] = useState(false)
 
   const handleSaveDisplayName = async (displayName: string) => {
+    setIsSavingDisplayName(true)
     try {
       await updateProject.mutateAsync({ name: projectName, displayName })
       toast.success('Saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
       throw err
+    } finally {
+      setIsSavingDisplayName(false)
     }
   }
 
   const handleSaveDescription = async (description: string) => {
+    setIsSavingDescription(true)
     try {
       await updateProject.mutateAsync({ name: projectName, description })
       toast.success('Saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
       throw err
+    } finally {
+      setIsSavingDescription(false)
     }
   }
 
@@ -160,7 +168,7 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
             value={displayName}
             emptyText="No display name"
             onSave={handleSaveDisplayName}
-            isSaving={updateProject.isPending}
+            isSaving={isSavingDisplayName}
           />
 
           {/* Name (slug) - read-only */}
@@ -175,7 +183,7 @@ export function ProjectSettingsPage({ projectName: propProjectName }: { projectN
             emptyText="No description"
             multiline
             onSave={handleSaveDescription}
-            isSaving={updateProject.isPending}
+            isSaving={isSavingDescription}
           />
         </div>
 
