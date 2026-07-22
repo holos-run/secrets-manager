@@ -37,6 +37,7 @@ interface ResourceTableProps<TData> {
   initialSorting?: SortingState
   isLoading?: boolean
   loadingLabel?: string
+  loadingRows?: number
   onRowClick?: (item: TData) => void
   pageSize?: number
   searchPlaceholder?: string
@@ -59,11 +60,11 @@ export function ResourceTableSortHeader<TData, TValue>({
     >
       {children}
       {sorted === 'asc' ? (
-        <ArrowUp data-icon="inline-end" />
+        <ArrowUp />
       ) : sorted === 'desc' ? (
-        <ArrowDown data-icon="inline-end" />
+        <ArrowDown />
       ) : (
-        <ArrowUpDown data-icon="inline-end" className="opacity-50" />
+        <ArrowUpDown className="opacity-50" />
       )}
     </Button>
   )
@@ -78,6 +79,7 @@ export function ResourceTable<TData>({
   initialSorting = [],
   isLoading = false,
   loadingLabel = 'Loading resources',
+  loadingRows = 3,
   onRowClick,
   pageSize = 25,
   searchPlaceholder,
@@ -101,7 +103,7 @@ export function ResourceTable<TData>({
   if (isLoading) {
     return (
       <div aria-label={loadingLabel} className="flex flex-col gap-2">
-        {Array.from({ length: 3 }, (_, index) => (
+        {Array.from({ length: loadingRows }, (_, index) => (
           <Skeleton key={index} className="h-10 w-full" />
         ))}
       </div>

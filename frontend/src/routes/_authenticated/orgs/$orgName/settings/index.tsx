@@ -52,24 +52,32 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
   const deleteOrganization = useDeleteOrganization()
 
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [isSavingDisplayName, setIsSavingDisplayName] = useState(false)
+  const [isSavingDescription, setIsSavingDescription] = useState(false)
 
   const handleSaveDisplayName = async (displayName: string) => {
+    setIsSavingDisplayName(true)
     try {
       await updateOrganization.mutateAsync({ name: orgName, displayName })
       toast.success('Saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
       throw err
+    } finally {
+      setIsSavingDisplayName(false)
     }
   }
 
   const handleSaveDescription = async (description: string) => {
+    setIsSavingDescription(true)
     try {
       await updateOrganization.mutateAsync({ name: orgName, description })
       toast.success('Saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
       throw err
+    } finally {
+      setIsSavingDescription(false)
     }
   }
 
@@ -152,7 +160,7 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
             value={displayName}
             emptyText="No display name"
             onSave={handleSaveDisplayName}
-            isSaving={updateOrganization.isPending}
+            isSaving={isSavingDisplayName}
           />
 
           {/* Name (slug) - read-only */}
@@ -167,7 +175,7 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
             emptyText="No description"
             multiline
             onSave={handleSaveDescription}
-            isSaving={updateOrganization.isPending}
+            isSaving={isSavingDescription}
           />
         </div>
 

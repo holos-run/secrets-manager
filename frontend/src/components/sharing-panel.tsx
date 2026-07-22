@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,6 +31,32 @@ export interface SharingPanelProps {
   description?: string
   draft?: boolean
   onDraftChange?: (userGrants: Grant[], roleGrants: Grant[]) => void
+}
+
+function createGrantRowId(kind: 'user' | 'role'): string {
+  return `${kind}-${crypto.randomUUID()}`
+}
+
+interface GrantRow {
+  id: string
+  grant: Grant
+}
+
+function createGrantRow(kind: 'user' | 'role', grant: Grant): GrantRow {
+  return { id: createGrantRowId(kind), grant }
+}
+
+function reconcileGrantRows(kind: 'user' | 'role', rows: GrantRow[], grants: Grant[]): GrantRow[] {
+  if (rows.length === grants.length && rows.every((row, index) => row.grant === grants[index])) {
+    return rows
+  }
+
+  const availableRows = [...rows]
+  return grants.map((grant) => {
+    const existingIndex = availableRows.findIndex((row) => row.grant === grant)
+    if (existingIndex === -1) return createGrantRow(kind, grant)
+    return availableRows.splice(existingIndex, 1)[0]
+  })
 }
 
 function roleName(role: Role): string {
@@ -86,13 +112,13 @@ function defaultExpirationUTC(): bigint {
 
 export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving, title = 'Sharing', description, draft = false, onDraftChange }: SharingPanelProps) {
   const [editing, setEditing] = useState(false)
-  const [editUserGrants, setEditUserGrants] = useState<Grant[]>([])
-  const [editRoleGrants, setEditRoleGrants] = useState<Grant[]>([])
+  const [editUserRows, setEditUserRows] = useState<GrantRow[]>([])
+  const [editRoleRows, setEditRoleRows] = useState<GrantRow[]>([])
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleEdit = () => {
-    setEditUserGrants(userGrants.map((g) => ({ ...g })))
-    setEditRoleGrants(roleGrants.map((g) => ({ ...g })))
+    setEditUserRows(userGrants.map((grant) => createGrantRow('user', { ...grant })))
+    setEditRoleRows(roleGrants.map((grant) => createGrantRow('role', { ...grant })))
     setSaveError(null)
     setEditing(true)
   }
@@ -103,8 +129,8 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
   }
 
   const handleSave = async () => {
-    const users = editUserGrants.filter((g) => g.principal.trim() !== '')
-    const roles = editRoleGrants.filter((g) => g.principal.trim() !== '')
+    const users = editUserRows.map((row) => row.grant).filter((grant) => grant.principal.trim() !== '')
+    const roles = editRoleRows.map((row) => row.grant).filter((grant) => grant.principal.trim() !== '')
     try {
       await onSave(users, roles)
       setEditing(false)
@@ -114,15 +140,15 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
   }
 
   const handleUserChange = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
-    const updated = [...editUserGrants]
-    updated[index] = { ...updated[index], [field]: value }
-    setEditUserGrants(updated)
+    setEditUserRows(editUserRows.map((row, rowIndex) =>
+      rowIndex === index ? { ...row, grant: { ...row.grant, [field]: value } } : row,
+    ))
   }
 
   const handleRoleChange = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
-    const updated = [...editRoleGrants]
-    updated[index] = { ...updated[index], [field]: value }
-    setEditRoleGrants(updated)
+    setEditRoleRows(editRoleRows.map((row, rowIndex) =>
+      rowIndex === index ? { ...row, grant: { ...row.grant, [field]: value } } : row,
+    ))
   }
 
   const hasGrants = userGrants.length > 0 || roleGrants.length > 0
@@ -200,17 +226,17 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
 
       <div>
         <p className="text-xs text-muted-foreground mb-2">Users</p>
-        {editUserGrants.map((g, i) => (
-          <div key={i} className="mb-3 flex flex-col gap-2">
+        {editUserRows.map(({ id, grant }, i) => (
+          <div key={id} className="mb-3 flex flex-col gap-2">
             <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
               <Input
                 placeholder="Email address"
-                value={g.principal}
+                value={grant.principal}
                 onChange={(e) => handleUserChange(i, 'principal', e.target.value)}
                 className="flex-1"
               />
               <Select
-                value={String(g.role)}
+                value={String(grant.role)}
                 onValueChange={(v) => handleUserChange(i, 'role', Number(v) as Role)}
               >
                 <SelectTrigger className="w-full md:w-32">
@@ -224,7 +250,14 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Button variant="ghost" size="icon" aria-label="remove" onClick={() => setEditUserGrants(editUserGrants.filter((_, j) => j !== i))}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="remove"
+                onClick={() => {
+                  setEditUserRows(editUserRows.filter((_, j) => j !== i))
+                }}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -234,11 +267,11 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                 <div className="flex gap-1 items-center">
                   <Input
                     type="datetime-local"
-                    value={timestampToDatetimeLocal(g.nbf)}
+                    value={timestampToDatetimeLocal(grant.nbf)}
                     onChange={(e) => handleUserChange(i, 'nbf', datetimeLocalToTimestamp(e.target.value))}
                     className="flex-1"
                   />
-                  {g.nbf == null && (
+                  {grant.nbf == null && (
                     <Button variant="outline" size="sm" onClick={() => handleUserChange(i, 'nbf', defaultNbfUTC())}>Set</Button>
                   )}
                 </div>
@@ -248,11 +281,11 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                 <div className="flex gap-1 items-center">
                   <Input
                     type="datetime-local"
-                    value={timestampToDatetimeLocal(g.exp)}
+                    value={timestampToDatetimeLocal(grant.exp)}
                     onChange={(e) => handleUserChange(i, 'exp', datetimeLocalToTimestamp(e.target.value))}
                     className="flex-1"
                   />
-                  {g.exp == null && (
+                  {grant.exp == null && (
                     <Button variant="outline" size="sm" onClick={() => handleUserChange(i, 'exp', defaultExpirationUTC())}>Set</Button>
                   )}
                 </div>
@@ -260,24 +293,30 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
             </div>
           </div>
         ))}
-        <Button variant="outline" size="sm" onClick={() => setEditUserGrants([...editUserGrants, { principal: '', role: Role.VIEWER }])}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setEditUserRows([...editUserRows, createGrantRow('user', { principal: '', role: Role.VIEWER })])
+          }}
+        >
           Add User
         </Button>
       </div>
 
       <div>
         <p className="text-xs text-muted-foreground mb-2">Roles</p>
-        {editRoleGrants.map((g, i) => (
-          <div key={i} className="mb-3 flex flex-col gap-2">
+        {editRoleRows.map(({ id, grant }, i) => (
+          <div key={id} className="mb-3 flex flex-col gap-2">
             <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
               <Input
                 placeholder="Role name"
-                value={g.principal}
+                value={grant.principal}
                 onChange={(e) => handleRoleChange(i, 'principal', e.target.value)}
                 className="flex-1"
               />
               <Select
-                value={String(g.role)}
+                value={String(grant.role)}
                 onValueChange={(v) => handleRoleChange(i, 'role', Number(v) as Role)}
               >
                 <SelectTrigger className="w-full md:w-32">
@@ -291,7 +330,14 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Button variant="ghost" size="icon" aria-label="remove" onClick={() => setEditRoleGrants(editRoleGrants.filter((_, j) => j !== i))}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="remove"
+                onClick={() => {
+                  setEditRoleRows(editRoleRows.filter((_, j) => j !== i))
+                }}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -301,11 +347,11 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                 <div className="flex gap-1 items-center">
                   <Input
                     type="datetime-local"
-                    value={timestampToDatetimeLocal(g.nbf)}
+                    value={timestampToDatetimeLocal(grant.nbf)}
                     onChange={(e) => handleRoleChange(i, 'nbf', datetimeLocalToTimestamp(e.target.value))}
                     className="flex-1"
                   />
-                  {g.nbf == null && (
+                  {grant.nbf == null && (
                     <Button variant="outline" size="sm" onClick={() => handleRoleChange(i, 'nbf', defaultNbfUTC())}>Set</Button>
                   )}
                 </div>
@@ -315,11 +361,11 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
                 <div className="flex gap-1 items-center">
                   <Input
                     type="datetime-local"
-                    value={timestampToDatetimeLocal(g.exp)}
+                    value={timestampToDatetimeLocal(grant.exp)}
                     onChange={(e) => handleRoleChange(i, 'exp', datetimeLocalToTimestamp(e.target.value))}
                     className="flex-1"
                   />
-                  {g.exp == null && (
+                  {grant.exp == null && (
                     <Button variant="outline" size="sm" onClick={() => handleRoleChange(i, 'exp', defaultExpirationUTC())}>Set</Button>
                   )}
                 </div>
@@ -327,7 +373,13 @@ export function SharingPanel({ userGrants, roleGrants, isOwner, onSave, isSaving
             </div>
           </div>
         ))}
-        <Button variant="outline" size="sm" onClick={() => setEditRoleGrants([...editRoleGrants, { principal: '', role: Role.VIEWER }])}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setEditRoleRows([...editRoleRows, createGrantRow('role', { principal: '', role: Role.VIEWER })])
+          }}
+        >
           Add Role
         </Button>
       </div>
@@ -357,17 +409,34 @@ function GrantEditor({
   roleGrants: Grant[]
   onChange: (userGrants: Grant[], roleGrants: Grant[]) => void
 }) {
+  const [knownUserRows, setKnownUserRows] = useState(() => userGrants.map((grant) => createGrantRow('user', grant)))
+  const [knownRoleRows, setKnownRoleRows] = useState(() => roleGrants.map((grant) => createGrantRow('role', grant)))
+  const userRows = useMemo(
+    () => reconcileGrantRows('user', knownUserRows, userGrants),
+    [knownUserRows, userGrants],
+  )
+  const roleRows = useMemo(
+    () => reconcileGrantRows('role', knownRoleRows, roleGrants),
+    [knownRoleRows, roleGrants],
+  )
+
+  const publish = (users: GrantRow[], roles: GrantRow[]) => {
+    setKnownUserRows(users)
+    setKnownRoleRows(roles)
+    onChange(users.map((row) => row.grant), roles.map((row) => row.grant))
+  }
+
   const updateUser = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
-    const updated = userGrants.map((grant, grantIndex) =>
-      grantIndex === index ? { ...grant, [field]: value } : grant,
+    const updated = userRows.map((row, grantIndex) =>
+      grantIndex === index ? { ...row, grant: { ...row.grant, [field]: value } } : row,
     )
-    onChange(updated, roleGrants)
+    publish(updated, roleRows)
   }
   const updateRole = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
-    const updated = roleGrants.map((grant, grantIndex) =>
-      grantIndex === index ? { ...grant, [field]: value } : grant,
+    const updated = roleRows.map((row, grantIndex) =>
+      grantIndex === index ? { ...row, grant: { ...row.grant, [field]: value } } : row,
     )
-    onChange(userGrants, updated)
+    publish(userRows, updated)
   }
 
   return (
@@ -375,8 +444,8 @@ function GrantEditor({
       <div>
         <p className="mb-2 text-xs text-muted-foreground">Users</p>
         <div className="flex flex-col gap-3">
-          {userGrants.map((grant, index) => (
-            <div key={index} className="flex items-center gap-2">
+          {userRows.map(({ id, grant }, index) => (
+            <div key={id} className="flex items-center gap-2">
               <Input
                 aria-label={`user ${index + 1}`}
                 placeholder="Email address"
@@ -398,7 +467,9 @@ function GrantEditor({
                 variant="ghost"
                 size="icon"
                 aria-label="remove"
-                onClick={() => onChange(userGrants.filter((_, grantIndex) => grantIndex !== index), roleGrants)}
+                onClick={() => {
+                  publish(userRows.filter((_, grantIndex) => grantIndex !== index), roleRows)
+                }}
               >
                 <Trash2 />
               </Button>
@@ -408,7 +479,9 @@ function GrantEditor({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onChange([...userGrants, { principal: '', role: Role.VIEWER }], roleGrants)}
+          onClick={() => {
+            publish([...userRows, createGrantRow('user', { principal: '', role: Role.VIEWER })], roleRows)
+          }}
         >
           Add User
         </Button>
@@ -416,8 +489,8 @@ function GrantEditor({
       <div>
         <p className="mb-2 text-xs text-muted-foreground">Roles</p>
         <div className="flex flex-col gap-3">
-          {roleGrants.map((grant, index) => (
-            <div key={index} className="flex items-center gap-2">
+          {roleRows.map(({ id, grant }, index) => (
+            <div key={id} className="flex items-center gap-2">
               <Input
                 aria-label={`role ${index + 1}`}
                 placeholder="Role name"
@@ -439,7 +512,9 @@ function GrantEditor({
                 variant="ghost"
                 size="icon"
                 aria-label="remove"
-                onClick={() => onChange(userGrants, roleGrants.filter((_, grantIndex) => grantIndex !== index))}
+                onClick={() => {
+                  publish(userRows, roleRows.filter((_, grantIndex) => grantIndex !== index))
+                }}
               >
                 <Trash2 />
               </Button>
@@ -449,7 +524,9 @@ function GrantEditor({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onChange(userGrants, [...roleGrants, { principal: '', role: Role.VIEWER }])}
+          onClick={() => {
+            publish(userRows, [...roleRows, createGrantRow('role', { principal: '', role: Role.VIEWER })])
+          }}
         >
           Add Role
         </Button>

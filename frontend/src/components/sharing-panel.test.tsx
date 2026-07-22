@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { SharingPanel, type Grant } from './sharing-panel'
 import { Role } from '@/gen/holos/console/v1/rbac_pb'
@@ -229,6 +230,61 @@ describe('SharingPanel', () => {
       fireEvent.click(removeButtons[1]) // second user
 
       expect(screen.queryByDisplayValue('bob@example.com')).not.toBeInTheDocument()
+    })
+
+    it('preserves a focused draft row identity when an earlier row is removed', () => {
+      function DraftHarness() {
+        const [userGrants, setUserGrants] = useState([
+          grant('alice@example.com', Role.OWNER),
+          grant('bob@example.com', Role.VIEWER),
+        ])
+        const [roleGrants, setRoleGrants] = useState<Grant[]>([])
+
+        return (
+          <SharingPanel
+            userGrants={userGrants}
+            roleGrants={roleGrants}
+            isOwner
+            onSave={vi.fn()}
+            isSaving={false}
+            draft
+            onDraftChange={(users, roles) => {
+              setUserGrants(users)
+              setRoleGrants(roles)
+            }}
+          />
+        )
+      }
+
+      render(<DraftHarness />)
+      const bobInput = screen.getByDisplayValue('bob@example.com')
+      bobInput.focus()
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'remove' })[0])
+
+      expect(screen.getByDisplayValue('bob@example.com')).toBe(bobInput)
+      expect(bobInput).toHaveFocus()
+    })
+
+    it('reconciles draft rows when the parent replaces the grants', () => {
+      const props = {
+        roleGrants: [] as Grant[],
+        isOwner: true,
+        onSave: vi.fn(),
+        isSaving: false,
+        draft: true,
+        onDraftChange: vi.fn(),
+      }
+      const { rerender } = render(
+        <SharingPanel {...props} userGrants={[grant('alice@example.com', Role.OWNER)]} />,
+      )
+
+      rerender(
+        <SharingPanel {...props} userGrants={[grant('charlie@example.com', Role.EDITOR)]} />,
+      )
+
+      expect(screen.queryByDisplayValue('alice@example.com')).not.toBeInTheDocument()
+      expect(screen.getByDisplayValue('charlie@example.com')).toBeInTheDocument()
     })
   })
 
