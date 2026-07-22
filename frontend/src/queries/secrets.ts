@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@connectrpc/connect-query'
 import { useQueryClient } from '@tanstack/react-query'
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { SecretsService } from '@/gen/holos/console/v1/secrets_pb.js'
 import type { SecretMetadata } from '@/gen/holos/console/v1/secrets_pb.js'
 import { useAuth } from '@/lib/auth'
@@ -92,13 +93,22 @@ export function useCreateSecret(project: string) {
       await queryClient.invalidateQueries({ queryKey: keys.secrets.list(project).key })
     },
   })
+  const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
+  const mutate = useCallback(
+    (params: CreateSecretParams, options?: Parameters<typeof rpcMutate>[1]) =>
+      rpcMutate({ ...params, project }, options),
+    [rpcMutate, project],
+  )
+  const mutateAsync = useCallback(
+    (params: CreateSecretParams, options?: Parameters<typeof rpcMutateAsync>[1]) =>
+      rpcMutateAsync({ ...params, project }, options),
+    [rpcMutateAsync, project],
+  )
 
   return {
     ...mutation,
-    mutate: (params: CreateSecretParams, options?: Parameters<typeof mutation.mutate>[1]) =>
-      mutation.mutate({ ...params, project }, options),
-    mutateAsync: (params: CreateSecretParams, options?: Parameters<typeof mutation.mutateAsync>[1]) =>
-      mutation.mutateAsync({ ...params, project }, options),
+    mutate,
+    mutateAsync,
   }
 }
 
@@ -110,13 +120,22 @@ export function useDeleteSecret(project: string) {
       await invalidateSecret(queryClient, project, name, false)
     },
   })
+  const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
+  const mutate = useCallback(
+    (name: string, options?: Parameters<typeof rpcMutate>[1]) =>
+      rpcMutate({ name, project }, options),
+    [rpcMutate, project],
+  )
+  const mutateAsync = useCallback(
+    (name: string, options?: Parameters<typeof rpcMutateAsync>[1]) =>
+      rpcMutateAsync({ name, project }, options),
+    [rpcMutateAsync, project],
+  )
 
   return {
     ...mutation,
-    mutate: (name: string, options?: Parameters<typeof mutation.mutate>[1]) =>
-      mutation.mutate({ name, project }, options),
-    mutateAsync: (name: string, options?: Parameters<typeof mutation.mutateAsync>[1]) =>
-      mutation.mutateAsync({ name, project }, options),
+    mutate,
+    mutateAsync,
   }
 }
 
@@ -128,13 +147,22 @@ export function useUpdateSecret(project: string) {
       await invalidateSecret(queryClient, project, name)
     },
   })
+  const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
+  const mutate = useCallback(
+    (params: UpdateSecretParams, options?: Parameters<typeof rpcMutate>[1]) =>
+      rpcMutate({ ...params, project }, options),
+    [rpcMutate, project],
+  )
+  const mutateAsync = useCallback(
+    (params: UpdateSecretParams, options?: Parameters<typeof rpcMutateAsync>[1]) =>
+      rpcMutateAsync({ ...params, project }, options),
+    [rpcMutateAsync, project],
+  )
 
   return {
     ...mutation,
-    mutate: (params: UpdateSecretParams, options?: Parameters<typeof mutation.mutate>[1]) =>
-      mutation.mutate({ ...params, project }, options),
-    mutateAsync: (params: UpdateSecretParams, options?: Parameters<typeof mutation.mutateAsync>[1]) =>
-      mutation.mutateAsync({ ...params, project }, options),
+    mutate,
+    mutateAsync,
   }
 }
 
@@ -146,13 +174,22 @@ export function useUpdateSecretSharing(project: string) {
       await invalidateSecret(queryClient, project, name)
     },
   })
+  const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
+  const mutate = useCallback(
+    (params: UpdateSecretSharingParams, options?: Parameters<typeof rpcMutate>[1]) =>
+      rpcMutate({ ...params, project }, options),
+    [rpcMutate, project],
+  )
+  const mutateAsync = useCallback(
+    (params: UpdateSecretSharingParams, options?: Parameters<typeof rpcMutateAsync>[1]) =>
+      rpcMutateAsync({ ...params, project }, options),
+    [rpcMutateAsync, project],
+  )
 
   return {
     ...mutation,
-    mutate: (params: UpdateSecretSharingParams, options?: Parameters<typeof mutation.mutate>[1]) =>
-      mutation.mutate({ ...params, project }, options),
-    mutateAsync: (params: UpdateSecretSharingParams, options?: Parameters<typeof mutation.mutateAsync>[1]) =>
-      mutation.mutateAsync({ ...params, project }, options),
+    mutate,
+    mutateAsync,
   }
 }
 
