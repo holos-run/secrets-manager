@@ -186,7 +186,7 @@ The paths in this section are relative to `frontend/`.
 | `e2e/auth.spec.ts` | Full embedded-Dex OIDC login and redirect flow |
 | `e2e/branding.spec.ts` | Runtime product-name branding |
 | `e2e/create-dialogs.spec.ts` | Organization, project, and secret creation dialogs |
-| `e2e/navigation.spec.ts` | Authenticated sidebar and resource navigation |
+| `e2e/navigation.spec.ts` | Authenticated sidebar overflow, vertical scrolling, and resource navigation |
 | `e2e/org-settings.spec.ts` | Kubernetes-backed organization settings workflow |
 | `e2e/secrets.spec.ts` | Kubernetes-backed secret CRUD, masking, reveal, and copy behavior |
 | `e2e/visual-refresh.spec.ts` | Post-refresh page hierarchy, tabs, table controls, and responsive layout |
