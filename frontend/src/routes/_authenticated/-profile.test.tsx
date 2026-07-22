@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import type { Mock } from 'vitest'
 import React from 'react'
@@ -67,8 +68,8 @@ describe('ProfilePage token claims — Claims view (default)', () => {
   it('shows Claims and Raw segmented control buttons', () => {
     setAuthState()
     render(<ProfilePage />)
-    expect(screen.getByRole('button', { name: /claims/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /raw/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /claims/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /raw/i })).toBeInTheDocument()
   })
 
   it('displays iss claim label and value', () => {
@@ -132,11 +133,12 @@ describe('ProfilePage token claims — Raw view', () => {
     vi.clearAllMocks()
   })
 
-  it('switches to raw view and shows JSON', () => {
+  it('switches to raw view and shows JSON', async () => {
+    const user = userEvent.setup()
     setAuthState()
     render(<ProfilePage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /raw/i }))
+    await user.click(screen.getByRole('tab', { name: /raw/i }))
 
     const pre = document.querySelector('pre')
     expect(pre).toBeInTheDocument()
@@ -146,11 +148,12 @@ describe('ProfilePage token claims — Raw view', () => {
     expect(pre.textContent).toContain('"sub"')
   })
 
-  it('shows Copy to Clipboard button in raw view', () => {
+  it('shows Copy to Clipboard button in raw view', async () => {
+    const user = userEvent.setup()
     setAuthState()
     render(<ProfilePage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /raw/i }))
+    await user.click(screen.getByRole('tab', { name: /raw/i }))
 
     expect(screen.getByRole('button', { name: /copy to clipboard/i })).toBeInTheDocument()
   })

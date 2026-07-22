@@ -171,7 +171,7 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
       return <p className="text-sm text-muted-foreground">No data. Switch to edit mode to add key-value pairs.</p>
     }
     return (
-      <div className="space-y-1">
+      <div className="flex flex-col gap-1">
         {/* Header */}
         <div className="grid grid-cols-[1fr_2fr_auto] gap-2 px-1">
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</span>
@@ -209,7 +209,7 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
   }
 
   return (
-    <div className="space-y-1">
+    <div className="flex flex-col gap-1">
       {/* Header */}
       <div className="grid grid-cols-[1fr_2fr_auto] gap-2 px-1">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</span>

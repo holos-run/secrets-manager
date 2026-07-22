@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import type { Mock } from 'vitest'
 import React from 'react'
@@ -119,12 +120,13 @@ describe('SecretPage sharing panel', () => {
     expect(screen.getByText(/no sharing grants/i)).toBeInTheDocument()
   })
 
-  it('loads the raw resource through the query hook when Resource is selected', () => {
+  it('loads the raw resource through the query hook when Resource is selected', async () => {
+    const user = userEvent.setup()
     setupMocks()
     render(<SecretPage />)
 
     expect(useGetSecretRaw).toHaveBeenLastCalledWith('test-project', 'test-secret', false)
-    fireEvent.click(screen.getByRole('button', { name: 'Resource' }))
+    await user.click(screen.getByRole('tab', { name: 'Resource' }))
 
     expect(useGetSecretRaw).toHaveBeenLastCalledWith('test-project', 'test-secret', true)
     expect(screen.getByText(/"kind": "Secret"/)).toBeInTheDocument()

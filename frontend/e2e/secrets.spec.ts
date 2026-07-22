@@ -78,7 +78,7 @@ test.describe('Secrets Page', () => {
     await expect(page.getByText(/admin@example.com|admin/)).toBeVisible()
 
     // Resource output must not render decoded plaintext until the user explicitly reveals it.
-    await page.getByRole('button', { name: 'Resource' }).click()
+    await page.getByRole('tab', { name: 'Resource' }).click()
     const resource = page.locator('pre').first()
     await expect(resource).toBeVisible()
     await expect(resource).toContainText('••••••••')
