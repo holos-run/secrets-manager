@@ -111,7 +111,7 @@ export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: Raw
             size="sm"
             onClick={() => showValues ? hide('raw-values') : reveal('raw-values')}
           >
-            {showValues ? <EyeOff data-icon="inline-start" /> : <Eye data-icon="inline-start" />}
+            {showValues ? <EyeOff /> : <Eye />}
             {showValues ? 'Hide values' : 'Show values'}
           </Button>
         ) : null}

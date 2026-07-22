@@ -97,7 +97,7 @@ export function ProjectsIndexPage() {
           description="Manage the projects and access boundaries in this organization."
           actions={(
             <Button size="sm" onClick={() => setCreateOpen(true)} disabled={isLoading}>
-              <Plus data-icon="inline-start" />
+              <Plus />
               Create Project
             </Button>
           )}
