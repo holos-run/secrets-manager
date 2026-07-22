@@ -41,7 +41,7 @@ function deleteSecretRequest(name: string, project: string) {
 }
 
 // Shared request shaper for project-scoped secret mutations with object inputs.
-function addProject<TParams>(params: TParams, project: string) {
+function addProject<TParams extends object>(params: TParams, project: string) {
   return { ...params, project }
 }
 
