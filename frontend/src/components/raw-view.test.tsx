@@ -158,12 +158,17 @@ describe('RawView', () => {
     it('reveals decoded secret values only after explicit confirmation', () => {
       render(<RawView raw={secretRaw} includeAllFields={false} onToggleIncludeAllFields={vi.fn()} />)
 
-      fireEvent.click(screen.getByRole('button', { name: /show values/i }))
+      const showValuesButton = screen.getByRole('button', { name: /show values/i })
+      expect(showValuesButton).toHaveAttribute('aria-label', 'Show values')
+      fireEvent.click(showValuesButton)
 
       const parsed = JSON.parse(codeBlock().textContent || '')
       expect(parsed.stringData.username).toBe('admin')
       expect(parsed.stringData.password).toBe('secret123')
-      expect(screen.getByRole('button', { name: /hide values/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /hide values/i })).toHaveAttribute(
+        'aria-label',
+        'Hide values',
+      )
     })
 
     it('automatically masks decoded secret values after the shared timeout', () => {

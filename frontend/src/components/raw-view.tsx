@@ -109,6 +109,7 @@ export function RawView({ raw, includeAllFields, onToggleIncludeAllFields }: Raw
           <Button
             variant="outline"
             size="sm"
+            aria-label={showValues ? 'Hide values' : 'Show values'}
             onClick={() => showValues ? hide('raw-values') : reveal('raw-values')}
           >
             {showValues ? <EyeOff /> : <Eye />}
