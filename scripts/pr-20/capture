@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# PR #20 — capture independent organization metadata editors.
+#
+# Called by scripts/browser-capture-pr 20. Expects:
+#   HOLOS_BACKEND_URL, PR_SCREENSHOT_DIR
+set -euo pipefail
+
+ORG_NAME="review-followup-demo"
+ORG_NAMESPACE="holos-org-$ORG_NAME"
+
+cleanup() {
+  kubectl delete namespace "$ORG_NAMESPACE" --ignore-not-found >/dev/null
+}
+trap cleanup EXIT
+
+kubectl apply -f - <<YAML
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $ORG_NAMESPACE
+  labels:
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/organization: $ORG_NAME
+    holos.run/resource-type: organization
+  annotations:
+    holos.run/display-name: Review Follow-up Demo
+    holos.run/description: Independent metadata editor verification
+    holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
+    holos.run/share-roles: '[]'
+YAML
+
+AB="agent-browser --session-name holos-dev"
+SETTINGS_URL="$HOLOS_BACKEND_URL/orgs/$ORG_NAME/settings"
+
+echo "==> Capturing organization settings"
+$AB open "$SETTINGS_URL"
+$AB wait --load networkidle
+$AB wait --text "Review Follow-up Demo" 2>/dev/null || $AB wait 3000
+$AB screenshot "$PR_SCREENSHOT_DIR/01-org-settings.png"
+
+echo "==> Capturing independent metadata editors"
+$AB eval "
+  document.querySelector('[aria-label=\"edit display name\"]')?.click();
+  document.querySelector('[aria-label=\"edit description\"]')?.click();
+"
+$AB wait 500
+$AB screenshot "$PR_SCREENSHOT_DIR/02-independent-editors.png"
+
+echo "Screenshots saved to $PR_SCREENSHOT_DIR"
