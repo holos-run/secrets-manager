@@ -1,6 +1,11 @@
 import { useMutation, useQuery } from '@connectrpc/connect-query'
 import { useQueryClient } from '@tanstack/react-query'
-import type { QueryClient, QueryKey } from '@tanstack/react-query'
+import type {
+  QueryClient,
+  QueryKey,
+  UseMutateAsyncFunction,
+  UseMutateFunction,
+} from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { SecretsService } from '@/gen/holos/console/v1/secrets_pb.js'
 import type { SecretMetadata } from '@/gen/holos/console/v1/secrets_pb.js'
@@ -29,6 +34,41 @@ type UpdateSecretSharingParams = {
   name: string
   userGrants: GrantInput[]
   roleGrants: GrantInput[]
+}
+
+function createSecretRequest(params: CreateSecretParams, project: string) {
+  return { ...params, project }
+}
+
+function deleteSecretRequest(name: string, project: string) {
+  return { name, project }
+}
+
+function updateSecretRequest(params: UpdateSecretParams, project: string) {
+  return { ...params, project }
+}
+
+function updateSecretSharingRequest(params: UpdateSecretSharingParams, project: string) {
+  return { ...params, project }
+}
+
+function useProjectMutationCallbacks<TData, TError, TRpcParams, TPublicParams, TOnMutateResult>(
+  project: string,
+  rpcMutate: UseMutateFunction<TData, TError, TRpcParams, TOnMutateResult>,
+  rpcMutateAsync: UseMutateAsyncFunction<TData, TError, TRpcParams, TOnMutateResult>,
+  createRequest: (params: TPublicParams, project: string) => TRpcParams,
+) {
+  const mutate = useCallback(
+    (params: TPublicParams, options?: Parameters<typeof rpcMutate>[1]) =>
+      rpcMutate(createRequest(params, project), options),
+    [createRequest, project, rpcMutate],
+  )
+  const mutateAsync = useCallback(
+    (params: TPublicParams, options?: Parameters<typeof rpcMutateAsync>[1]) =>
+      rpcMutateAsync(createRequest(params, project), options),
+    [createRequest, project, rpcMutateAsync],
+  )
+  return { mutate, mutateAsync }
 }
 
 export function useListSecrets(project: string) {
@@ -94,21 +134,16 @@ export function useCreateSecret(project: string) {
     },
   })
   const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
-  const mutate = useCallback(
-    (params: CreateSecretParams, options?: Parameters<typeof rpcMutate>[1]) =>
-      rpcMutate({ ...params, project }, options),
-    [rpcMutate, project],
-  )
-  const mutateAsync = useCallback(
-    (params: CreateSecretParams, options?: Parameters<typeof rpcMutateAsync>[1]) =>
-      rpcMutateAsync({ ...params, project }, options),
-    [rpcMutateAsync, project],
+  const callbacks = useProjectMutationCallbacks(
+    project,
+    rpcMutate,
+    rpcMutateAsync,
+    createSecretRequest,
   )
 
   return {
     ...mutation,
-    mutate,
-    mutateAsync,
+    ...callbacks,
   }
 }
 
@@ -121,21 +156,16 @@ export function useDeleteSecret(project: string) {
     },
   })
   const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
-  const mutate = useCallback(
-    (name: string, options?: Parameters<typeof rpcMutate>[1]) =>
-      rpcMutate({ name, project }, options),
-    [rpcMutate, project],
-  )
-  const mutateAsync = useCallback(
-    (name: string, options?: Parameters<typeof rpcMutateAsync>[1]) =>
-      rpcMutateAsync({ name, project }, options),
-    [rpcMutateAsync, project],
+  const callbacks = useProjectMutationCallbacks(
+    project,
+    rpcMutate,
+    rpcMutateAsync,
+    deleteSecretRequest,
   )
 
   return {
     ...mutation,
-    mutate,
-    mutateAsync,
+    ...callbacks,
   }
 }
 
@@ -148,21 +178,16 @@ export function useUpdateSecret(project: string) {
     },
   })
   const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
-  const mutate = useCallback(
-    (params: UpdateSecretParams, options?: Parameters<typeof rpcMutate>[1]) =>
-      rpcMutate({ ...params, project }, options),
-    [rpcMutate, project],
-  )
-  const mutateAsync = useCallback(
-    (params: UpdateSecretParams, options?: Parameters<typeof rpcMutateAsync>[1]) =>
-      rpcMutateAsync({ ...params, project }, options),
-    [rpcMutateAsync, project],
+  const callbacks = useProjectMutationCallbacks(
+    project,
+    rpcMutate,
+    rpcMutateAsync,
+    updateSecretRequest,
   )
 
   return {
     ...mutation,
-    mutate,
-    mutateAsync,
+    ...callbacks,
   }
 }
 
@@ -175,21 +200,16 @@ export function useUpdateSecretSharing(project: string) {
     },
   })
   const { mutate: rpcMutate, mutateAsync: rpcMutateAsync } = mutation
-  const mutate = useCallback(
-    (params: UpdateSecretSharingParams, options?: Parameters<typeof rpcMutate>[1]) =>
-      rpcMutate({ ...params, project }, options),
-    [rpcMutate, project],
-  )
-  const mutateAsync = useCallback(
-    (params: UpdateSecretSharingParams, options?: Parameters<typeof rpcMutateAsync>[1]) =>
-      rpcMutateAsync({ ...params, project }, options),
-    [rpcMutateAsync, project],
+  const callbacks = useProjectMutationCallbacks(
+    project,
+    rpcMutate,
+    rpcMutateAsync,
+    updateSecretSharingRequest,
   )
 
   return {
     ...mutation,
-    mutate,
-    mutateAsync,
+    ...callbacks,
   }
 }
 
