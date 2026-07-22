@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ToggleOption {
   value: string
@@ -12,28 +13,23 @@ interface ViewModeToggleProps {
   options: [ToggleOption, ToggleOption]
 }
 
-/**
- * Pill-style two-option toggle used across detail and profile pages.
- * The primary label (e.g. "Editor", "Data", "Claims") is injected via options[0];
- * the secondary label (e.g. "Raw", "Resource") via options[1].
- */
+/** Shared tab treatment for alternate representations of the same resource. */
 export function ViewModeToggle({ value, onValueChange, options }: ViewModeToggleProps) {
   return (
-    <div className="inline-flex items-center rounded-md border border-border bg-muted/40 p-0.5">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => onValueChange(opt.value)}
-          className={`inline-flex items-center gap-1.5 rounded-[5px] px-3 py-1 text-xs font-medium transition-colors ${
-            value === opt.value
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {opt.icon}
-          {opt.label}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      value={value}
+      onValueChange={(nextValue) => {
+        if (nextValue !== value) onValueChange(nextValue)
+      }}
+    >
+      <TabsList>
+        {options.map((option) => (
+          <TabsTrigger key={option.value} value={option.value}>
+            {option.icon}
+            {option.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 }

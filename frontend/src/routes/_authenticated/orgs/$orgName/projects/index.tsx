@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
@@ -12,6 +12,7 @@ import { CreateProjectDialog } from '@/components/create-project-dialog'
 import { Role } from '@/gen/holos/console/v1/rbac_pb'
 import type { Project } from '@/gen/holos/console/v1/projects_pb'
 import { ResourceTable, ResourceTableSortHeader, type ResourceColumnDef } from '@/components/resource-table'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/orgs/$orgName/projects/')({
   component: ProjectsIndexPage,
@@ -89,32 +90,38 @@ export function ProjectsIndexPage() {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <CardTitle>Projects</CardTitle>
-          <Button size="sm" onClick={() => setCreateOpen(true)} disabled={isLoading}>
-            <Plus data-icon="inline-start" />
-            Create Project
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <ResourceTable
-            columns={columns}
-            data={projects}
-            isLoading={isLoading}
-            error={error}
-            loadingLabel="Loading projects"
-            searchPlaceholder="Search projects…"
-            emptyMessage="No projects yet. Create one."
-            emptyAction={
-              <Button size="sm" onClick={() => setCreateOpen(true)}>
-                Create Project
-              </Button>
-            }
-            onRowClick={handleRowClick}
-          />
-        </CardContent>
-      </Card>
+      <PageLayout>
+        <PageHeader
+          eyebrow={`Organization / ${orgName}`}
+          title="Projects"
+          description="Manage the projects and access boundaries in this organization."
+          actions={(
+            <Button size="sm" onClick={() => setCreateOpen(true)} disabled={isLoading}>
+              <Plus data-icon="inline-start" />
+              Create Project
+            </Button>
+          )}
+        />
+        <Card>
+          <CardContent className="pt-6">
+            <ResourceTable
+              columns={columns}
+              data={projects}
+              isLoading={isLoading}
+              error={error}
+              loadingLabel="Loading projects"
+              searchPlaceholder="Search projects…"
+              emptyMessage="No projects yet. Create one."
+              emptyAction={
+                <Button size="sm" onClick={() => setCreateOpen(true)}>
+                  Create Project
+                </Button>
+              }
+              onRowClick={handleRowClick}
+            />
+          </CardContent>
+        </Card>
+      </PageLayout>
 
       <CreateProjectDialog
         open={createOpen}

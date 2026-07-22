@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type React from 'react'
 import { Link, useRouter } from '@tanstack/react-router'
 import {
+  Building2,
   Info,
   KeyRound,
   FolderKanban,
@@ -43,11 +44,44 @@ const bottomItems = [
   { label: 'Profile', to: '/profile' as const, icon: User },
 ]
 
+function WorkspacePickerSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="px-2 text-[0.6875rem] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      {children}
+    </div>
+  )
+}
+
+function renderWorkspacePickerTrigger({
+  testId,
+  icon: Icon,
+  label,
+}: {
+  testId: string
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+}) {
+  return (
+    <SidebarMenuButton
+      data-testid={testId}
+      size="lg"
+      className="border border-sidebar-border bg-sidebar-accent/35"
+    >
+      <Icon />
+      <span className="truncate">{label}</span>
+      <ChevronsUpDown className="ml-auto opacity-50" />
+    </SidebarMenuButton>
+  )
+}
+
 export function AppSidebar() {
   const { appName } = getAppConfig()
   const { data: versionData } = useVersion()
   const router = useRouter()
-  const pathname = router.state.location.pathname
+  const pathname = router.state.location.pathname.replace(/\/$/, '') || '/'
   const { projects, selectedProject } = useProject()
   const { selectedOrg, organizations } = useOrg()
 
@@ -66,6 +100,7 @@ export function AppSidebar() {
     to: string
     params: Record<string, string>
     icon: React.ComponentType<{ className?: string }>
+    activePath: string
   }> = selectedOrg
     ? [
         {
@@ -73,12 +108,14 @@ export function AppSidebar() {
           to: '/orgs/$orgName/projects' as const,
           params: { orgName: selectedOrg },
           icon: FolderKanban,
+          activePath: `/orgs/${selectedOrg}/projects`,
         },
         {
           label: 'Org Settings',
           to: '/orgs/$orgName/settings/' as const,
           params: { orgName: selectedOrg },
           icon: Settings,
+          activePath: `/orgs/${selectedOrg}/settings`,
         },
       ]
     : []
@@ -88,6 +125,7 @@ export function AppSidebar() {
     to: string
     params: Record<string, string>
     icon: React.ComponentType<{ className?: string }>
+    activePath: string
   }> = selectedProject
     ? [
         {
@@ -95,47 +133,66 @@ export function AppSidebar() {
           to: '/projects/$projectName/secrets' as const,
           params: { projectName: selectedProject },
           icon: KeyRound,
+          activePath: `/projects/${selectedProject}/secrets`,
         },
         {
           label: 'Project Settings',
           to: '/projects/$projectName/settings/' as const,
           params: { projectName: selectedProject },
           icon: Settings,
+          activePath: `/projects/${selectedProject}/settings`,
         },
       ]
     : []
 
   return (
-    <Sidebar>
-      <SidebarHeader className="px-4 py-3">
-        <div className="font-semibold text-lg">{appName}</div>
-        {versionData?.version && (
-          <div className="text-xs text-muted-foreground">{versionData.version}</div>
-        )}
+    <Sidebar className="border-r border-sidebar-border">
+      <SidebarHeader className="gap-3 px-4 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shadow-sm shadow-sidebar-primary/20">
+            <KeyRound aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold tracking-tight">{appName}</div>
+            {versionData?.version && (
+              <div className="font-mono text-[0.6875rem] text-muted-foreground">
+                {versionData.version}
+              </div>
+            )}
+          </div>
+        </div>
       </SidebarHeader>
 
       <SidebarSeparator />
 
-      <OrgPicker />
-      <ProjectPicker />
-
-      <SidebarSeparator />
-
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupContent className="flex flex-col gap-3">
+            <OrgPicker />
+            <ProjectPicker />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
         {orgNavItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>{orgDisplayName}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {orgNavItems.map((item) => {
-                  const activePath = (item.to as string)
-                    .replace('$orgName', item.params.orgName)
-                    .replace(/\/$/, '')
+                  const isActive =
+                    pathname === item.activePath || pathname.startsWith(`${item.activePath}/`)
                   return (
                     <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton asChild isActive={pathname.startsWith(activePath)}>
-                        <Link to={item.to} params={item.params}>
-                          <item.icon className="h-4 w-4" />
+                      <SidebarMenuButton asChild isActive={isActive}>
+                        <Link
+                          to={item.to}
+                          params={item.params}
+                          aria-current={isActive ? 'page' : undefined}
+                        >
+                          <item.icon />
                           <span>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -152,12 +209,17 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {projectNavItems.map((item) => {
-                  const activePath = `/projects/${item.params.projectName}`
+                  const isActive =
+                    pathname === item.activePath || pathname.startsWith(`${item.activePath}/`)
                   return (
                     <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton asChild isActive={pathname.startsWith(activePath)}>
-                        <Link to={item.to} params={item.params}>
-                          <item.icon className="h-4 w-4" />
+                      <SidebarMenuButton asChild isActive={isActive}>
+                        <Link
+                          to={item.to}
+                          params={item.params}
+                          aria-current={isActive ? 'page' : undefined}
+                        >
+                          <item.icon />
                           <span>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -175,9 +237,9 @@ export function AppSidebar() {
         <SidebarMenu>
           {bottomItems.map((item) => (
             <SidebarMenuItem key={item.label}>
-              <SidebarMenuButton asChild isActive={pathname.startsWith(item.to)}>
-                <Link to={item.to}>
-                  <item.icon className="h-4 w-4" />
+              <SidebarMenuButton asChild isActive={pathname === item.to}>
+                <Link to={item.to} aria-current={pathname === item.to ? 'page' : undefined}>
+                  <item.icon />
                   <span>{item.label}</span>
                 </Link>
               </SidebarMenuButton>
@@ -199,21 +261,21 @@ function OrgPicker() {
 
   if (organizations.length === 0) {
     return (
-      <div className="px-2 py-1">
+      <WorkspacePickerSection label="Organization">
         <Button
           variant="outline"
           size="sm"
           className="w-full"
           onClick={() => setCreateOpen(true)}
         >
-          <Plus className="h-4 w-4 mr-2" /> New Organization
+          <Plus data-icon="inline-start" /> New Organization
         </Button>
         <CreateOrgDialog
           open={createOpen}
           onOpenChange={setCreateOpen}
           onCreated={(name) => setSelectedOrg(name)}
         />
-      </div>
+      </WorkspacePickerSection>
     )
   }
 
@@ -223,13 +285,14 @@ function OrgPicker() {
     : 'All Organizations'
 
   return (
-    <div className="px-2 py-1">
+    <WorkspacePickerSection label="Organization">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button data-testid="org-picker" className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-accent">
-            <span className="truncate">{displayLabel}</span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </button>
+          {renderWorkspacePickerTrigger({
+            testId: 'org-picker',
+            icon: Building2,
+            label: displayLabel,
+          })}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem onClick={() => setSelectedOrg(null)}>
@@ -251,7 +314,7 @@ function OrgPicker() {
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> New Organization
+            <Plus /> New Organization
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -260,7 +323,7 @@ function OrgPicker() {
         onOpenChange={setCreateOpen}
         onCreated={(name) => setSelectedOrg(name)}
       />
-    </div>
+    </WorkspacePickerSection>
   )
 }
 
@@ -276,15 +339,15 @@ function ProjectPicker() {
 
   if (projects.length === 0) {
     return (
-      <div className="px-2 py-1">
-        <p className="px-1 pb-1 text-sm text-muted-foreground">No projects yet.</p>
+      <WorkspacePickerSection label="Project">
+        <p className="px-2 text-xs text-muted-foreground">No projects yet.</p>
         <Button
           variant="outline"
           size="sm"
           className="w-full"
           onClick={() => setCreateOpen(true)}
         >
-          <Plus className="h-4 w-4 mr-2" /> New Project
+          <Plus data-icon="inline-start" /> New Project
         </Button>
         <CreateProjectDialog
           open={createOpen}
@@ -292,7 +355,7 @@ function ProjectPicker() {
           defaultOrganization={selectedOrg}
           onCreated={(name) => setSelectedProject(name)}
         />
-      </div>
+      </WorkspacePickerSection>
     )
   }
 
@@ -302,13 +365,14 @@ function ProjectPicker() {
     : 'All Projects'
 
   return (
-    <div className="px-2 py-1">
+    <WorkspacePickerSection label="Project">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button data-testid="project-picker" className="flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-accent">
-            <span className="truncate">{displayLabel}</span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </button>
+          {renderWorkspacePickerTrigger({
+            testId: 'project-picker',
+            icon: FolderKanban,
+            label: displayLabel,
+          })}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="start">
           <DropdownMenuItem
@@ -338,7 +402,7 @@ function ProjectPicker() {
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> New Project
+            <Plus /> New Project
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -348,6 +412,6 @@ function ProjectPicker() {
         defaultOrganization={selectedOrg}
         onCreated={(name) => setSelectedProject(name)}
       />
-    </div>
+    </WorkspacePickerSection>
   )
 }

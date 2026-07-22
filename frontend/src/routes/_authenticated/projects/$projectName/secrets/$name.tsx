@@ -17,6 +17,7 @@ import { useGetSecret, useGetSecretMetadata, useGetSecretRaw, useUpdateSecret, u
 import type { ShareGrant } from '@/gen/holos/console/v1/secrets_pb.js'
 import { isOwner as computeIsOwner } from '@/lib/isOwner'
 import { serializeSecretData } from '@/lib/serialize-secret-data'
+import { PageHeader, PageLayout } from '@/components/page-layout'
 
 export const Route = createFileRoute('/_authenticated/projects/$projectName/secrets/$name')({
   component: SecretPage,
@@ -169,81 +170,95 @@ export function SecretPage() {
   }
 
   return (
-    <Card>
-      <CardContent className="pt-6 space-y-4">
-        <p className="text-sm text-muted-foreground">{projectName} / Secrets</p>
-        <h2 className="text-xl font-semibold">{name}</h2>
-
-        {/* Metadata edits are staged locally; the page-level Save button persists both fields. */}
-        <InlineEditField
-          label="Description"
-          value={effectiveDescription}
-          emptyText="No description"
-          placeholder="What is this secret used for?"
-          onSave={(nextDescription) => setDescription(nextDescription)}
-        />
-
-        <InlineEditField
-          label="URL"
-          value={effectiveUrl}
-          emptyText="No URL"
-          placeholder="https://example.com/service"
-          onSave={(nextUrl) => setUrl(nextUrl)}
-          renderValue={(currentUrl) => isSafeUrl(currentUrl) ? (
-            <a
-              href={currentUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-primary hover:underline"
-            >
-              <ExternalLink />
-              {currentUrl}
-            </a>
-          ) : currentUrl}
-        />
-
-        <SecretPageActions
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          editMode={editMode}
-          onEdit={() => setEditMode(true)}
-          onSave={() => void handleSave()}
-          onCancel={handleCancel}
-          onDelete={() => setDeleteOpen(true)}
-          isDirty={isDirty}
-          isSaving={updateMutation.isPending}
-        />
-
-        {viewMode === 'editor' && (
-          <>
-            {saveError && (
-              <Alert variant="destructive"><AlertDescription>{saveError}</AlertDescription></Alert>
-            )}
-            <SecretDataGrid data={effectiveData} onChange={(newData) => setSecretData(newData)} readOnly={!editMode} />
-          </>
-        )}
-
-        {viewMode === 'raw' && rawJson && (
-          <RawView raw={rawJson} includeAllFields={includeAllFields} onToggleIncludeAllFields={() => setIncludeAllFields((p) => !p)} />
-        )}
-
-        <SharingPanel
-          userGrants={effectiveUserGrants}
-          roleGrants={effectiveRoleGrants}
-          isOwner={isOwner}
-          onSave={handleSaveSharing}
-          isSaving={updateSharingMutation.isPending}
-        />
-      </CardContent>
-
-      <DeleteSecretDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        name={name}
-        error={deleteMutation.error}
-        isPending={deleteMutation.isPending}
-        onConfirm={() => void handleDelete()}
+    <PageLayout>
+      <PageHeader
+        eyebrow={`${projectName} / Secrets`}
+        title={name}
+        description="Inspect secret data, metadata, and access grants."
       />
-    </Card>
+      <Card>
+        <CardContent className="flex flex-col gap-4 pt-6">
+          {/* Metadata edits are staged locally; the page-level Save button persists both fields. */}
+          <InlineEditField
+            label="Description"
+            value={effectiveDescription}
+            emptyText="No description"
+            placeholder="What is this secret used for?"
+            onSave={(nextDescription) => setDescription(nextDescription)}
+          />
+
+          <InlineEditField
+            label="URL"
+            value={effectiveUrl}
+            emptyText="No URL"
+            placeholder="https://example.com/service"
+            onSave={(nextUrl) => setUrl(nextUrl)}
+            renderValue={(currentUrl) => isSafeUrl(currentUrl) ? (
+              <a
+                href={currentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline"
+              >
+                <ExternalLink />
+                {currentUrl}
+              </a>
+            ) : currentUrl}
+          />
+
+          <SecretPageActions
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            editMode={editMode}
+            onEdit={() => setEditMode(true)}
+            onSave={() => void handleSave()}
+            onCancel={handleCancel}
+            onDelete={() => setDeleteOpen(true)}
+            isDirty={isDirty}
+            isSaving={updateMutation.isPending}
+          />
+
+          {viewMode === 'editor' && (
+            <>
+              {saveError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{saveError}</AlertDescription>
+                </Alert>
+              )}
+              <SecretDataGrid
+                data={effectiveData}
+                onChange={(newData) => setSecretData(newData)}
+                readOnly={!editMode}
+              />
+            </>
+          )}
+
+          {viewMode === 'raw' && rawJson && (
+            <RawView
+              raw={rawJson}
+              includeAllFields={includeAllFields}
+              onToggleIncludeAllFields={() => setIncludeAllFields((current) => !current)}
+            />
+          )}
+
+          <SharingPanel
+            userGrants={effectiveUserGrants}
+            roleGrants={effectiveRoleGrants}
+            isOwner={isOwner}
+            onSave={handleSaveSharing}
+            isSaving={updateSharingMutation.isPending}
+          />
+        </CardContent>
+
+        <DeleteSecretDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          name={name}
+          error={deleteMutation.error}
+          isPending={deleteMutation.isPending}
+          onConfirm={() => void handleDelete()}
+        />
+      </Card>
+    </PageLayout>
   )
 }

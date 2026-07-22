@@ -74,13 +74,13 @@ export function CreateOrgDialog({ open, onOpenChange, onCreated }: CreateOrgDial
           <DialogTitle>New Organization</DialogTitle>
         </DialogHeader>
         <form role="form" onSubmit={handleSubmit}>
-          <div className="space-y-4 py-2">
+          <div className="flex flex-col gap-4 py-2">
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label htmlFor="org-display-name">Display Name</Label>
               <Input
                 id="org-display-name"
@@ -90,7 +90,7 @@ export function CreateOrgDialog({ open, onOpenChange, onCreated }: CreateOrgDial
                 autoFocus
               />
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label htmlFor="org-name">Name</Label>
               <Input
                 id="org-name"
@@ -114,7 +114,7 @@ export function CreateOrgDialog({ open, onOpenChange, onCreated }: CreateOrgDial
                 </p>
               )}
             </div>
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               <Label htmlFor="org-description">Description</Label>
               <Textarea
                 id="org-description"

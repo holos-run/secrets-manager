@@ -2,6 +2,36 @@
 
 Common patterns used across the React frontend. Follow these when adding new features to keep the UI consistent and testable.
 
+## Operator Page Layout
+
+Authenticated routes use `PageLayout` and `PageHeader` from
+`frontend/src/components/page-layout.tsx`. This creates a consistent,
+scan-friendly structure for dense resource workflows:
+
+- **32px** (`gap-8`) separates the page header from major content regions.
+- **24px** (`gap-6`) separates sections inside settings and detail cards.
+- **16px** (`gap-4`) separates controls and related field groups.
+- **8px** (`gap-2`) separates compact actions, badges, and inline controls.
+
+The page header uses an optional uppercase eyebrow for resource context, one
+`h1` title, a short description, and right-aligned primary actions. List-page
+actions belong in the page header; the table card should focus on filtering and
+resource rows. Prefer `flex` or `grid` with `gap-*` over `space-x-*` and
+`space-y-*` so the rhythm remains predictable when children are conditional.
+
+## Typography and Color
+
+Typography is token-driven in `frontend/src/app.css`. The UI stack prefers
+Inter when installed and falls back through native variable system fonts. The
+code stack prefers Berkeley Mono when installed and falls back through native
+monospace faces. Use `font-sans` for interface copy and `font-mono` for slugs,
+secret values, tokens, and machine output; do not load fonts from a CDN.
+
+Use semantic color utilities (`bg-background`, `text-muted-foreground`,
+`border-border`, `text-primary`, and component variants). Do not use raw
+Tailwind palette utilities such as `bg-yellow-500`. The console remains
+dark-only per ADR-011.
+
 ## Copy to Clipboard
 
 Use `navigator.clipboard.writeText` followed by `toast.success('Copied to clipboard')`. This combination is the standard for all copy actions in this codebase.

@@ -46,7 +46,7 @@ export function AuthenticatedLayout() {
             <Separator orientation="vertical" className="h-4" />
             <span className="font-semibold">{appName}</span>
           </header>
-          <main className="flex-1 p-4 md:p-6">
+          <main className="flex-1 px-4 py-6 md:px-8 md:py-8">
             <Outlet />
           </main>
         </SidebarInset>
