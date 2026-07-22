@@ -265,6 +265,27 @@ describe('SharingPanel', () => {
       expect(screen.getByDisplayValue('bob@example.com')).toBe(bobInput)
       expect(bobInput).toHaveFocus()
     })
+
+    it('reconciles draft rows when the parent replaces the grants', () => {
+      const props = {
+        roleGrants: [] as Grant[],
+        isOwner: true,
+        onSave: vi.fn(),
+        isSaving: false,
+        draft: true,
+        onDraftChange: vi.fn(),
+      }
+      const { rerender } = render(
+        <SharingPanel {...props} userGrants={[grant('alice@example.com', Role.OWNER)]} />,
+      )
+
+      rerender(
+        <SharingPanel {...props} userGrants={[grant('charlie@example.com', Role.EDITOR)]} />,
+      )
+
+      expect(screen.queryByDisplayValue('alice@example.com')).not.toBeInTheDocument()
+      expect(screen.getByDisplayValue('charlie@example.com')).toBeInTheDocument()
+    })
   })
 
   describe('save', () => {
