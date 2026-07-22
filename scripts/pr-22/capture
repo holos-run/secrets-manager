@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# PR #22 — capture exclusive project navigation active state and settings cards.
+#
+# Called by scripts/browser-capture-pr 22. Expects:
+#   HOLOS_BACKEND_URL, PR_SCREENSHOT_DIR
+set -euo pipefail
+
+ORG_NAME="sidebar-review-demo"
+PROJECT_NAME="sidebar-review-project"
+ORG_NAMESPACE="holos-org-$ORG_NAME"
+PROJECT_NAMESPACE="holos-prj-$PROJECT_NAME"
+
+cleanup() {
+  kubectl delete namespace "$PROJECT_NAMESPACE" "$ORG_NAMESPACE" --ignore-not-found >/dev/null
+}
+trap cleanup EXIT
+
+kubectl apply -f - <<YAML
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $ORG_NAMESPACE
+  labels:
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/organization: $ORG_NAME
+    holos.run/resource-type: organization
+  annotations:
+    holos.run/display-name: Sidebar Review Demo
+    holos.run/description: Visual verification organization
+    holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
+    holos.run/share-roles: '[]'
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $PROJECT_NAMESPACE
+  labels:
+    app.kubernetes.io/managed-by: holos.run
+    holos.run/organization: $ORG_NAME
+    holos.run/project: $PROJECT_NAME
+    holos.run/resource-type: project
+  annotations:
+    holos.run/display-name: Sidebar Review Project
+    holos.run/description: Active navigation visual verification
+    holos.run/share-users: '[{"principal":"admin@localhost","role":"owner"}]'
+    holos.run/share-roles: '[]'
+YAML
+
+AB="agent-browser --session-name holos-dev"
+
+$AB set viewport 1920 1080
+$AB eval "localStorage.setItem('holos-selected-org', '$ORG_NAME'); localStorage.setItem('holos-selected-project', '$PROJECT_NAME')"
+
+capture() {
+  local path="$1"
+  local wait_text="$2"
+  local filename="$3"
+
+  echo "==> Capturing $filename"
+  $AB open "$HOLOS_BACKEND_URL$path"
+  $AB wait --load networkidle
+  $AB wait --text "$wait_text" 2>/dev/null || $AB wait 3000
+  $AB eval "window.scrollTo(0, 0)"
+  $AB wait 750
+  $AB screenshot "$PR_SCREENSHOT_DIR/$filename"
+}
+
+capture "/projects/$PROJECT_NAME/secrets" "Secrets" "01-secrets-active.png"
+capture "/projects/$PROJECT_NAME/settings" "Project settings" "02-project-settings-active.png"
+capture "/orgs/$ORG_NAME/settings" "Organization settings" "03-org-settings.png"
+
+echo "Captured exclusive project navigation states and normalized settings cards."
