@@ -268,7 +268,7 @@ function OrgPicker() {
           className="w-full"
           onClick={() => setCreateOpen(true)}
         >
-          <Plus data-icon="inline-start" /> New Organization
+          <Plus /> New Organization
         </Button>
         <CreateOrgDialog
           open={createOpen}
@@ -347,7 +347,7 @@ function ProjectPicker() {
           className="w-full"
           onClick={() => setCreateOpen(true)}
         >
-          <Plus data-icon="inline-start" /> New Project
+          <Plus /> New Project
         </Button>
         <CreateProjectDialog
           open={createOpen}

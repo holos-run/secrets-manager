@@ -38,7 +38,7 @@ export function SecretPageActions({
       <div className="flex-1" />
       {viewMode === 'editor' && !editMode && (
         <Button variant="outline" size="sm" onClick={onEdit}>
-          <Pencil data-icon="inline-start" />
+          <Pencil />
           Edit
         </Button>
       )}

@@ -195,10 +195,10 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
               </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="icon" aria-label={isRevealed ? 'hide' : 'reveal'} onClick={() => toggleReveal(key)}>
-                  {isRevealed ? <EyeOff data-icon="inline-start" /> : <Eye data-icon="inline-start" />}
+                  {isRevealed ? <EyeOff /> : <Eye />}
                 </Button>
                 <Button variant="ghost" size="icon" aria-label="copy" onClick={() => handleCopy(rawValue)}>
-                  <Copy data-icon="inline-start" />
+                  <Copy />
                 </Button>
               </div>
             </div>
@@ -266,7 +266,7 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
               aria-label="remove row"
               onClick={() => handleRemoveRow(entry.id)}
             >
-              <Trash2 data-icon="inline-start" />
+              <Trash2 />
             </Button>
           </div>
         )
@@ -274,7 +274,7 @@ export function SecretDataGrid({ data, onChange, readOnly = false }: SecretDataG
 
       <div className="flex items-center gap-4 pt-2">
         <Button variant="outline" size="sm" onClick={handleAddRow}>
-          <Plus data-icon="inline-start" />
+          <Plus />
           Add Row
         </Button>
       </div>

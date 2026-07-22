@@ -193,6 +193,26 @@ describe('ProjectSettingsPage', () => {
       const mutateAsync = (useUpdateProject as Mock).mock.results[0].value.mutateAsync
       expect(mutateAsync).not.toHaveBeenCalled()
     })
+
+    it('keeps the description save available while the display name is saving', async () => {
+      setupMocks()
+      let finishSave!: () => void
+      const mutateAsync = vi.fn().mockImplementation(() => new Promise<void>((resolve) => {
+        finishSave = resolve
+      }))
+      ;(useUpdateProject as Mock).mockReturnValue({ mutateAsync, isPending: true })
+      render(<ProjectSettingsPage />)
+
+      fireEvent.click(screen.getByRole('button', { name: /edit display name/i }))
+      fireEvent.click(screen.getByRole('button', { name: /edit description/i }))
+      fireEvent.click(screen.getByRole('button', { name: /save display name/i }))
+
+      await waitFor(() => expect(screen.getByRole('button', { name: /save display name/i })).toBeDisabled())
+      expect(screen.getByRole('button', { name: /save description/i })).toBeEnabled()
+
+      finishSave()
+      await waitFor(() => expect(screen.queryByRole('button', { name: /save display name/i })).not.toBeInTheDocument())
+    })
   })
 
   describe('Sharing section', () => {
