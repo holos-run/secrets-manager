@@ -33,10 +33,17 @@ export interface SharingPanelProps {
   onDraftChange?: (userGrants: Grant[], roleGrants: Grant[]) => void
 }
 
-let nextGrantRowId = 0
-
 function createGrantRowId(kind: 'user' | 'role'): string {
-  return `${kind}-${nextGrantRowId++}`
+  return `${kind}-${crypto.randomUUID()}`
+}
+
+interface GrantRow {
+  id: string
+  grant: Grant
+}
+
+function createGrantRow(kind: 'user' | 'role', grant: Grant): GrantRow {
+  return { id: createGrantRowId(kind), grant }
 }
 
 function roleName(role: Role): string {
@@ -397,20 +404,26 @@ function GrantEditor({
   roleGrants: Grant[]
   onChange: (userGrants: Grant[], roleGrants: Grant[]) => void
 }) {
-  const [userRowIds, setUserRowIds] = useState(() => userGrants.map(() => createGrantRowId('user')))
-  const [roleRowIds, setRoleRowIds] = useState(() => roleGrants.map(() => createGrantRowId('role')))
+  const [userRows, setUserRows] = useState(() => userGrants.map((grant) => createGrantRow('user', grant)))
+  const [roleRows, setRoleRows] = useState(() => roleGrants.map((grant) => createGrantRow('role', grant)))
+
+  const publish = (users: GrantRow[], roles: GrantRow[]) => {
+    setUserRows(users)
+    setRoleRows(roles)
+    onChange(users.map((row) => row.grant), roles.map((row) => row.grant))
+  }
 
   const updateUser = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
-    const updated = userGrants.map((grant, grantIndex) =>
-      grantIndex === index ? { ...grant, [field]: value } : grant,
+    const updated = userRows.map((row, grantIndex) =>
+      grantIndex === index ? { ...row, grant: { ...row.grant, [field]: value } } : row,
     )
-    onChange(updated, roleGrants)
+    publish(updated, roleRows)
   }
   const updateRole = (index: number, field: keyof Grant, value: string | Role | bigint | undefined) => {
-    const updated = roleGrants.map((grant, grantIndex) =>
-      grantIndex === index ? { ...grant, [field]: value } : grant,
+    const updated = roleRows.map((row, grantIndex) =>
+      grantIndex === index ? { ...row, grant: { ...row.grant, [field]: value } } : row,
     )
-    onChange(userGrants, updated)
+    publish(userRows, updated)
   }
 
   return (
@@ -418,8 +431,8 @@ function GrantEditor({
       <div>
         <p className="mb-2 text-xs text-muted-foreground">Users</p>
         <div className="flex flex-col gap-3">
-          {userGrants.map((grant, index) => (
-            <div key={userRowIds[index]} className="flex items-center gap-2">
+          {userRows.map(({ id, grant }, index) => (
+            <div key={id} className="flex items-center gap-2">
               <Input
                 aria-label={`user ${index + 1}`}
                 placeholder="Email address"
@@ -442,8 +455,7 @@ function GrantEditor({
                 size="icon"
                 aria-label="remove"
                 onClick={() => {
-                  setUserRowIds(userRowIds.filter((_, grantIndex) => grantIndex !== index))
-                  onChange(userGrants.filter((_, grantIndex) => grantIndex !== index), roleGrants)
+                  publish(userRows.filter((_, grantIndex) => grantIndex !== index), roleRows)
                 }}
               >
                 <Trash2 />
@@ -455,8 +467,7 @@ function GrantEditor({
           variant="outline"
           size="sm"
           onClick={() => {
-            setUserRowIds([...userRowIds, createGrantRowId('user')])
-            onChange([...userGrants, { principal: '', role: Role.VIEWER }], roleGrants)
+            publish([...userRows, createGrantRow('user', { principal: '', role: Role.VIEWER })], roleRows)
           }}
         >
           Add User
@@ -465,8 +476,8 @@ function GrantEditor({
       <div>
         <p className="mb-2 text-xs text-muted-foreground">Roles</p>
         <div className="flex flex-col gap-3">
-          {roleGrants.map((grant, index) => (
-            <div key={roleRowIds[index]} className="flex items-center gap-2">
+          {roleRows.map(({ id, grant }, index) => (
+            <div key={id} className="flex items-center gap-2">
               <Input
                 aria-label={`role ${index + 1}`}
                 placeholder="Role name"
@@ -489,8 +500,7 @@ function GrantEditor({
                 size="icon"
                 aria-label="remove"
                 onClick={() => {
-                  setRoleRowIds(roleRowIds.filter((_, grantIndex) => grantIndex !== index))
-                  onChange(userGrants, roleGrants.filter((_, grantIndex) => grantIndex !== index))
+                  publish(userRows, roleRows.filter((_, grantIndex) => grantIndex !== index))
                 }}
               >
                 <Trash2 />
@@ -502,8 +512,7 @@ function GrantEditor({
           variant="outline"
           size="sm"
           onClick={() => {
-            setRoleRowIds([...roleRowIds, createGrantRowId('role')])
-            onChange(userGrants, [...roleGrants, { principal: '', role: Role.VIEWER }])
+            publish(userRows, [...roleRows, createGrantRow('role', { principal: '', role: Role.VIEWER })])
           }}
         >
           Add Role
