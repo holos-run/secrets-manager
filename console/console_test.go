@@ -14,7 +14,11 @@ func TestUIHandlerInjectsAppConfigAndTitle(t *testing.T) {
 	uiContent := fstest.MapFS{
 		"index.html": {Data: []byte("<html><head><title>Holos Secrets Manager</title></head><body></body></html>")},
 	}
-	handler := newUIHandler(uiContent, nil, AppConfig{AppName: "Acme & Sons <Secrets>"})
+	handler := securityHeaders(
+		newUIHandler(uiContent, nil, AppConfig{AppName: "Acme & Sons <Secrets>"}),
+		"https://console.example.com",
+		"",
+	)
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
@@ -24,7 +28,7 @@ func TestUIHandlerInjectsAppConfigAndTitle(t *testing.T) {
 	if !strings.Contains(body, "<title>Acme &amp; Sons &lt;Secrets&gt;</title>") {
 		t.Errorf("response title was not replaced safely: %s", body)
 	}
-	if !strings.Contains(body, `<script>window.__APP_CONFIG__={"app_name":"Acme \u0026 Sons \u003cSecrets\u003e"};</script>`) {
+	if !strings.Contains(body, `window.__APP_CONFIG__={"app_name":"Acme \u0026 Sons \u003cSecrets\u003e"};</script>`) {
 		t.Errorf("response did not include app config: %s", body)
 	}
 }
@@ -33,7 +37,11 @@ func TestUIHandlerDefaultsEmptyAppName(t *testing.T) {
 	uiContent := fstest.MapFS{
 		"index.html": {Data: []byte("<html><head><title>Holos Secrets Manager</title></head><body></body></html>")},
 	}
-	handler := newUIHandler(uiContent, nil, AppConfig{})
+	handler := securityHeaders(
+		newUIHandler(uiContent, nil, AppConfig{}),
+		"https://console.example.com",
+		"",
+	)
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 

@@ -46,7 +46,10 @@ func TestSecurityHeaders(t *testing.T) {
 				"X-Frame-Options":           "DENY",
 				"Referrer-Policy":           "no-referrer",
 				"Permissions-Policy":        "camera=(), microphone=(), geolocation=()",
-				"Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+				"Strict-Transport-Security": "max-age=31536000",
+			}
+			if test.path == "/" {
+				wantHeaders["Cache-Control"] = "no-store"
 			}
 			for name, want := range wantHeaders {
 				if got := rec.Header().Get(name); got != want {
@@ -175,6 +178,16 @@ func TestExternalOrigin(t *testing.T) {
 			issuer:        "HTTPS://CONSOLE.EXAMPLE.COM/dex",
 		},
 		{
+			name:          "default HTTPS port is same origin",
+			consoleOrigin: "https://console.example.com",
+			issuer:        "https://console.example.com:443/dex",
+		},
+		{
+			name:          "default HTTP port is same origin",
+			consoleOrigin: "http://console.example.com:80",
+			issuer:        "http://console.example.com/dex",
+		},
+		{
 			name:          "credential-bearing issuer is rejected",
 			consoleOrigin: "https://console.example.com",
 			issuer:        "https://user:password@identity.example.net/realms/holos",
@@ -190,5 +203,20 @@ func TestExternalOrigin(t *testing.T) {
 				t.Errorf("externalOrigin(%q, %q) = %q, want %q", test.consoleOrigin, test.issuer, got, test.want)
 			}
 		})
+	}
+}
+
+func TestUIHandlerRequiresSecurityMiddleware(t *testing.T) {
+	uiContent := fstest.MapFS{
+		"index.html": {Data: []byte("<html><head><title>Secrets</title></head><body></body></html>")},
+	}
+	handler := newUIHandler(uiContent, nil, AppConfig{})
+	req := httptest.NewRequest(http.MethodGet, "https://console.example.com/", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
 	}
 }
