@@ -563,7 +563,7 @@ func securityHeaders(next http.Handler, consoleOrigin, issuer string) http.Handl
 		w.Header().Set("Referrer-Policy", "no-referrer")
 		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
 		if r.TLS != nil {
-			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+			w.Header().Set("Strict-Transport-Security", "max-age=31536000")
 		}
 
 		w.Header().Set("Content-Security-Policy", contentSecurityPolicy("", issuerOrigin))
@@ -623,20 +623,30 @@ func parsedOrigin(rawURL string) string {
 	if parsed.User != nil || (scheme != "https" && scheme != "http") || parsed.Host == "" {
 		return ""
 	}
-	origin := scheme + "://" + strings.ToLower(parsed.Host)
+	hostname := strings.ToLower(parsed.Hostname())
+	if hostname == "" {
+		return ""
+	}
+	port := parsed.Port()
+	if (scheme == "https" && port == "443") || (scheme == "http" && port == "80") {
+		port = ""
+	}
+	host := hostname
+	if port != "" {
+		host = net.JoinHostPort(hostname, port)
+	} else if strings.Contains(hostname, ":") {
+		host = "[" + hostname + "]"
+	}
+	origin := scheme + "://" + host
 	if strings.ContainsAny(origin, " \t\r\n;'\"") {
 		return ""
 	}
 	return origin
 }
 
-func scriptNonceFromContext(ctx context.Context) (string, string, error) {
+func securityContextFromContext(ctx context.Context) (*requestSecurityContext, bool) {
 	securityContext, _ := ctx.Value(requestSecurityContextKey{}).(*requestSecurityContext)
-	if securityContext == nil {
-		return "", "", nil
-	}
-	nonce, err := securityContext.nonce()
-	return nonce, securityContext.issuerOrigin, err
+	return securityContext, securityContext != nil
 }
 
 func newUIHandler(uiContent fs.FS, oidcConfig *OIDCConfig, appConfig AppConfig) *uiHandler {
@@ -664,6 +674,12 @@ func (h *uiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
+	securityContext, ok := securityContextFromContext(r.Context())
+	if !ok {
+		http.Error(w, "missing response security context", http.StatusInternalServerError)
+		return
+	}
+
 	// Read index.html
 	data, err := fs.ReadFile(h.fs, "index.html")
 	if err != nil {
@@ -673,16 +689,14 @@ func (h *uiHandler) serveIndex(w http.ResponseWriter, r *http.Request) {
 
 	data = replaceHTMLTitle(data, h.appConfig.AppName)
 
-	nonceAttribute := ""
-	nonce, issuerOrigin, err := scriptNonceFromContext(r.Context())
+	nonce, err := securityContext.nonce()
 	if err != nil {
 		http.Error(w, "failed to generate response nonce", http.StatusInternalServerError)
 		return
 	}
-	if nonce != "" {
-		nonceAttribute = ` nonce="` + html.EscapeString(nonce) + `"`
-		w.Header().Set("Content-Security-Policy", contentSecurityPolicy(nonce, issuerOrigin))
-	}
+	nonceAttribute := ` nonce="` + html.EscapeString(nonce) + `"`
+	w.Header().Set("Content-Security-Policy", contentSecurityPolicy(nonce, securityContext.issuerOrigin))
+	w.Header().Set("Cache-Control", "no-store")
 
 	appConfigJSON, err := json.Marshal(h.appConfig)
 	if err == nil {
