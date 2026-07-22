@@ -7,6 +7,8 @@ import {
   loginViaProfilePage,
 } from './helpers'
 
+const backendURL = `https://localhost:${process.env.HOLOS_BACKEND_PORT || '8443'}`
+
 /**
  * E2E tests for OIDC authentication flow.
  *
@@ -19,6 +21,27 @@ import {
  */
 
 test.describe('Authentication', () => {
+  test('should complete OIDC login from the CSP-protected embedded console', async ({
+    page,
+  }) => {
+    const cspViolations: string[] = []
+    page.on('console', (message) => {
+      if (message.text().toLowerCase().includes('content security policy')) {
+        cspViolations.push(message.text())
+      }
+    })
+
+    const response = await page.goto(backendURL)
+    expect(response?.headers()['content-security-policy']).toContain("default-src 'self'")
+    expect(response?.headers()['content-security-policy']).not.toContain(
+      "script-src 'self' 'unsafe-inline'",
+    )
+
+    await expect(page).toHaveURL(new RegExp(`${backendURL}/profile`), { timeout: 15000 })
+    await expect(page.getByText('ID Token Status')).toBeVisible({ timeout: 10000 })
+    expect(cspViolations).toEqual([])
+  })
+
   test('should auto-login unauthenticated users via OIDC', async ({ page }) => {
     await page.goto('/')
 
