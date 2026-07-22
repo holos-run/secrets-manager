@@ -172,6 +172,18 @@ OIDC PKCE flow: Requires `--enable-insecure-dex` flag for embedded Dex at `/dex/
 
 Backend auth: `LazyAuthInterceptor` in `console/rpc/auth.go` verifies JWTs from the `Authorization: Bearer` header and stores `rpc.Claims` in context. Lazy initialization avoids startup race with embedded Dex.
 
+#### Embedded Dex review scope
+
+Embedded Dex is a development and test convenience. It is prohibited and unsupported in
+production; production deployments must use an external OIDC provider.
+
+Code-review findings that exclusively affect the embedded Dex handler, its auto-login or password
+login flow, or development/E2E use of `--enable-insecure-dex` are accepted risk and non-blocking.
+Classify those findings as style when they have no effect outside that scope. This exception does
+not apply to external OIDC providers, the production console, JWT validation, token or session
+handling, authorization, or any other production security path. Critical or important findings in
+those paths remain blocking. See ADR-008 for the accepted-risk boundary.
+
 ### RBAC
 
 Three-tier access control model evaluated in order (highest role wins):
