@@ -162,3 +162,31 @@ test.describe('Phase 4: Navigation friction removal', () => {
     await apiDeleteOrg(page, orgName)
   })
 })
+
+test.describe('Sidebar content overflow', () => {
+  test('sidebar content region has no horizontal overflow scrollbar', async ({ page }) => {
+    await loginViaProfilePage(page)
+
+    // On mobile, open the sidebar drawer so the content region renders
+    const sidebarTrigger = page.getByRole('button', { name: /toggle sidebar/i })
+    if (await sidebarTrigger.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await sidebarTrigger.click()
+    }
+
+    const content = page.locator('[data-sidebar="content"]')
+    await expect(content).toBeVisible({ timeout: 5000 })
+
+    // Horizontal overflow must be clipped, never scrollable
+    await expect(content).toHaveCSS('overflow-x', 'hidden')
+
+    // No horizontal overflow: nothing to scroll to, so no scrollbar can render
+    const { scrollWidth, clientWidth } = await content.evaluate((el) => ({
+      scrollWidth: el.scrollWidth,
+      clientWidth: el.clientWidth,
+    }))
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
+
+    // Vertical scrolling remains available when content exceeds the viewport
+    await expect(content).toHaveCSS('overflow-y', 'auto')
+  })
+})
