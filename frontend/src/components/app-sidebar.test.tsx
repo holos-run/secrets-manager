@@ -5,6 +5,7 @@ import React from 'react'
 
 // Mock router and sidebar dependencies
 const mockNavigate = vi.fn()
+let mockPathname = '/'
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
@@ -29,7 +30,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
       }
       return <a href={href} {...props}>{children}</a>
     },
-    useRouter: () => ({ state: { location: { pathname: '/' } }, navigate: mockNavigate }),
+    useRouter: () => ({ state: { location: { pathname: mockPathname } }, navigate: mockNavigate }),
     useNavigate: () => vi.fn(),
   }
 })
@@ -89,6 +90,7 @@ import { useVersion } from '@/queries/version'
 import { AppSidebar } from './app-sidebar'
 
 function setDefaults() {
+  mockPathname = '/'
   ;(useOrg as Mock).mockReturnValue({
     organizations: [],
     selectedOrg: null,
@@ -348,5 +350,31 @@ describe('AppSidebar — project selected', () => {
     const labels = screen.getAllByTestId('sidebar-group-label')
     const labelTexts = labels.map((l) => l.textContent)
     expect(labelTexts).toContain('My Org')
+  })
+
+  it('marks only Secrets active on the exact Secrets path', () => {
+    mockPathname = '/projects/my-project/secrets'
+    render(<AppSidebar />)
+
+    expect(screen.getByRole('link', { name: /^secrets$/i })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(screen.getByRole('link', { name: /^project settings$/i })).not.toHaveAttribute(
+      'aria-current',
+    )
+  })
+
+  it('marks only Project Settings active on a descendant settings path', () => {
+    mockPathname = '/projects/my-project/settings/access'
+    render(<AppSidebar />)
+
+    expect(screen.getByRole('link', { name: /^project settings$/i })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(screen.getByRole('link', { name: /^secrets$/i })).not.toHaveAttribute(
+      'aria-current',
+    )
   })
 })

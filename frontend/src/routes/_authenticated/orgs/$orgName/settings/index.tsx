@@ -109,12 +109,12 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
       <PageLayout>
         <PageHeader eyebrow={`${orgName} / Settings`} title="Organization settings" />
         <Card>
-        <CardContent className="flex flex-col gap-4 pt-6">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </CardContent>
+          <CardContent className="flex flex-col gap-4 pt-6">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </CardContent>
         </Card>
       </PageLayout>
     )
@@ -125,11 +125,11 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
       <PageLayout>
         <PageHeader eyebrow={`${orgName} / Settings`} title="Organization settings" />
         <Card>
-        <CardContent className="pt-6">
-          <Alert variant="destructive">
-            <AlertDescription>{error.message}</AlertDescription>
-          </Alert>
-        </CardContent>
+          <CardContent className="pt-6">
+            <Alert variant="destructive">
+              <AlertDescription>{error.message}</AlertDescription>
+            </Alert>
+          </CardContent>
         </Card>
       </PageLayout>
     )
@@ -148,82 +148,82 @@ export function OrgSettingsPage({ orgName: propOrgName }: { orgName?: string } =
         description="Manage organization metadata, access grants, and lifecycle controls."
       />
       <Card>
-      <CardContent className="flex flex-col gap-6 pt-6">
+        <CardContent className="flex flex-col gap-6 pt-6">
 
-        {/* General section */}
-        <div className="flex flex-col gap-4">
-          <h3 className="text-sm font-medium">General</h3>
-          <Separator />
-
-          <InlineEditField
-            label="Display Name"
-            value={displayName}
-            emptyText="No display name"
-            onSave={handleSaveDisplayName}
-            isSaving={isSavingDisplayName}
-          />
-
-          {/* Name (slug) - read-only */}
-          <div className="flex items-center gap-2">
-            <span className="w-32 text-sm text-muted-foreground shrink-0">Name (slug)</span>
-            <span className="flex-1 text-sm font-mono">{orgName}</span>
-          </div>
-
-          <InlineEditField
-            label="Description"
-            value={description}
-            emptyText="No description"
-            multiline
-            onSave={handleSaveDescription}
-            isSaving={isSavingDescription}
-          />
-        </div>
-
-        {/* Sharing section */}
-        <SharingPanel
-          userGrants={userGrants}
-          roleGrants={roleGrants}
-          isOwner={isOwner}
-          onSave={handleSaveSharing}
-          isSaving={updateOrganizationSharing.isPending}
-        />
-
-        {/* Danger Zone */}
-        {isOwner && (
+          {/* General section */}
           <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
+            <h3 className="text-sm font-medium">General</h3>
             <Separator />
-            <Button
-              variant="destructive"
-              onClick={() => setDeleteOpen(true)}
-            >
-              Delete Organization
-            </Button>
-          </div>
-        )}
-      </CardContent>
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Organization</DialogTitle>
-            <DialogDescription>
-              This will permanently delete {orgName} and all its projects. This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          {deleteOrganization.error && (
-            <Alert variant="destructive">
-              <AlertDescription>{deleteOrganization.error.message}</AlertDescription>
-            </Alert>
+            <InlineEditField
+              label="Display Name"
+              value={displayName}
+              emptyText="No display name"
+              onSave={handleSaveDisplayName}
+              isSaving={isSavingDisplayName}
+            />
+
+            {/* Name (slug) - read-only */}
+            <div className="flex items-center gap-2">
+              <span className="w-32 text-sm text-muted-foreground shrink-0">Name (slug)</span>
+              <span className="flex-1 text-sm font-mono">{orgName}</span>
+            </div>
+
+            <InlineEditField
+              label="Description"
+              value={description}
+              emptyText="No description"
+              multiline
+              onSave={handleSaveDescription}
+              isSaving={isSavingDescription}
+            />
+          </div>
+
+          {/* Sharing section */}
+          <SharingPanel
+            userGrants={userGrants}
+            roleGrants={roleGrants}
+            isOwner={isOwner}
+            onSave={handleSaveSharing}
+            isSaving={updateOrganizationSharing.isPending}
+          />
+
+          {/* Danger Zone */}
+          {isOwner && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
+              <Separator />
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                Delete Organization
+              </Button>
+            </div>
           )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleteOrganization.isPending}>
-              {deleteOrganization.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Organization</DialogTitle>
+              <DialogDescription>
+                This will permanently delete {orgName} and all its projects. This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            {deleteOrganization.error && (
+              <Alert variant="destructive">
+                <AlertDescription>{deleteOrganization.error.message}</AlertDescription>
+              </Alert>
+            )}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={deleteOrganization.isPending}>
+                {deleteOrganization.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Card>
     </PageLayout>
   )

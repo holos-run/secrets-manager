@@ -69,6 +69,40 @@ test.describe('Sidebar Project Picker navigation', () => {
   })
 })
 
+test.describe('Sidebar project navigation active state', () => {
+  test('activates exactly one project navigation item', async ({ page }) => {
+    await loginViaProfilePage(page)
+
+    const orgName = `e2e-active-nav-org-${Date.now()}`
+    const projectName = `e2e-active-nav-prj-${Date.now()}`
+
+    await apiCreateOrg(page, orgName)
+    await selectOrg(page, orgName)
+    await apiCreateProject(page, projectName, orgName)
+
+    try {
+      await selectOrg(page, orgName)
+      const projectPicker = page.getByRole('button', {
+        name: /select project|no projects|all projects/i,
+      })
+      await projectPicker.click()
+      await page.getByRole('menuitem', { name: projectName }).click()
+
+      const secretsLink = page.getByRole('link', { name: /^secrets$/i })
+      const settingsLink = page.getByRole('link', { name: /^project settings$/i })
+      await expect(secretsLink).toHaveAttribute('aria-current', 'page')
+      await expect(settingsLink).not.toHaveAttribute('aria-current', 'page')
+
+      await page.goto(`/projects/${projectName}/settings`)
+      await expect(settingsLink).toHaveAttribute('aria-current', 'page')
+      await expect(secretsLink).not.toHaveAttribute('aria-current', 'page')
+    } finally {
+      await apiDeleteProject(page, projectName)
+      await apiDeleteOrg(page, orgName)
+    }
+  })
+})
+
 test.describe('Phase 4: Navigation friction removal', () => {
   test('full flow via sidebar pickers reaches secrets grid in 2 clicks', async ({ page }) => {
     await loginViaProfilePage(page)
