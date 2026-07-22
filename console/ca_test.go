@@ -142,8 +142,9 @@ func TestHTTPClientWithCA_MkcertCerts(t *testing.T) {
 	srv.StartTLS()
 	defer srv.Close()
 
-	// Client WITHOUT mkcert CA should fail
-	badClient := httpClientWithCA(nil)
+	// Use an explicitly empty pool so this assertion is independent of whether
+	// the developer has installed the mkcert root in the system trust store.
+	badClient := httpClientWithCA(x509.NewCertPool())
 	_, err = badClient.Get(srv.URL)
 	if err == nil {
 		t.Fatal("expected TLS error without mkcert CA, but connection succeeded")
