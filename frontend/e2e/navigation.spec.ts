@@ -25,8 +25,8 @@ import {
 
 async function createSecret(page: import('@playwright/test').Page, projectName: string, secretName: string) {
   await page.goto(`/projects/${projectName}/secrets`)
-  await page.getByRole('button', { name: /create secret/i }).waitFor({ timeout: 5000 })
-  await page.getByRole('button', { name: /create secret/i }).click()
+  await page.getByTestId('page-header').getByRole('button', { name: /create secret/i }).waitFor({ timeout: 5000 })
+  await page.getByTestId('page-header').getByRole('button', { name: /create secret/i }).click()
   await page.getByPlaceholder('my-secret').fill(secretName)
   await page.getByRole('button', { name: /^create$/i }).click()
   await expect(page.getByRole('link', { name: secretName })).toBeVisible({ timeout: 10000 })
