@@ -163,14 +163,14 @@ Key files:
 - `frontend/src/routes/__root.tsx` - Root layout with sidebar navigation
 - `frontend/src/routes/_authenticated.tsx` - Auth layout with OIDC redirect
 - `frontend/src/lib/auth.ts` - Auth context with OIDC PKCE flow
-- `frontend/src/lib/transport.ts` - ConnectRPC transport setup with Bearer token injection
+- `frontend/src/lib/transport.ts` - ConnectRPC transport setup with ID token Bearer injection
 - `frontend/src/routes/` - File-based route definitions
 
 ### Authentication
 
-OIDC PKCE flow: Requires `--enable-insecure-dex` flag for embedded Dex at `/dex/`, or an external OIDC provider configured with `--issuer`. Tokens stored in session storage, sent as `Authorization: Bearer` headers. Default credentials: `admin` / `verysecret` (override with `HOLOS_DEX_INITIAL_ADMIN_USERNAME`/`PASSWORD` env vars).
+OIDC PKCE flow: Requires `--enable-insecure-dex` flag for embedded Dex at `/dex/`, or an external OIDC provider configured with `--issuer`. Tokens stored in session storage. The OIDC ID token (never the access token) is sent as the `Authorization: Bearer` header; see `docs/authentication.md`. Default credentials: `admin` / `verysecret` (override with `HOLOS_DEX_INITIAL_ADMIN_USERNAME`/`PASSWORD` env vars).
 
-Backend auth: `LazyAuthInterceptor` in `console/rpc/auth.go` verifies JWTs from the `Authorization: Bearer` header and stores `rpc.Claims` in context. Lazy initialization avoids startup race with embedded Dex.
+Backend auth: `LazyAuthInterceptor` in `console/rpc/auth.go` verifies the OIDC ID token from the `Authorization: Bearer` header (go-oidc ID token verifier, `aud` must contain the client ID) and stores `rpc.Claims` in context. Lazy initialization avoids startup race with embedded Dex.
 
 #### Embedded Dex review scope
 

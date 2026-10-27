@@ -83,18 +83,21 @@ export async function loginViaProfilePage(page: Page): Promise<void> {
 }
 
 /**
- * Extract the OIDC access token and user email from sessionStorage.
+ * Extract the OIDC ID token and user email from sessionStorage.
+ *
+ * The ID token, never the access token, is the Authorization: Bearer
+ * credential for RPCs, matching the SPA transport (src/lib/transport.ts).
  */
 async function getRpcAuth(page: Page): Promise<{ token: string; email: string }> {
   return page.evaluate(() => {
     const key = Object.keys(sessionStorage).find((k) => k.startsWith('oidc.user:'))
     if (!key) throw new Error('No OIDC session found in sessionStorage')
     const data = JSON.parse(sessionStorage.getItem(key)!) as {
-      access_token?: string
+      id_token?: string
       profile?: { email?: string }
     }
-    if (!data?.access_token) throw new Error('No access_token in OIDC session')
-    return { token: data.access_token, email: data.profile?.email ?? '' }
+    if (!data?.id_token) throw new Error('No id_token in OIDC session')
+    return { token: data.id_token, email: data.profile?.email ?? '' }
   })
 }
 
