@@ -17,7 +17,9 @@ export interface AuthContextValue {
   isAuthenticated: boolean
   login: (returnTo?: string) => Promise<void>
   logout: () => Promise<void>
-  getAccessToken: () => string | null
+  // getIdToken returns the OIDC ID token, the only credential the console
+  // sends as Authorization: Bearer. Never send the access token.
+  getIdToken: () => string | null
   refreshTokens: () => Promise<void>
   lastRefreshStatus: 'idle' | 'success' | 'error'
   lastRefreshTime: Date | null
@@ -81,8 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [userManager])
 
+  // Keep the transport's bearer in sync with the current user. This runs after
+  // login, logout, and every token refresh (userLoaded event or
+  // refreshTokens), so RPCs always carry the latest ID token. oidc-client-ts
+  // replaces user.id_token when the refresh response includes a new one.
   useEffect(() => {
-    tokenRef.current = user?.access_token ?? null
+    tokenRef.current = user?.id_token ?? null
   }, [user])
 
   const login = useCallback(
@@ -111,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [userManager])
 
-  const getAccessToken = useCallback(() => user?.access_token ?? null, [user])
+  const getIdToken = useCallback(() => user?.id_token ?? null, [user])
 
   const refreshTokens = useCallback(async () => {
     try {
@@ -140,13 +146,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!user && !user.expired,
       login,
       logout,
-      getAccessToken,
+      getIdToken,
       refreshTokens,
       lastRefreshStatus,
       lastRefreshTime,
       lastRefreshError,
     }),
-    [user, isLoading, error, login, logout, getAccessToken, refreshTokens, lastRefreshStatus, lastRefreshTime, lastRefreshError],
+    [user, isLoading, error, login, logout, getIdToken, refreshTokens, lastRefreshStatus, lastRefreshTime, lastRefreshError],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -77,6 +77,7 @@ export HOLOS_DEX_INITIAL_ADMIN_USERNAME=myuser
 5. **Authorization Code Returned** - Dex redirects to `/pkce/verify` with code
 6. **Token Exchange** - Callback component exchanges code for tokens via `/dex/token`
 7. **Session Established** - Tokens stored in session storage, user redirected to app
+8. **RPCs Authenticated** - The SPA sends the ID token as `Authorization: Bearer <id_token>` on every request
 
 ## CLI Flags
 
@@ -151,16 +152,18 @@ function LoginButton() {
 }
 ```
 
-### Getting Access Tokens for API Calls
+### Getting the ID Token for API Calls
+
+RPCs issued through the shared ConnectRPC transport (`frontend/src/lib/transport.ts`) already carry the bearer. For any other request, use `getIdToken()`:
 
 ```tsx
 import { useAuth } from './auth'
 
 function MyComponent() {
-  const { getAccessToken } = useAuth()
+  const { getIdToken } = useAuth()
 
   const fetchData = async () => {
-    const token = getAccessToken()
+    const token = getIdToken()
     const response = await fetch('/api/endpoint', {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -170,6 +173,20 @@ function MyComponent() {
   }
 }
 ```
+
+## Bearer Token: Send the ID Token, Not the Access Token
+
+Every authenticated request carries the OIDC **ID token** as `Authorization: Bearer <id_token>`. Clients must not send the OAuth access token. This applies to the SPA transport, any direct `fetch` from the SPA, the Playwright helpers, and scripts or tools that call the API.
+
+Why:
+
+- **Access tokens are opaque to the client.** OAuth 2.0 defines the access token as a credential whose format the client does not interpret ([RFC 6749, Section 1.4](https://datatracker.ietf.org/doc/html/rfc6749#section-1.4)). Its format and claims vary by provider: Dex issues JWT access tokens with the client ID as `aud`, while Keycloak issues access tokens with no `aud` (or `aud: account`) unless an audience mapper is configured.
+- **ID tokens are well defined.** OpenID Connect requires the ID token to be a signed JWT with specified claims, including `iss`, `sub`, `aud` (which must contain the client ID), and `exp`, plus `email` and `groups` when the corresponding scopes are requested ([OpenID Connect Core 1.0, Section 2](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)).
+- **The server verifies an ID token.** `LazyAuthInterceptor` in `console/rpc/auth.go` uses the go-oidc ID token verifier (`oidc.Config{ClientID: clientID}`), which rejects any token whose `aud` does not contain `--client-id`. An access token from Keycloak fails this check, so sending it makes every RPC return `Unauthenticated`. See [SECURITY.md](../SECURITY.md) for each validation step.
+
+On token refresh, the SPA requests the `openid` scope so the provider returns a new ID token with the refreshed tokens. oidc-client-ts replaces `user.id_token` with the new one and `AuthProvider` updates the transport bearer. If a provider does not return an ID token on refresh, oidc-client-ts keeps the previous one, which is rejected once its `exp` passes.
+
+The SPA treats a stored ID token as expired according to its own `exp` claim, not the access token's `expires_at`.
 
 ## Security Considerations
 
