@@ -45,11 +45,11 @@ test.describe('Secrets Page', () => {
 
     // Navigate to secrets list for this project
     await page.goto(`/projects/${projectName}/secrets`)
-    await expect(page.getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByTestId('page-header').getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
 
     // Create a new secret
     const secretName = `e2e-sharing-${Date.now()}`
-    await page.getByRole('button', { name: /create secret/i }).click()
+    await page.getByTestId('page-header').getByRole('button', { name: /create secret/i }).click()
     await page.getByPlaceholder('my-secret').fill(secretName)
     await page.getByPlaceholder('key').fill('.env')
     await page.getByPlaceholder('value').fill('TEST_KEY=test_value')
@@ -118,10 +118,10 @@ test.describe('Secrets Page', () => {
 
     // Navigate to secrets list and create a test secret
     await page.goto(`/projects/${projectName}/secrets`)
-    await expect(page.getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByTestId('page-header').getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
 
     const secretName = `e2e-share-update-${Date.now()}`
-    await page.getByRole('button', { name: /create secret/i }).click()
+    await page.getByTestId('page-header').getByRole('button', { name: /create secret/i }).click()
     await page.getByPlaceholder('my-secret').fill(secretName)
     // The create dialog already shows one empty key-value row
     await page.getByPlaceholder('key').fill('.env')
@@ -178,11 +178,11 @@ test.describe('Secrets Page', () => {
 
     // Navigate to secrets list
     await page.goto(`/projects/${projectName}/secrets`)
-    await expect(page.getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByTestId('page-header').getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
 
     // Create a test secret
     const secretName = `e2e-list-summary-${Date.now()}`
-    await page.getByRole('button', { name: /create secret/i }).click()
+    await page.getByTestId('page-header').getByRole('button', { name: /create secret/i }).click()
     await page.getByPlaceholder('my-secret').fill(secretName)
     await page.getByRole('button', { name: /^create$/i }).click()
 
@@ -215,9 +215,9 @@ test.describe('Secrets Page', () => {
 
     // Create a secret with no data (skip Add Key, just name and submit)
     await page.goto(`/projects/${projectName}/secrets`)
-    await expect(page.getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByTestId('page-header').getByRole('button', { name: /create secret/i })).toBeVisible({ timeout: 5000 })
     const secretName = `e2e-empty-${Date.now()}`
-    await page.getByRole('button', { name: /create secret/i }).click()
+    await page.getByTestId('page-header').getByRole('button', { name: /create secret/i }).click()
     await page.getByPlaceholder('my-secret').fill(secretName)
     // Do NOT click Add Key — create an empty secret
     await page.getByRole('button', { name: /^create$/i }).click()
