@@ -85,6 +85,20 @@ func newFakeOIDCServer(t *testing.T) *fakeOIDCServer {
 // signToken creates a signed JWT with the given subject and audience.
 func (f *fakeOIDCServer) signToken(t *testing.T, subject, audience string) string {
 	t.Helper()
+	now := time.Now()
+	return f.signClaims(t, jwt.Claims{
+		Issuer:    f.Server.URL,
+		Subject:   subject,
+		Audience:  jwt.Audience{audience},
+		IssuedAt:  jwt.NewNumericDate(now),
+		Expiry:    jwt.NewNumericDate(now.Add(time.Hour)),
+		NotBefore: jwt.NewNumericDate(now),
+	})
+}
+
+// signClaims creates a signed JWT carrying exactly the given claims.
+func (f *fakeOIDCServer) signClaims(t *testing.T, claims jwt.Claims) string {
+	t.Helper()
 
 	signerOpts := jose.SignerOptions{}
 	signerOpts.WithHeader(jose.HeaderKey("kid"), f.KeyID)
@@ -95,16 +109,6 @@ func (f *fakeOIDCServer) signToken(t *testing.T, subject, audience string) strin
 	}, &signerOpts)
 	if err != nil {
 		t.Fatalf("creating signer: %v", err)
-	}
-
-	now := time.Now()
-	claims := jwt.Claims{
-		Issuer:    f.Server.URL,
-		Subject:   subject,
-		Audience:  jwt.Audience{audience},
-		IssuedAt:  jwt.NewNumericDate(now),
-		Expiry:    jwt.NewNumericDate(now.Add(time.Hour)),
-		NotBefore: jwt.NewNumericDate(now),
 	}
 
 	token, err := jwt.Signed(signer).Claims(claims).Serialize()
@@ -200,5 +204,51 @@ func TestLazyAuthInterceptor_CachesAfterSuccess(t *testing.T) {
 	_, err = handler(context.Background(), newTestRequest(token))
 	if err != nil {
 		t.Fatalf("third request failed: %v", err)
+	}
+}
+
+// TestLazyAuthInterceptor_RequiresIDToken asserts that the bearer must be an
+// OIDC ID token whose aud contains the client ID. Access tokens are opaque to
+// the client (RFC 6749, Section 1.4) and providers such as Keycloak issue them
+// without the client ID in aud, so they must be rejected. The SPA therefore
+// sends the ID token (frontend/src/lib/transport.ts).
+func TestLazyAuthInterceptor_RequiresIDToken(t *testing.T) {
+	fake := newFakeOIDCServer(t)
+	defer fake.Server.Close()
+
+	clientID := "test-client"
+	handler := LazyAuthInterceptor(fake.Server.URL, clientID, "groups", fake.Server.Client())(noopHandler)
+	now := time.Now()
+
+	tests := []struct {
+		name     string
+		audience jwt.Audience
+		wantOK   bool
+	}{
+		{name: "id token with client id audience", audience: jwt.Audience{clientID}, wantOK: true},
+		{name: "access token without audience", audience: nil, wantOK: false},
+		{name: "access token with account audience", audience: jwt.Audience{"account"}, wantOK: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token := fake.signClaims(t, jwt.Claims{
+				Issuer:    fake.Server.URL,
+				Subject:   "user-1",
+				Audience:  tt.audience,
+				IssuedAt:  jwt.NewNumericDate(now),
+				Expiry:    jwt.NewNumericDate(now.Add(time.Hour)),
+				NotBefore: jwt.NewNumericDate(now),
+			})
+			_, err := handler(context.Background(), newTestRequest(token))
+			if tt.wantOK {
+				if err != nil {
+					t.Fatalf("expected success, got %v", err)
+				}
+				return
+			}
+			if connect.CodeOf(err) != connect.CodeUnauthenticated {
+				t.Fatalf("expected CodeUnauthenticated, got %v", err)
+			}
+		})
 	}
 }

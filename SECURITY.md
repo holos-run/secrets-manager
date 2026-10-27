@@ -6,6 +6,8 @@ This document describes how secrets-manager validates OIDC ID tokens and how eac
 
 secrets-manager validates ID tokens using the [go-oidc](https://github.com/coreos/go-oidc) library (v3). Token validation occurs in the `LazyAuthInterceptor` ConnectRPC interceptor, which protects RPC endpoints that require authentication.
 
+Clients send the ID token, not the OAuth access token, as `Authorization: Bearer <id_token>`. Access tokens are opaque to the client ([RFC 6749, Section 1.4](https://datatracker.ietf.org/doc/html/rfc6749#section-1.4)) and their audience is provider-specific (Keycloak access tokens do not carry the client ID in `aud`), so they fail the audience check below. See [docs/authentication.md](docs/authentication.md#bearer-token-send-the-id-token-not-the-access-token).
+
 ## Validation Flow
 
 ```
