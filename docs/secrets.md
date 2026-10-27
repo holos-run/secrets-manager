@@ -157,7 +157,7 @@ With `envFrom`, each key in the secret becomes an environment variable name. Cho
 
 ## Programmatic Access
 
-The `SecretsService` ConnectRPC API provides programmatic access to secrets. All RPCs require authentication via an `Authorization: Bearer <id_token>` header.
+The `SecretsService` ConnectRPC API provides programmatic access to secrets. All RPCs require authentication via an `Authorization: Bearer <id_token>` header. The bearer must be the OIDC ID token, not the OAuth access token: the server verifies it as an ID token whose `aud` contains the client ID, and access tokens are opaque with provider-specific audiences (Keycloak access tokens do not carry the client ID). See [Bearer Token](authentication.md#bearer-token-send-the-id-token-not-the-access-token).
 
 | RPC | Required Role | Description |
 |---|---|---|
