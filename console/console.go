@@ -34,7 +34,7 @@ import (
 	"connectrpc.com/grpcreflect"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
+	"golang.org/x/net/http2/h2c" //nolint:staticcheck // deprecated in x/net v0.62; migrating to http.Server.Protocols is a separate change
 
 	"github.com/holos-run/secrets-manager/console/oidc"
 	"github.com/holos-run/secrets-manager/console/organizations"
@@ -390,7 +390,7 @@ func (s *Server) Serve(ctx context.Context) error {
 	mux.Handle("/metrics", promhttp.Handler())
 
 	// Wrap with h2c for HTTP/2 cleartext support (needed for gRPC over HTTP/2)
-	h2cHandler := h2c.NewHandler(mux, &http2.Server{})
+	h2cHandler := h2c.NewHandler(mux, &http2.Server{}) //nolint:staticcheck // see import comment
 	loggedHandler := logRequests(securityHeaders(h2cHandler, s.cfg.Origin, s.cfg.Issuer), s.cfg.LogHealthChecks)
 
 	server := &http.Server{
